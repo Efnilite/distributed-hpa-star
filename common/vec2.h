@@ -9,6 +9,6 @@ typedef struct vec2_t
     uint16_t y;
 } Vec2;
 
-
+float vec2_distance(Vec2 a, Vec2 b);
 
 #endif
