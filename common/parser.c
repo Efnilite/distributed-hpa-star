@@ -65,6 +65,8 @@ Map parse_map(const char* file_name)
         }
     }
 
+    fclose(file);
+
     return (Map){
         .w = w, .h = h, .coordinates = map
     };
