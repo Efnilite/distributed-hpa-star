@@ -15,6 +15,7 @@ typedef struct result_t
     } * visited;
     Vec2* path;
     bool success;
+    double cpu_secs;
 } Result;
 
 void result_visualize(const Map* map, const Result* result);

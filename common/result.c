@@ -58,6 +58,9 @@ void result_visualize(const Map* map, const Result* result)
         exit(EXIT_FAILURE);
     }
 
+    fprintf(file, "Length: %ld\n", arrlen(result->path));
+    fprintf(file, "Visited: %f%%\n", hmlen(result->visited) / (map->w * map->h * 1.0) * 100.0);
+    fprintf(file, "CPU Time: %f secs\n", result->cpu_secs);
     for (int y = 0; y < map->h; ++y)
     {
         char line[map->w];
