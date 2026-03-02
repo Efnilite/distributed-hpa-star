@@ -1,6 +1,5 @@
 #include "a*.h"
 
-#include <float.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +11,7 @@
 #include "../../common/vec2.h"
 
 #define SQRT2 1.41421
+#define DISTANCE_FUNCTION vec2_distance_manhattan
 
 typedef struct node_t
 {
@@ -79,7 +79,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
         exit(EXIT_FAILURE);
     }
     start_node->pos = start_pos;
-    start_node->estimated_score = (float)vec2_distance_chebyshev(sx, sy, gx, gy);
+    start_node->estimated_score = DISTANCE_FUNCTION(sx, sy, gx, gy);
 
     float start_estimate = start_node->estimated_score;
     heap_insert(&frontier, start_node, &start_estimate);
@@ -144,7 +144,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             {(int16_t)(pos.x + 1), pos.y},
             {pos.x, (int16_t)(pos.y + 1)},
 
-            {(int16_t)(pos.x - 1), (int16_t)(pos.y - 1)},
+            {(int16_t)(pos.x + 1), (int16_t)(pos.y + 1)},
             {(int16_t)(pos.x + 1), (int16_t)(pos.y + 1)},
             {(int16_t)(pos.x - 1), (int16_t)(pos.y + 1)},
             {(int16_t)(pos.x - 1), (int16_t)(pos.y - 1)},
@@ -164,8 +164,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
                 continue;
             }
 
-            const float temp_score = hmget(score, pos) + (i > 3 ?  SQRT2 : 1);
-
+            const float temp_score = hmget(score, pos) + (i > 3 ? SQRT2 : 1);
             if (temp_score >= hmget(score, neighbour))
             {
                 continue;
@@ -174,7 +173,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             hmput(source, neighbour, pos);
             hmput(score, neighbour, temp_score);
 
-            float estimate = temp_score + (float)vec2_distance_chebyshev(neighbour.x, neighbour.y, gx, gy);
+            float estimate = temp_score + DISTANCE_FUNCTION(neighbour.x, neighbour.y, gx, gy);
 
             Node* node = malloc(sizeof(Node));
             if (node == NULL)
