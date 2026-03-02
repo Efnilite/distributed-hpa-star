@@ -3,7 +3,7 @@
 
 #include "map.h"
 
-#define LINE_LENGTH 2048
+#define LINE_LENGTH 4096
 
 Map parse_map(const char* file_name);
 

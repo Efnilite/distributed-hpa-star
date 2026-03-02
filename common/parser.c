@@ -40,27 +40,15 @@ Map parse_map(const char* file_name)
     for (size_t line = 0; line < h; line++)
     {
         fgets(buff, LINE_LENGTH, file);
-        const uint16_t buff_len = strlen(buff);
-        if (buff_len == LINE_LENGTH)
+        const size_t buff_len = strlen(buff);
+        if (buff_len >= LINE_LENGTH - 1)
         {
             perror("Line length too long");
             exit(EXIT_FAILURE);
         }
 
-        // const uint8_t max = sizeof(unsigned int) * 8;
         for (size_t idx = 0; idx < buff_len; idx++)
         {
-            // unsigned int v = 0;
-            // for (size_t i = idx; i < max; i++)
-            // {
-            //     if (buff[i] == '@')
-            //     {
-
-            //     }
-            //     else
-            //     {
-            //     }
-            // }
             map[line * w + idx] = buff[idx] == '@';
         }
     }
