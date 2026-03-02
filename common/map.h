@@ -18,4 +18,6 @@ typedef struct map_t
 
 bool map_is_wall(const Map* map, uint16_t x, uint16_t y);
 
+void map_free(const Map* map);
+
 #endif

@@ -10,8 +10,10 @@
 
 int main()
 {
-    const Map map = parse_map("../../data/ih/scene_test_small");
-    const Result result = astar(&map, 10, 10, 18, 18);
+    // const Map map = parse_map("../../data/ih/scene_test_small");
+    // Result result = astar(&map, 10, 10, 18, 18);
+    const Map map = parse_map("../../data/ih/scene_mp_2p_01");
+    Result result = astar(&map, 260, 180, 1565, 1745);
 
     if (!result.success)
     {
@@ -19,6 +21,9 @@ int main()
     }
 
     result_visualize(&map, &result);
+
+    hmfree(result.visited);
+    map_free(&map);
 
     return 0;
 }
