@@ -183,8 +183,8 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
     heap_destroy(&frontier);
     hmfree(score);
     hmfree(estimated_score);
-    hmfree(closed);
+    // hmfree(closed);
     hmfree(source);
 
-    return (Result){NULL, NULL, false};
+    return (Result){closed, NULL, false};
 }
