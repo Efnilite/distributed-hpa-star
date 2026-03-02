@@ -4,12 +4,12 @@
 
 float vec2_distance(const Vec2 a, const Vec2 b)
 {
-    const uint16_t dx = a.x - b.x;
-    const uint16_t dy = a.y - b.y;
+    const int16_t dx = a.x - b.x;
+    const int16_t dy = a.y - b.y;
     return sqrtf((float)(dx * dx + dy * dy));
 }
 
-float vec2_distance_a(const uint16_t ax, const uint16_t ay, const uint16_t bx, const uint16_t by)
+float vec2_distance_a(const int16_t ax, const int16_t ay, const int16_t bx, const int16_t by)
 {
     const int16_t dx = ax - bx;
     const int16_t dy = ay - by;

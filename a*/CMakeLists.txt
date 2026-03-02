@@ -9,3 +9,5 @@ add_executable(astar src/main.c
         ../common/vec2.c
         src/a*.c
         ../common/mheap.c)
+
+target_link_libraries(astar m)

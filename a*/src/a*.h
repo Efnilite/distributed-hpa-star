@@ -2,9 +2,10 @@
 #define A_H
 
 #include "../../common/map.h"
+#include "../../common/vec2.h"
 
 #include <stdint.h>
 
-int astar(const Map* map, uint16_t sx, uint16_t sy, uint16_t gx, uint16_t gy);
+Vec2* astar(const Map* map, int16_t sx, int16_t sy, int16_t gx, int16_t gy);
 
 #endif
