@@ -10,14 +10,14 @@
 
 int main()
 {
-    const Map map = parse_map("../../data/ih/scene_test");
+    const Map map = parse_map("../../data/ih/scene_mp_2p_01");
 
-    const Vec2* path = astar(&map, 1, 1, 3, 3);
+    const Vec2* path = astar(&map, 150, 150, 200, 200);
 
     for (int i = arrlen(path); i > 0; --i)
     {
         const Vec2* vec = &path[i];
-        printf("(%d, %d) ->", vec->x, vec->y);
+        printf("(%d, %d) -> ", vec->x, vec->y);
     }
     printf("\n");
 

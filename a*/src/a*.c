@@ -1,5 +1,6 @@
 #include "a*.h"
 
+#include <float.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,14 +12,16 @@
 typedef struct node_t
 {
     Vec2 pos;
-    float score;
     float estimated_score;
-    struct node_t* source;
 } Node;
 
 static int frontier_compare(const Node* a, const Node* b)
 {
-    return (int)(a->estimated_score - b->estimated_score);
+    if (a->estimated_score > b->estimated_score)
+    {
+        return -1;
+    }
+    return 1;
 }
 
 Vec2* astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx, const int16_t gy)
@@ -26,20 +29,28 @@ Vec2* astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx
     heap frontier;
     heap_create(&frontier, 1, (void*)frontier_compare);
 
-    Node* start = malloc(sizeof(Node));
-    if (start == NULL)
-    {
-        perror("Failed node malloc");
-        exit(EXIT_FAILURE);
-    }
-    start->pos.x = sx;
-    start->pos.y = sy;
-    start->score = 0;
-    start->estimated_score = vec2_distance_a(sx, sy, gx, gy);
-    start->source = NULL;
+    struct { Vec2 key; float value; } *score = NULL;
+    hmdefault(score, FLT_MAX);
+    const Vec2 start_pos = (Vec2){sx, sy};
+    hmput(score, start_pos, vec2_distance_a(sx, sy, gx, gy));
+
+    struct { Vec2 key; float value; } *estimated_score = NULL;
+    hmdefault(estimated_score, FLT_MAX);
+
+    struct { Vec2 key; bool value; } *been_in_frontier = NULL;
+    hmdefault(been_in_frontier, false);
+
+    struct { Vec2 key; Vec2 value; } *source = NULL;
+    const Vec2 start_vec = (Vec2){-1, -1};
+    hmdefault(source, start_vec);
+
+    Node start_node = {
+        start_pos,
+        vec2_distance_a(sx, sy, gx, gy)
+    };
 
     int start_score = INT_MAX;
-    heap_insert(&frontier, start, &start_score);
+    heap_insert(&frontier, &start_node, &start_score);
 
     while (heap_size(&frontier) > 0)
     {
@@ -51,15 +62,20 @@ Vec2* astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx
         }
 
         const Vec2 pos = current->pos;
+        printf("(%d, %d)\n", pos.x, pos.y);
         if (pos.x == gx && pos.y == gy)
         {
             Vec2* path = NULL;
-            const Node* node = current;
+            Vec2 node_pos = pos;
             arrput(path, pos);
-            while (node->source != NULL)
+            while (true)
             {
-                arrput(path, node->pos);
-                node = node->source;
+                arrput(path, node_pos);
+                node_pos = hmget(source, node_pos);
+                if (node_pos.x == -1 || node_pos.y == -1)
+                {
+                    break;
+                }
             }
 
             Node* temp_node;
@@ -74,36 +90,44 @@ Vec2* astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx
         }
 
         const Vec2 neighbours[] = {
-            {pos.x - 1, pos.y},
-            {pos.x, pos.y - 1},
-            {pos.x + 1, pos.y},
-            {pos.x, pos.y + 1},
+            {(int16_t)(pos.x - 1), pos.y},
+            {pos.x, (int16_t)(pos.y - 1)},
+            {(int16_t)(pos.x + 1), pos.y},
+            {pos.x, (int16_t)(pos.y + 1)},
         };
 
         for (int i = 0; i < 4; ++i)
         {
             const Vec2 neighbour = neighbours[i];
 
-            const float temp_score = current->score + 1;
+            const float temp_score = hmget(score, pos) + 1;
+
+            if (temp_score >= hmget(score, neighbour))
+            {
+                continue;
+            }
+
             if (map_is_wall(map, neighbour.x, neighbour.y))
             {
                 continue;
             }
 
-            float estimated_score = temp_score + vec2_distance_a(neighbour.x, neighbour.y, gx, gy);
+            hmput(source, neighbour, pos);
+            hmput(score, neighbour, temp_score);
 
-            Node* neighbor_node = malloc(sizeof(Node));
-            if (neighbor_node == NULL)
+            float estimate = temp_score + vec2_distance_a(neighbour.x, neighbour.y, gx, gy);
+
+            if (hmget(been_in_frontier, pos))
             {
-                perror("Failed node malloc");
-                exit(EXIT_FAILURE);
+                continue;
             }
-            neighbor_node->pos = neighbour;
-            neighbor_node->score = temp_score;
-            neighbor_node->estimated_score = estimated_score;
-            neighbor_node->source = current;
 
-            heap_insert(&frontier, neighbor_node, &estimated_score);
+            Node* node = malloc(sizeof(Node));
+            node->pos = neighbour;
+            node->estimated_score = estimate;
+
+            heap_insert(&frontier, node, &estimate);
+            hmput(been_in_frontier, pos, true);
         }
     }
 
