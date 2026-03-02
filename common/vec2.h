@@ -11,4 +11,6 @@ typedef struct vec2_t
 
 float vec2_distance(Vec2 a, Vec2 b);
 
+float vec2_distance_a(uint16_t ax, uint16_t ay, uint16_t bx, uint16_t by);
+
 #endif

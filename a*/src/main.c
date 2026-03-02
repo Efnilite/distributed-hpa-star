@@ -6,9 +6,9 @@
 
 int main()
 {
-    const Map map = parse_map("../../data/ih/scene_mp_2p_01");
+    const Map map = parse_map("../../data/ih/scene_test");
 
-    astar(&map, 150, 150, 1650, 1790);
+    astar(&map, 2, 2, 4, 4);
 
     return 0;
 }
