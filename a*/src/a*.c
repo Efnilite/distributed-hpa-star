@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 #include "../../common/mheap.h"
+#include "../../common/result.h"
 #include "../../common/stb_ds.h"
 #include "../../common/vec2.h"
 
@@ -15,42 +16,68 @@ typedef struct node_t
     float estimated_score;
 } Node;
 
-static int frontier_compare(const Node* a, const Node* b)
+static int frontier_compare(void* a, void* b)
 {
-    if (a->estimated_score > b->estimated_score)
+    const Node* node_a = a;
+    const Node* node_b = b;
+    if (node_a->estimated_score < node_b->estimated_score)
     {
         return -1;
     }
-    return 1;
+    if (node_a->estimated_score > node_b->estimated_score)
+    {
+        return 1;
+    }
+    return 0;
 }
 
-Vec2* astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx, const int16_t gy)
+Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx, const int16_t gy)
 {
     heap frontier;
-    heap_create(&frontier, 1, (void*)frontier_compare);
+    heap_create(&frontier, map->w + map->h, frontier_compare);
 
-    struct { Vec2 key; float value; } *score = NULL;
+    struct
+    {
+        Vec2 key;
+        float value;
+    }* score = NULL;
     hmdefault(score, FLT_MAX);
     const Vec2 start_pos = (Vec2){sx, sy};
-    hmput(score, start_pos, vec2_distance_a(sx, sy, gx, gy));
+    hmput(score, start_pos, 0);
 
-    struct { Vec2 key; float value; } *estimated_score = NULL;
+    struct
+    {
+        Vec2 key;
+        float value;
+    }* estimated_score = NULL;
     hmdefault(estimated_score, FLT_MAX);
 
-    struct { Vec2 key; bool value; } *been_in_frontier = NULL;
-    hmdefault(been_in_frontier, false);
+    struct
+    {
+        Vec2 key;
+        bool value;
+    }* closed = NULL;
+    hmdefault(closed, false);
 
-    struct { Vec2 key; Vec2 value; } *source = NULL;
+    struct
+    {
+        Vec2 key;
+        Vec2 value;
+    }* source = NULL;
     const Vec2 start_vec = (Vec2){-1, -1};
     hmdefault(source, start_vec);
 
-    Node start_node = {
-        start_pos,
-        vec2_distance_a(sx, sy, gx, gy)
-    };
+    Node* start_node = malloc(sizeof(Node));
+    if (start_node == NULL)
+    {
+        perror("Failed node malloc");
+        exit(EXIT_FAILURE);
+    }
+    start_node->pos = start_pos;
+    start_node->estimated_score = vec2_distance_a(sx, sy, gx, gy);
 
-    int start_score = INT_MAX;
-    heap_insert(&frontier, &start_node, &start_score);
+    float start_estimate = start_node->estimated_score;
+    heap_insert(&frontier, start_node, &start_estimate);
 
     while (heap_size(&frontier) > 0)
     {
@@ -62,7 +89,15 @@ Vec2* astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx
         }
 
         const Vec2 pos = current->pos;
-        printf("(%d, %d)\n", pos.x, pos.y);
+
+        if (hmget(closed, pos))
+        {
+            free(current);
+            continue;
+        }
+
+        hmput(closed, pos, true);
+
         if (pos.x == gx && pos.y == gy)
         {
             Vec2* path = NULL;
@@ -84,9 +119,17 @@ Vec2* astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx
                 free(temp_node);
             }
             heap_destroy(&frontier);
+            hmfree(score);
+            hmfree(estimated_score);
+            // hmfree(closed);
+            hmfree(source);
             free(current);
 
-            return path;
+            return (Result){
+                closed,
+                path,
+                true
+            };
         }
 
         const Vec2 neighbours[] = {
@@ -100,9 +143,7 @@ Vec2* astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx
         {
             const Vec2 neighbour = neighbours[i];
 
-            const float temp_score = hmget(score, pos) + 1;
-
-            if (temp_score >= hmget(score, neighbour))
+            if (hmget(closed, neighbour))
             {
                 continue;
             }
@@ -112,26 +153,38 @@ Vec2* astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx
                 continue;
             }
 
+            const float temp_score = hmget(score, pos) + 1;
+
+            if (temp_score >= hmget(score, neighbour))
+            {
+                continue;
+            }
+
             hmput(source, neighbour, pos);
             hmput(score, neighbour, temp_score);
 
             float estimate = temp_score + vec2_distance_a(neighbour.x, neighbour.y, gx, gy);
 
-            if (hmget(been_in_frontier, pos))
-            {
-                continue;
-            }
-
             Node* node = malloc(sizeof(Node));
+            if (node == NULL)
+            {
+                perror("Failed node malloc");
+                exit(EXIT_FAILURE);
+            }
             node->pos = neighbour;
             node->estimated_score = estimate;
 
             heap_insert(&frontier, node, &estimate);
-            hmput(been_in_frontier, pos, true);
         }
+
+        free(current);
     }
 
     heap_destroy(&frontier);
+    hmfree(score);
+    hmfree(estimated_score);
+    hmfree(closed);
+    hmfree(source);
 
-    return NULL;
+    return (Result){NULL, NULL, false};
 }

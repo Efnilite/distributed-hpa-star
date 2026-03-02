@@ -10,16 +10,15 @@
 
 int main()
 {
-    const Map map = parse_map("../../data/ih/scene_mp_2p_01");
+    const Map map = parse_map("../../data/ih/scene_test_small");
+    const Result result = astar(&map, 10, 10, 18, 18);
 
-    const Vec2* path = astar(&map, 150, 150, 200, 200);
-
-    for (int i = arrlen(path); i > 0; --i)
+    if (!result.success)
     {
-        const Vec2* vec = &path[i];
-        printf("(%d, %d) -> ", vec->x, vec->y);
+        printf("Failed to find path\n");
     }
-    printf("\n");
+
+    result_visualize(&map, &result);
 
     return 0;
 }
