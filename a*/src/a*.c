@@ -4,11 +4,14 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "../../common/mheap.h"
 #include "../../common/result.h"
 #include "../../common/stb_ds.h"
 #include "../../common/vec2.h"
+
+#define SQRT2 1.41421
 
 typedef struct node_t
 {
@@ -33,6 +36,8 @@ static int frontier_compare(void* a, void* b)
 
 Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx, const int16_t gy)
 {
+    const clock_t begin = clock();
+
     heap frontier;
     heap_create(&frontier, map->w + map->h, frontier_compare);
 
@@ -41,7 +46,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
         Vec2 key;
         float value;
     }* score = NULL;
-    hmdefault(score, FLT_MAX);
+    hmdefault(score, UINT16_MAX);
     const Vec2 start_pos = (Vec2){sx, sy};
     hmput(score, start_pos, 0);
 
@@ -50,7 +55,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
         Vec2 key;
         float value;
     }* estimated_score = NULL;
-    hmdefault(estimated_score, FLT_MAX);
+    hmdefault(estimated_score, UINT16_MAX);
 
     struct
     {
@@ -74,7 +79,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
         exit(EXIT_FAILURE);
     }
     start_node->pos = start_pos;
-    start_node->estimated_score = vec2_distance_a(sx, sy, gx, gy);
+    start_node->estimated_score = (float)vec2_distance_chebyshev(sx, sy, gx, gy);
 
     float start_estimate = start_node->estimated_score;
     heap_insert(&frontier, start_node, &start_estimate);
@@ -128,7 +133,8 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             return (Result){
                 closed,
                 path,
-                true
+                true,
+                (double)(clock() - begin) / CLOCKS_PER_SEC
             };
         }
 
@@ -137,9 +143,14 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             {pos.x, (int16_t)(pos.y - 1)},
             {(int16_t)(pos.x + 1), pos.y},
             {pos.x, (int16_t)(pos.y + 1)},
+
+            {(int16_t)(pos.x - 1), (int16_t)(pos.y - 1)},
+            {(int16_t)(pos.x + 1), (int16_t)(pos.y + 1)},
+            {(int16_t)(pos.x - 1), (int16_t)(pos.y + 1)},
+            {(int16_t)(pos.x - 1), (int16_t)(pos.y - 1)},
         };
 
-        for (int i = 0; i < 4; ++i)
+        for (int i = 0; i < 8; ++i)
         {
             const Vec2 neighbour = neighbours[i];
 
@@ -153,7 +164,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
                 continue;
             }
 
-            const float temp_score = hmget(score, pos) + 1;
+            const float temp_score = hmget(score, pos) + (i > 3 ?  SQRT2 : 1);
 
             if (temp_score >= hmget(score, neighbour))
             {
@@ -163,7 +174,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             hmput(source, neighbour, pos);
             hmput(score, neighbour, temp_score);
 
-            float estimate = temp_score + vec2_distance_a(neighbour.x, neighbour.y, gx, gy);
+            float estimate = temp_score + (float)vec2_distance_chebyshev(neighbour.x, neighbour.y, gx, gy);
 
             Node* node = malloc(sizeof(Node));
             if (node == NULL)
@@ -186,5 +197,8 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
     // hmfree(closed);
     hmfree(source);
 
-    return (Result){closed, NULL, false};
+    return (Result){
+        closed, NULL, false,
+        (double)(clock() - begin) / CLOCKS_PER_SEC
+    };
 }
