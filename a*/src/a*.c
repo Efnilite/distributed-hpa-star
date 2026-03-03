@@ -10,8 +10,24 @@
 #include "../../common/stb_ds.h"
 #include "../../common/vec2.h"
 
-#define SQRT2 1.41421
+#define EUCLIDEAN
+// #define CHEBYSHEV
+// #define MANHATTAN
+
+#ifdef EUCLIDEAN
+#define DISTANCE_FUNCTION vec2_distance_euclidean
+#include <math.h>
+#define NEIGHBOUR_COST ((i < 4) ? 1.0f : M_SQRT2)
+#endif
+#ifdef CHEBYSHEV
+#define DISTANCE_FUNCTION vec2_distance_chebyshev
+#define NEIGHBOUR_COST 1
+#endif
+#ifdef MANHATTAN
 #define DISTANCE_FUNCTION vec2_distance_manhattan
+#define NEIGHBOUR_COST 1
+#endif
+
 
 typedef struct node_t
 {
@@ -107,7 +123,6 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
         {
             Vec2* path = NULL;
             Vec2 node_pos = pos;
-            arrput(path, pos);
             while (true)
             {
                 arrput(path, node_pos);
@@ -164,7 +179,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
                 continue;
             }
 
-            const float temp_score = hmget(score, pos) + (i > 3 ? SQRT2 : 1);
+            const float temp_score = hmget(score, pos) + NEIGHBOUR_COST;
             if (temp_score >= hmget(score, neighbour))
             {
                 continue;
