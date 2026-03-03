@@ -160,7 +160,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             {pos.x, (int16_t)(pos.y + 1)},
 
             {(int16_t)(pos.x + 1), (int16_t)(pos.y + 1)},
-            {(int16_t)(pos.x + 1), (int16_t)(pos.y + 1)},
+            {(int16_t)(pos.x + 1), (int16_t)(pos.y - 1)},
             {(int16_t)(pos.x - 1), (int16_t)(pos.y + 1)},
             {(int16_t)(pos.x - 1), (int16_t)(pos.y - 1)},
         };
