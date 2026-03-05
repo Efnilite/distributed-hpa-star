@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 #include "stb_ds.h"
 
@@ -57,8 +58,10 @@ void result_visualize(const Map* map, const Result* result)
         }
     }
 
+    struct timeval time;
+    gettimeofday(&time, NULL);
     char filename[50];
-    if (snprintf(filename, 50, "result-%ld", time(NULL)) < 0)
+    if (snprintf(filename, 50, "result-%ld%ld", time.tv_sec, time.tv_usec) < 0)
     {
         perror("Failed to create filename");
         exit(EXIT_FAILURE);
