@@ -129,7 +129,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             const uint16_t fn = gn + hn;
 
             const struct closed_t closed_data = closed[XY_TO_IDX(successor.x, successor.y)];
-            if (closed_data.is_closed && fn >= closed_data.estimated_score)
+            if (closed_data.is_closed)
             {
                 continue;
             }
