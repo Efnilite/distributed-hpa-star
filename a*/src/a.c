@@ -31,8 +31,8 @@ static int frontier_compare(void* a, void* b)
     return 0;
 }
 
-#define XY_TO_IDX(x, y) ((x) + (y) * map->h)
-#define IDX_TO_XY(idx) (Vec2){(idx) % map->w, (uint16_t)floorf((idx) * 1.0f / map->h)}
+#define XY_TO_IDX(x, y) ((x) + (y) * map->w)
+#define IDX_TO_XY(idx) (Vec2){(idx) % map->w, (idx) / map->w}
 
 Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx, const int16_t gy)
 {
@@ -71,8 +71,18 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
     }* visited = NULL;
     hmdefault(visited, false);
 
+    int nidx = 0;
     while (heap_size(&frontier) > 0)
     {
+        if (nidx % 5000 == 0)
+        {
+            result_visualize(map, &(Result){
+                visited, NULL, true,
+                (double)(clock() - begin) / CLOCKS_PER_SEC
+            });
+        }
+
+        nidx++;
         FrontierNode* n = NULL;
         uint16_t* n_score = NULL;
 
@@ -82,6 +92,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
         }
 
         const Vec2 pos = n->pos;
+        printf("%d,%d\n", pos.x, pos.y);
         const uint16_t pos_idx = XY_TO_IDX(pos.x, pos.y);
 
         if (pos.x == gx && pos.y == gy)
