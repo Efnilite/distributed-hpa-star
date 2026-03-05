@@ -73,7 +73,10 @@ void result_visualize(const Map* map, const Result* result)
 
     fprintf(file, "Path Length: %ld\n", arrlen(result->path));
     fprintf(file, "Path Cost: %f\n", cost);
-    fprintf(file, "Visited: %f%%\n", hmlen(result->visited) / (map->w * map->h * 1.0) * 100.0);
+    if (result->visited != NULL)
+    {
+        fprintf(file, "Visited: %f%%\n", hmlen(result->visited) / (map->w * map->h * 1.0) * 100.0);
+    }
     fprintf(file, "CPU Time: %f secs\n", result->cpu_secs);
     for (int y = 0; y < map->h; ++y)
     {

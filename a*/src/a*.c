@@ -11,17 +11,17 @@
 #include "../../common/vec2.h"
 
 #define EUCLIDEAN
-// #define CHEBYSHEV
+// #define OCTILE
 // #define MANHATTAN
 
 #ifdef EUCLIDEAN
 #define DISTANCE_FUNCTION vec2_distance_euclidean
-#include <math.h>
-#define NEIGHBOUR_COST ((i < 4) ? 1.0f : M_SQRT2)
+#define NEIGHBOUR_COST ((i < 4) ? 5 : 7)
 #endif
-#ifdef CHEBYSHEV
+#ifdef OCTILE
 #define DISTANCE_FUNCTION vec2_distance_chebyshev
-#define NEIGHBOUR_COST 1
+#include <math.h>
+#define NEIGHBOUR_COST ((i < 4) ? 5 : 7)
 #endif
 #ifdef MANHATTAN
 #define DISTANCE_FUNCTION vec2_distance_manhattan
@@ -32,7 +32,7 @@
 typedef struct node_t
 {
     Vec2 pos;
-    float estimated_score;
+    uint16_t estimated_score;
 } Node;
 
 static int frontier_compare(void* a, void* b)
@@ -60,7 +60,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
     struct
     {
         Vec2 key;
-        float value;
+        uint16_t value;
     }* score = NULL;
     hmdefault(score, UINT16_MAX);
     const Vec2 start_pos = (Vec2){sx, sy};
@@ -69,7 +69,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
     struct
     {
         Vec2 key;
-        float value;
+        uint16_t value;
     }* estimated_score = NULL;
     hmdefault(estimated_score, UINT16_MAX);
 
@@ -179,7 +179,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
                 continue;
             }
 
-            const float temp_score = hmget(score, pos) + NEIGHBOUR_COST;
+            const uint16_t temp_score = hmget(score, pos) + NEIGHBOUR_COST;
             if (temp_score >= hmget(score, neighbour))
             {
                 continue;
@@ -188,7 +188,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             hmput(source, neighbour, pos);
             hmput(score, neighbour, temp_score);
 
-            float estimate = temp_score + DISTANCE_FUNCTION(neighbour.x, neighbour.y, gx, gy);
+            uint16_t estimate = temp_score + (uint16_t) DISTANCE_FUNCTION(neighbour.x, neighbour.y, gx, gy);
 
             Node* node = malloc(sizeof(Node));
             if (node == NULL)

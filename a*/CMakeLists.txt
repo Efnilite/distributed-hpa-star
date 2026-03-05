@@ -7,8 +7,9 @@ add_executable(astar src/main.c
         ../common/parser.c
         ../common/map.c
         ../common/vec2.c
-        src/a*.c
+#        src/a*.c
         ../common/mheap.c
-        ../common/result.c)
+        ../common/result.c
+        src/a.c)
 
 target_link_libraries(astar m)
