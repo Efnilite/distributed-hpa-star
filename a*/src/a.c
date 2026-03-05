@@ -1,4 +1,3 @@
-#include <float.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
@@ -32,6 +31,7 @@ static int frontier_compare(void* a, void* b)
 }
 
 #define XY_TO_IDX(x, y) ((x) + (y) * map->w)
+#define IDX_TO_XY(idx) (Vec2){(idx) % map->w, (uint16_t)((idx) / map->w)}
 
 Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx, const int16_t gy)
 {
@@ -53,15 +53,15 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
         uint16_t estimated_score;
         bool is_closed;
     };
-    struct closed_t* closed = malloc(sizeof(struct closed_t) * size);
+    struct closed_t* closed = calloc(sizeof(struct closed_t), size);
     memset(closed, 0, sizeof(struct closed_t) * size);
 
     uint16_t* scores = malloc(sizeof(uint16_t) * size);
     memset(scores, UINT16_MAX, sizeof(uint16_t) * size);
     scores[XY_TO_IDX(sx, sy)] = 0;
 
-    Vec2* came_from = malloc(sizeof(Vec2) * size);
-    memset(came_from, 0, sizeof(Vec2) * size);
+    uint16_t* came_from = malloc(sizeof(uint16_t) * size);
+    memset(came_from, UINT16_MAX, sizeof(uint16_t) * size);
 
     while (heap_size(&frontier) > 0)
     {
@@ -84,7 +84,12 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             arrput(path, current);
             while (current.x != start_pos.x || current.y != start_pos.y)
             {
-                current = came_from[XY_TO_IDX(current.x, current.y)];
+                const uint16_t parent_idx = came_from[XY_TO_IDX(current.x, current.y)];
+                if (parent_idx == UINT16_MAX)
+                {
+                    break;
+                }
+                current = IDX_TO_XY(parent_idx);
                 arrput(path, current);
             }
 
@@ -143,7 +148,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
 
             // update g-score and came_from
             scores[XY_TO_IDX(successor.x, successor.y)] = gn;
-            came_from[XY_TO_IDX(successor.x, successor.y)] = pos;
+            came_from[XY_TO_IDX(successor.x, successor.y)] = XY_TO_IDX(pos.x, pos.y);
 
             FrontierNode* node = malloc(sizeof(FrontierNode));
             if (node == NULL)
