@@ -13,6 +13,7 @@ typedef struct result_t
         Vec2 key;
         bool value;
     } * visited;
+
     Vec2* path;
     bool success;
     double cpu_secs;
