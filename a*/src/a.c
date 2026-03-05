@@ -8,7 +8,7 @@
 #include "../../common/stb_ds.h"
 #include "../../common/vec2.h"
 
-#include "a*.h"
+#include "a.h"
 
 typedef struct frontier_node_t
 {
@@ -31,18 +31,26 @@ static int frontier_compare(void* a, void* b)
     return 0;
 }
 
+typedef struct closed_t
+{
+    Vec2 key;
+    bool is_closed;
+    float estimated_score;
+} CloseData;
+
+typedef struct score_t
+{
+    Vec2 key;
+    float score;
+    Vec2 source;
+} ScoreData;
+
 Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx, const int16_t gy)
 {
     const clock_t begin = clock();
 
     heap frontier;
     heap_create(&frontier, map->w + map->h, frontier_compare);
-
-    FrontierNode start = {
-        .pos = {sx, sy},
-        .estimated_score = vec2_distance_euclidean(sx, sy, gx, gy),
-    };
-    heap_insert(&frontier, &start, &start.estimated_score);
 
     struct closed_t
     {
@@ -51,18 +59,29 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
         float estimated_score;
     };
 
-    struct closed_t* closed = NULL;
+    CloseData* closed = NULL;
+    ScoreData* scores = NULL;
     {
-        const struct closed_t def = (struct closed_t){0, 0, false, 0};
-        hmdefaults(closed, def);
+        const CloseData close_def = (CloseData){0, 0, false, 0};
+        hmdefaults(closed, close_def);
+
+        const ScoreData score_def = (ScoreData){0, 0, FLT_MAX, -1, -1};
+        hmdefaults(scores, score_def);
     }
 
     struct
     {
         Vec2 key;
-        float value;
-    }* scores = NULL;
-    hmdefault(scores, FLT_MAX);
+        bool value;
+    }* visited = NULL;
+
+    FrontierNode start = {
+        .pos = {sx, sy},
+        .estimated_score = vec2_distance_euclidean(sx, sy, gx, gy),
+    };
+    heap_insert(&frontier, &start, &start.estimated_score);
+    ScoreData start_score = (ScoreData){start.pos, 0.f, -1, -1};
+    hmputs(scores, start_score);
 
     while (heap_size(&frontier) > 0)
     {
@@ -77,15 +96,25 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
         const Vec2 pos = n->pos;
         if (pos.x == gx && pos.y == gy)
         {
+            // Reconstruct path by walking came_from from goal to start
+            Vec2* path = NULL;
+            Vec2 current = pos;
+            arrput(path, current);
+            while (!(current.x == sx && current.y == sy))
+            {
+                current = hmgets(scores, current).source;
+                arrput(path, current);
+            }
 
             return (Result){
-                NULL, NULL, true,
+                visited, path, true,
                 (double)(clock() - begin) / CLOCKS_PER_SEC
             };
         }
 
-        struct closed_t close_n = (struct closed_t){pos, true, *n_score};
+        CloseData close_n = (CloseData){pos, true, *n_score};
         hmputs(closed, close_n);
+        hmput(visited, pos, true);
 
         const Vec2 successors[] = {
             {(int16_t)(pos.x - 1), pos.y},
@@ -99,7 +128,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             {(int16_t)(pos.x - 1), (int16_t)(pos.y - 1)},
         };
 
-        const float score = hmget(scores, pos);
+        const float score = hmgets(scores, pos).score;
         for (int i = 0; i < 8; ++i)
         {
             const Vec2 successor = successors[i];
@@ -113,11 +142,23 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             const float hn = vec2_distance_euclidean(successor.x, successor.y, gx, gy);
             float fn = gn + hn;
 
-            const struct closed_t closed_data = hmgets(closed, successor);
+            const CloseData closed_data = hmgets(closed, successor);
             if (closed_data.is_closed && fn >= closed_data.estimated_score)
             {
                 continue;
             }
+
+            // Only update if we found a better g-score
+            const ScoreData old_score = hmgets(scores, successor);
+            if (gn >= old_score.score)
+            {
+                continue;
+            }
+
+            ScoreData new_score ={
+                successor, gn, pos
+            };
+            hmputs(scores, new_score);
 
             // mark successor open
             FrontierNode* node = malloc(sizeof(FrontierNode));
@@ -134,7 +175,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
     }
 
     return (Result){
-        NULL, NULL, false,
+        visited, NULL, false,
         (double)(clock() - begin) / CLOCKS_PER_SEC
     };
 }
