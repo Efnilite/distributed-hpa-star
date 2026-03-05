@@ -41,7 +41,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
     FrontierNode* start = malloc(sizeof(FrontierNode));
     *start = (FrontierNode){
         .pos = {sx, sy},
-        .estimated_score = vec2_distance_euclidean(sx, sy, gx, gy),
+        .estimated_score = (uint16_t)vec2_distance_euclidean(sx, sy, gx, gy),
     };
     heap_insert(&frontier, start, &start->estimated_score);
 
@@ -51,6 +51,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
         bool is_closed;
         uint16_t estimated_score;
     };
+    // struct closed_t closed[map->w * map->h];
 
     struct closed_t* closed = NULL;
     {
@@ -72,12 +73,6 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
         Vec2 value;
     }* came_from = NULL;
 
-    struct
-    {
-        Vec2 key;
-        bool value;
-    }* visited = NULL;
-
     while (heap_size(&frontier) > 0)
     {
         FrontierNode* n = NULL;
@@ -89,7 +84,6 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
         }
 
         const Vec2 pos = n->pos;
-        hmput(visited, pos, true);
 
         if (pos.x == gx && pos.y == gy)
         {
@@ -110,7 +104,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             hmfree(came_from);
 
             return (Result){
-                visited, path, true,
+                NULL, path, true,
                 (double)(clock() - begin) / CLOCKS_PER_SEC
             };
         }
@@ -172,6 +166,8 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
 
             heap_insert(&frontier, node, &node->estimated_score);
         }
+
+        free(n);
     }
 
     heap_destroy(&frontier);
@@ -180,7 +176,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
     hmfree(came_from);
 
     return (Result){
-        visited, NULL, false,
+        NULL, NULL, false,
         (double)(clock() - begin) / CLOCKS_PER_SEC
     };
 }
