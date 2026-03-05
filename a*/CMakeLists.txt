@@ -7,7 +7,6 @@ add_executable(astar src/main.c
         ../common/parser.c
         ../common/map.c
         ../common/vec2.c
-#        src/a*.c
         ../common/mheap.c
         ../common/result.c
         src/a.c)

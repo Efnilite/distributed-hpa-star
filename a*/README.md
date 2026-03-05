@@ -38,4 +38,4 @@ A more traditional, rectangular map.
 
 ## Libraries
 - [Min-heap-indirect by Armon Dadgar](https://github.com/armon/c-minheap-indirect/)
-- [stb_ds](https://nothings.org/stb_ds/)
+- [stb_ds by nothings](https://nothings.org/stb_ds/)

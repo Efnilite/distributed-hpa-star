@@ -2,11 +2,10 @@
 
 #define STB_DS_IMPLEMENTATION
 
-#include "a*.h"
+#include "a.h"
 #include "../../common/map.h"
 #include "../../common/parser.h"
 #include "../../common/stb_ds.h"
-#include "../../common/vec2.h"
 
 int main()
 {
