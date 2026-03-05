@@ -1,4 +1,4 @@
-#include <math.h>
+#include <float.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
@@ -32,7 +32,6 @@ static int frontier_compare(void* a, void* b)
 }
 
 #define XY_TO_IDX(x, y) ((x) + (y) * map->w)
-#define IDX_TO_XY(idx) (Vec2){(idx) % map->w, (idx) / map->w}
 
 Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx, const int16_t gy)
 {
@@ -61,28 +60,11 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
     memset(scores, UINT16_MAX, sizeof(uint16_t) * size);
     scores[XY_TO_IDX(sx, sy)] = 0;
 
-    uint16_t* came_from = malloc(sizeof(uint16_t) * size);
-    memset(came_from, UINT16_MAX, sizeof(uint16_t) * size);
+    Vec2* came_from = malloc(sizeof(Vec2) * size);
+    memset(came_from, 0, sizeof(Vec2) * size);
 
-    struct
-    {
-        Vec2 key;
-        bool value;
-    }* visited = NULL;
-    hmdefault(visited, false);
-
-    int nidx = 0;
     while (heap_size(&frontier) > 0)
     {
-        if (nidx % 5000 == 0)
-        {
-            result_visualize(map, &(Result){
-                visited, NULL, true,
-                (double)(clock() - begin) / CLOCKS_PER_SEC
-            });
-        }
-
-        nidx++;
         FrontierNode* n = NULL;
         uint16_t* n_score = NULL;
 
@@ -92,8 +74,6 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
         }
 
         const Vec2 pos = n->pos;
-        printf("%d,%d\n", pos.x, pos.y);
-        const uint16_t pos_idx = XY_TO_IDX(pos.x, pos.y);
 
         if (pos.x == gx && pos.y == gy)
         {
@@ -104,7 +84,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             arrput(path, current);
             while (current.x != start_pos.x || current.y != start_pos.y)
             {
-                current = IDX_TO_XY(came_from[XY_TO_IDX(current.x, current.y)]);
+                current = came_from[XY_TO_IDX(current.x, current.y)];
                 arrput(path, current);
             }
 
@@ -114,13 +94,13 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             free(came_from);
 
             return (Result){
-                visited, path, true,
+                NULL, path, true,
                 (double)(clock() - begin) / CLOCKS_PER_SEC
             };
         }
 
-        closed[pos_idx] = (struct closed_t){.estimated_score = *n_score, .is_closed = true};
-        hmput(visited, pos, true);
+        const struct closed_t close_n = (struct closed_t){*n_score, true};
+        closed[XY_TO_IDX(pos.x, pos.y)] = close_n;
 
         const Vec2 successors[] = {
             {(int16_t)(pos.x - 1), pos.y},
@@ -134,11 +114,10 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             {(int16_t)(pos.x - 1), (int16_t)(pos.y - 1)},
         };
 
-        const uint16_t score = scores[pos_idx];
+        const uint16_t score = scores[XY_TO_IDX(pos.x, pos.y)];
         for (int i = 0; i < 8; ++i)
         {
             const Vec2 successor = successors[i];
-            const uint16_t successor_idx = XY_TO_IDX(successor.x, successor.y);
 
             if (map_is_wall(map, successor.x, successor.y))
             {
@@ -149,22 +128,22 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             const uint16_t hn = (uint16_t)vec2_distance_euclidean(successor.x, successor.y, gx, gy);
             const uint16_t fn = gn + hn;
 
-            const struct closed_t closed_data = closed[successor_idx];
+            const struct closed_t closed_data = closed[XY_TO_IDX(successor.x, successor.y)];
             if (closed_data.is_closed && fn >= closed_data.estimated_score)
             {
                 continue;
             }
 
             // only update if we found a better g-score
-            const uint16_t old_g = scores[successor_idx];
+            const uint16_t old_g = scores[XY_TO_IDX(successor.x, successor.y)];
             if (gn >= old_g)
             {
                 continue;
             }
 
             // update g-score and came_from
-            scores[successor_idx] = gn;
-            came_from[successor_idx] = pos_idx;
+            scores[XY_TO_IDX(successor.x, successor.y)] = gn;
+            came_from[XY_TO_IDX(successor.x, successor.y)] = pos;
 
             FrontierNode* node = malloc(sizeof(FrontierNode));
             if (node == NULL)
@@ -187,7 +166,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
     free(came_from);
 
     return (Result){
-        visited, NULL, false,
+        NULL, NULL, false,
         (double)(clock() - begin) / CLOCKS_PER_SEC
     };
 }
