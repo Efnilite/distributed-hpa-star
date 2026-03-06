@@ -11,9 +11,9 @@ typedef struct coordinate_bit_set_t
 
 typedef struct map_t
 {
+    CoordinateBitSet* coordinates; // 0 = empty, 1 = wall
     uint16_t w;
     uint16_t h;
-    bool* coordinates; // 0 = empty, 1 = wall
 } Map;
 
 bool map_is_wall(const Map* map, uint16_t x, uint16_t y);

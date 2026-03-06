@@ -12,19 +12,32 @@
 
 void result_visualize(const Map* map, const Result* result)
 {
-    char text[map->w * map->h];
-    for (int y = 0; y < map->w; ++y)
+    const size_t size = map->w * map->h;
+    char text[size];
+
+    size_t text_index = 0;
+    for (int i = 0; i < (size >> 5) + 1; ++i)
     {
-        for (int x = 0; x < map->w; ++x)
+        const unsigned int bit_set = map->coordinates[i].v;
+        for (uint8_t bs_char = 0; bs_char < 32; ++bs_char)
         {
-            if (map->coordinates[x + y * map->w])
+            if (text_index >= size)
             {
-                text[x + y * map->w] = '@';
+                break;
+            }
+
+            const int bit_set_index = 1 << bs_char;
+
+            if (bit_set & bit_set_index)
+            {
+                text[text_index] = '@';
             }
             else
             {
-                text[x + y * map->w] = ' ';
+                text[text_index] = ' ';
             }
+
+            text_index++;
         }
     }
 
