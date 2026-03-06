@@ -44,7 +44,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
     FrontierNode* start = malloc(sizeof(FrontierNode));
     *start = (FrontierNode){
         .pos = {sx, sy},
-        .estimated_score = (uint16_t)(vec2_distance_euclidean(sx, sy, gx, gy) * 10),
+        .estimated_score = (uint16_t)vec2_distance_euclidean(sx, sy, gx, gy),
     };
     heap_insert(&frontier, start, &start->estimated_score);
 
@@ -129,8 +129,8 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
                 continue;
             }
 
-            const uint16_t gn = score + (i < 4 ? 10 : 14);
-            const uint16_t hn = (uint16_t)(vec2_distance_euclidean(successor.x, successor.y, gx, gy) * 10);
+            const uint16_t gn = score + (i < 4 ? 5 : 7);
+            const uint16_t hn = (uint16_t)vec2_distance_euclidean(successor.x, successor.y, gx, gy);
             const uint16_t fn = gn + hn;
 
             const struct closed_t closed_data = closed[XY_TO_IDX(successor.x, successor.y)];
