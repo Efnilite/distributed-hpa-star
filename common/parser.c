@@ -29,48 +29,28 @@ Map parse_map(const char* file_name)
     // skip map
     fgets(buff, LINE_LENGTH, file);
 
-    const size_t num_pages = ((w * h) >> 5) + 1;
-    CoordinateBitSet* map = calloc(num_pages, sizeof(CoordinateBitSet));
+    bool* map = malloc(w * h);
     if (map == NULL)
     {
-        perror("Failed to calloc map");
+        perror("Failed to malloc map");
         exit(EXIT_FAILURE);
     }
 
-    fgets(buff, LINE_LENGTH, file);
-    size_t buff_len = strlen(buff);
-    size_t buff_index = 0;
-    size_t total_count = 0;
-
-    for (size_t i = 0; i < num_pages; ++i)
+    // lines
+    for (size_t line = 0; line < h; line++)
     {
-        unsigned int bit_set = 0;
-        for (uint8_t bs_char = 0; bs_char < 32; ++bs_char)
+        fgets(buff, LINE_LENGTH, file);
+        const size_t buff_len = strlen(buff);
+        if (buff_len >= LINE_LENGTH - 1)
         {
-            if (total_count >= w * h)
-            {
-                break;
-            }
-
-            if (buff[buff_index] == '\n' || buff_index >= buff_len - 1)
-            {
-                fgets(buff, LINE_LENGTH, file);
-                buff_len = strlen(buff);
-                buff_index = 0;
-                --bs_char;
-                continue;
-            }
-
-            if (buff[buff_index] == '@')
-            {
-                bit_set |= 1 << bs_char;
-            }
-
-            buff_index++;
-            total_count++;
+            perror("Line length too long");
+            exit(EXIT_FAILURE);
         }
 
-        map[i] = (CoordinateBitSet){bit_set};
+        for (size_t idx = 0; idx < buff_len; idx++)
+        {
+            map[line * w + idx] = buff[idx] == '@';
+        }
     }
 
     fclose(file);
