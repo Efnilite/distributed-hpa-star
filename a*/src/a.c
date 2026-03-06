@@ -32,6 +32,7 @@ static int frontier_compare(void* a, void* b)
 }
 
 #define XY_TO_IDX(x, y) ((x) + (y) * map->w)
+#define IDX_TO_XY(idx) (Vec2){((idx) % map->w), ((idx) / map->w)}
 
 Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx, const int16_t gy)
 {
@@ -53,15 +54,13 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
         uint16_t estimated_score;
         bool is_closed;
     };
-    struct closed_t* closed = malloc(sizeof(struct closed_t) * size);
-    memset(closed, 0, sizeof(struct closed_t) * size);
+    struct closed_t* closed = calloc(size, sizeof(struct closed_t));
 
     uint16_t* scores = malloc(sizeof(uint16_t) * size);
     memset(scores, UINT16_MAX, sizeof(uint16_t) * size);
     scores[XY_TO_IDX(sx, sy)] = 0;
 
-    Vec2* came_from = malloc(sizeof(Vec2) * size);
-    memset(came_from, 0, sizeof(Vec2) * size);
+    uint32_t* came_from = calloc(size, sizeof(uint32_t));
 
     while (heap_size(&frontier) > 0)
     {
@@ -84,7 +83,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             arrput(path, current);
             while (current.x != start_pos.x || current.y != start_pos.y)
             {
-                current = came_from[XY_TO_IDX(current.x, current.y)];
+                current = IDX_TO_XY(came_from[XY_TO_IDX(current.x, current.y)]);
                 arrput(path, current);
             }
 
@@ -143,7 +142,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
 
             // update g-score and came_from
             scores[XY_TO_IDX(successor.x, successor.y)] = gn;
-            came_from[XY_TO_IDX(successor.x, successor.y)] = pos;
+            came_from[XY_TO_IDX(successor.x, successor.y)] = XY_TO_IDX(pos.x, pos.y);
 
             FrontierNode* node = malloc(sizeof(FrontierNode));
             if (node == NULL)
