@@ -29,7 +29,7 @@ Map parse_map(const char* file_name)
     // skip map
     fgets(buff, LINE_LENGTH, file);
 
-    const size_t num_pages = (w * h + 31) / 32;
+    const size_t num_pages = ((w * h) >> 5) + 1;
     CoordinateBitSet* map = calloc(num_pages, sizeof(CoordinateBitSet));
     if (map == NULL)
     {
@@ -76,8 +76,6 @@ Map parse_map(const char* file_name)
     fclose(file);
 
     return (Map){
-        .coordinates = map,
-        .w = w,
-        .h = h
+        .w = w, .h = h, .coordinates = map
     };
 }
