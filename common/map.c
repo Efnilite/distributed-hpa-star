@@ -2,12 +2,16 @@
 
 #include <stdlib.h>
 
-bool map_is_wall(const Map* map, uint16_t x, uint16_t y)
+#define XY_TO_IDX(x, y) ((x) + (y) * map->w)
+
+bool map_is_wall(const Map* map, const uint16_t x, const uint16_t y)
 {
-    const uint32_t idx = x + (y * map->w);
-    return map->coordinates[idx];
-    // const uint32_t set = idx << 4;
-    // return map->coordinates[set].v & 1;
+    const uint32_t idx = XY_TO_IDX(x, y);
+    const uint32_t page_idx = idx >> 5;
+    const uint8_t in_page = idx % 32;
+    const unsigned int v = map->coordinates[page_idx].v;
+
+    return (v & 1 << in_page) >> in_page;
 }
 
 void map_free(const Map* map)

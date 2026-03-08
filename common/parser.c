@@ -29,28 +29,44 @@ Map parse_map(const char* file_name)
     // skip map
     fgets(buff, LINE_LENGTH, file);
 
-    bool* map = malloc(w * h);
+    CoordinateBitSet* map = calloc((w * h + 31) >> 5, sizeof(CoordinateBitSet));
     if (map == NULL)
     {
         perror("Failed to malloc map");
         exit(EXIT_FAILURE);
     }
 
-    // lines
-    for (size_t line = 0; line < h; line++)
+    fgets(buff, LINE_LENGTH, file);
+    uint32_t line_idx = 0;
+    uint32_t page = 0;
+    while (!feof(file))
     {
-        fgets(buff, LINE_LENGTH, file);
-        const size_t buff_len = strlen(buff);
-        if (buff_len >= LINE_LENGTH - 1)
+        unsigned int v = 0;
+        int i = 31;
+        while (i >= 0)
         {
-            perror("Line length too long");
-            exit(EXIT_FAILURE);
+            if (line_idx >= strlen(buff))
+            {
+                break;
+            }
+
+            if (buff[line_idx] == '\n')
+            {
+                fgets(buff, LINE_LENGTH, file);
+                line_idx = 0;
+            }
+
+            if (buff[line_idx] == '@')
+            {
+                v |= 1 << i;
+            }
+
+            i--;
+            line_idx++;
         }
 
-        for (size_t idx = 0; idx < buff_len; idx++)
-        {
-            map[line * w + idx] = buff[idx] == '@';
-        }
+        map[page] = (CoordinateBitSet){v};
+        page++;
     }
 
     fclose(file);

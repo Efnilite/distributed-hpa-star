@@ -8,23 +8,32 @@
 
 #include "stb_ds.h"
 
-#define index (x + (y) * map->w)
-
 void result_visualize(const Map* map, const Result* result)
 {
-    char text[map->w * map->h];
-    for (int y = 0; y < map->w; ++y)
+    const size_t size = map->w * map->h;
+    char text[size];
+
+    size_t text_index = 0;
+    for (int i = 0; i < (size + 31) >> 5; ++i)
     {
-        for (int x = 0; x < map->w; ++x)
+        const unsigned int bit_set = map->coordinates[i].v;
+        for (int bs_char = 31; bs_char >= 0; --bs_char)
         {
-            if (map->coordinates[x + y * map->w])
+            if (text_index >= size)
             {
-                text[x + y * map->w] = '@';
+                break;
+            }
+
+            if (bit_set & 1 << bs_char)
+            {
+                text[text_index] = '@';
             }
             else
             {
-                text[x + y * map->w] = ' ';
+                text[text_index] = ' ';
             }
+
+            text_index++;
         }
     }
 
