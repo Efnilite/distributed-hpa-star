@@ -2,17 +2,21 @@
 #define RESULT_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "map.h"
 #include "vec2.h"
 
+typedef struct closed_node_t
+{
+    uint16_t estimated_score;
+    bool is_closed;
+} ClosedNode;
+
 typedef struct result_t
 {
-    struct
-    {
-        Vec2 key;
-        bool value;
-    } * visited;
+    ClosedNode* visited;
+
     Vec2* path;
     bool success;
     double cpu_secs;

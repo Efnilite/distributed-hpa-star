@@ -2,71 +2,67 @@
 
 #include <math.h>
 #include <stdio.h>
-#include <time.h>
-#include <unistd.h>
+#include <stdlib.h>
 #include <sys/time.h>
 
 #include "stb_ds.h"
 
+#define XY_TO_IDX(x, y) ((x) + (y) * map->w)
+
 void result_visualize(const Map* map, const Result* result)
 {
-    const size_t size = map->w * map->h;
-    char text[size];
-
-    size_t text_index = 0;
-    for (int i = 0; i < (size + 31) >> 5; ++i)
+    const size_t size = (size_t)map->w * map->h;
+    char* text = malloc(size);
+    if (text == NULL)
     {
-        const unsigned int bit_set = map->coordinates[i].v;
-        for (int bs_char = 31; bs_char >= 0; --bs_char)
+        perror("Failed to allocate visualization buffer");
+        exit(EXIT_FAILURE);
+    }
+
+    for (uint16_t y = 0; y < map->h; ++y)
+    {
+        for (uint16_t x = 0; x < map->w; ++x)
         {
-            if (text_index >= size)
-            {
-                break;
-            }
-
-            if (bit_set & 1 << bs_char)
-            {
-                text[text_index] = '@';
-            }
-            else
-            {
-                text[text_index] = ' ';
-            }
-
-            text_index++;
+            text[XY_TO_IDX(x, y)] = map_is_wall(map, x, y) ? '@' : ' ';
         }
     }
 
+    size_t visited = 0;
     if (result->visited != NULL)
     {
-        for (int i = 0; i < hmlen(result->visited); ++i)
+        for (int i = 0; i < size; ++i)
         {
-            const Vec2 pos = result->visited[i].key;
-            text[pos.x + pos.y * map->w] = 'o';
+            const ClosedNode m = result->visited[i];
+            if (m.is_closed && text[i] != '@')
+            {
+                text[size] = 'o';
+                visited++;
+            }
         }
     }
 
-    float cost = 0;
+    float cost = 0.0f;
     if (result->path != NULL)
     {
         Vec2 previous = result->path[0];
         for (int i = 0; i < arrlen(result->path); ++i)
         {
             const Vec2 pos = result->path[i];
-            if (text[pos.x + pos.y * map->w] == '@')
+            if (text[XY_TO_IDX(pos.x, pos.y)] == '@')
             {
                 perror("Pathfinding replaced wall");
+                free(text);
                 exit(EXIT_FAILURE);
             }
 
-            text[pos.x + pos.y * map->w] = '.';
+            text[XY_TO_IDX(pos.x, pos.y)] = '.';
             if (previous.x != pos.x && previous.y != pos.y)
             {
                 cost += M_SQRT2;
             }
             else
             {
-                cost += 1;
+                cost += 1.0f;
             }
 
             previous = pos;
@@ -93,17 +89,16 @@ void result_visualize(const Map* map, const Result* result)
     fprintf(file, "Path Cost: %f\n", cost);
     if (result->visited != NULL)
     {
-        fprintf(file, "Visited: %f%%\n", hmlen(result->visited) / (map->w * map->h * 1.0) * 100.0);
+        fprintf(file, "Visited: %f%%\n", visited / (map->w * map->h * 1.0) * 100.0);
     }
     fprintf(file, "CPU Time: %f secs\n", result->cpu_secs);
     for (int y = 0; y < map->h; ++y)
     {
-        char line[map->w];
-        strncpy(line, text + y * map->w, map->w);
-        line[map->w] = '\0';
-        fprintf(file, "%s\n", line);
+        fwrite(text + (size_t)y * map->w, 1, map->w, file);
+        fputc('\n', file);
     }
 
     fflush(file);
     fclose(file);
+    free(text);
 }
