@@ -33,10 +33,11 @@ A more traditional, rectangular map.
 
 ### Peak memory usage 
 
-| Implementation  | Heap (bytes) | Stack (bytes) |
-|-----------------|--------------|---------------|
-| stb_ds hashmaps |              |               |
-| 1d array        | 34,849,480   | 744           |
+| Implementation                 | Heap (bytes) | Stack (bytes) |
+|--------------------------------|--------------|---------------|
+| stb_ds hashmaps                |              |               |
+| 1d array                       | 37,860,856   | 728           |
+| 1d array, map stored in bitset | 34,849,480   | 744           |
 
 ### Links
 - Cache hit/misses: RP2040 Table 154
