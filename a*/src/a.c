@@ -1,14 +1,29 @@
-#include <float.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
 
+#include "a.h"
 #include "../../common/mheap.h"
 #include "../../common/result.h"
 #include "../../common/stb_ds.h"
 #include "../../common/vec2.h"
 
-#include "a.h"
+#define EUCLIDEAN
+// #define OCTILE
+// #define MANHATTAN
+
+#ifdef EUCLIDEAN
+#define DISTANCE_FUNCTION vec2_distance_euclidean
+#define NEIGHBOUR_COST ((i < 4) ? 5 : 7)
+#endif
+#ifdef OCTILE
+#define DISTANCE_FUNCTION vec2_distance_chebyshev
+#define NEIGHBOUR_COST ((i < 4) ? 5 : 7)
+#endif
+#ifdef MANHATTAN
+#define DISTANCE_FUNCTION vec2_distance_manhattan
+#define NEIGHBOUR_COST 1
+#endif
 
 typedef struct frontier_node_t
 {
@@ -45,16 +60,11 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
     FrontierNode* start = malloc(sizeof(FrontierNode));
     *start = (FrontierNode){
         .pos = {sx, sy},
-        .estimated_score = (uint16_t)vec2_distance_euclidean(sx, sy, gx, gy),
+        .estimated_score = (uint16_t)DISTANCE_FUNCTION(sx, sy, gx, gy),
     };
     heap_insert(&frontier, start, &start->estimated_score);
 
-    struct closed_t
-    {
-        uint16_t estimated_score;
-        bool is_closed;
-    };
-    struct closed_t* closed = calloc(size, sizeof(struct closed_t));
+    ClosedNode* closed = calloc(size, sizeof(ClosedNode));
 
     uint16_t* scores = malloc(sizeof(uint16_t) * size);
     memset(scores, UINT16_MAX, sizeof(uint16_t) * size);
@@ -87,18 +97,18 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
                 arrput(path, current);
             }
 
+            free(n);
             heap_destroy(&frontier);
-            free(closed);
             free(scores);
             free(came_from);
 
             return (Result){
-                NULL, path, true,
+                closed, path, true,
                 (double)(clock() - begin) / CLOCKS_PER_SEC
             };
         }
 
-        const struct closed_t close_n = (struct closed_t){*n_score, true};
+        const ClosedNode close_n = (ClosedNode){*n_score, true};
         closed[XY_TO_IDX(pos.x, pos.y)] = close_n;
 
         const Vec2 successors[] = {
@@ -123,11 +133,11 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
                 continue;
             }
 
-            const uint16_t gn = score + (i < 4 ? 5 : 7);
-            const uint16_t hn = (uint16_t)vec2_distance_euclidean(successor.x, successor.y, gx, gy);
+            const uint16_t gn = score + NEIGHBOUR_COST;
+            const uint16_t hn = (uint16_t)DISTANCE_FUNCTION(successor.x, successor.y, gx, gy);
             const uint16_t fn = gn + hn;
 
-            const struct closed_t closed_data = closed[XY_TO_IDX(successor.x, successor.y)];
+            const ClosedNode closed_data = closed[XY_TO_IDX(successor.x, successor.y)];
             if (closed_data.is_closed)
             {
                 continue;
