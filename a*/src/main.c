@@ -1,11 +1,9 @@
 #include <stdio.h>
-
-#define STB_DS_IMPLEMENTATION
+#include <stdlib.h>
 
 #include "a.h"
 #include "../../common/map.h"
 #include "../../common/parser.h"
-#include "../../common/stb_ds.h"
 
 int main()
 {
