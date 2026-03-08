@@ -53,6 +53,12 @@ void result_visualize(const Map* map, const Result* result)
         for (int i = 0; i < arrlen(result->path); ++i)
         {
             const Vec2 pos = result->path[i];
+            if (text[pos.x + pos.y * map->w] == '@')
+            {
+                perror("Pathfinding replaced wall");
+                exit(EXIT_FAILURE);
+            }
+
             text[pos.x + pos.y * map->w] = '.';
             if (previous.x != pos.x && previous.y != pos.y)
             {
