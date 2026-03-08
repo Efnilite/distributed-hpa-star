@@ -8,8 +8,8 @@
 #include "../../common/stb_ds.h"
 #include "../../common/vec2.h"
 
-#define EUCLIDEAN
-// #define OCTILE
+// #define EUCLIDEAN
+#define OCTILE
 // #define MANHATTAN
 
 #ifdef EUCLIDEAN
