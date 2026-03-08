@@ -1,8 +1,7 @@
 #include "map.h"
+#include "util.h"
 
 #include <stdlib.h>
-
-#define XY_TO_IDX(x, y) ((x) + (y) * map->w)
 
 bool map_is_wall(const Map* map, const uint16_t x, const uint16_t y)
 {

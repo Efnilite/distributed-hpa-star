@@ -1,13 +1,11 @@
 #include "result.h"
+#include "stb_ds.h"
+#include "util.h"
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
-
-#include "stb_ds.h"
-
-#define XY_TO_IDX(x, y) ((x) + (y) * map->w)
 
 void result_visualize(const Map* map, const Result* result)
 {

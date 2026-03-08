@@ -1,11 +1,14 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #include "a.h"
 #include "../../common/mheap.h"
 #include "../../common/result.h"
 #include "../../common/stb_ds.h"
+#include "../../common/util.h"
 #include "../../common/vec2.h"
 
 // #define EUCLIDEAN
@@ -24,6 +27,19 @@
 #define DISTANCE_FUNCTION vec2_distance_manhattan
 #define NEIGHBOUR_COST 1
 #endif
+
+#define SUCCESSORS(x, y) \
+            { \
+                {(int16_t)(x - 1), y}, \
+                {x, (int16_t)(y - 1)}, \
+                {(int16_t)(x + 1), y}, \
+                {x, (int16_t)(y + 1)}, \
+                \
+                {(int16_t)(x + 1), (int16_t)(y + 1)}, \
+                {(int16_t)(x + 1), (int16_t)(y - 1)}, \
+                {(int16_t)(x - 1), (int16_t)(y + 1)}, \
+                {(int16_t)(x - 1), (int16_t)(y - 1)},\
+            }
 
 typedef struct frontier_node_t
 {
@@ -46,9 +62,6 @@ static int frontier_compare(void* a, void* b)
     return 0;
 }
 
-#define XY_TO_IDX(x, y) ((x) + (y) * map->w)
-#define IDX_TO_XY(idx) (Vec2){((idx) % map->w), ((idx) / map->w)}
-
 Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx, const int16_t gy)
 {
     const clock_t begin = clock();
@@ -70,7 +83,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
     memset(scores, UINT16_MAX, sizeof(uint16_t) * size);
     scores[XY_TO_IDX(sx, sy)] = 0;
 
-    uint32_t* came_from = calloc(size, sizeof(uint32_t));
+    uint8_t* came_from = calloc(size, sizeof(uint8_t));
 
     while (heap_size(&frontier) > 0)
     {
@@ -93,7 +106,13 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             arrput(path, current);
             while (current.x != start_pos.x || current.y != start_pos.y)
             {
-                current = IDX_TO_XY(came_from[XY_TO_IDX(current.x, current.y)]);
+                const Vec2 predecessors[] = SUCCESSORS(current.x, current.y);
+                const uint8_t came_from_idx = came_from[XY_TO_IDX(current.x, current.y)];
+                const Vec2 reverse = predecessors[came_from_idx];
+                current = (Vec2){
+                    (int16_t)(current.x + (current.x - reverse.x)),
+                    (int16_t)(current.y + (current.y - reverse.y))
+                };
                 arrput(path, current);
             }
 
@@ -101,9 +120,10 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             heap_destroy(&frontier);
             free(scores);
             free(came_from);
+            free(closed);
 
             return (Result){
-                closed, path, true,
+                NULL, path, true,
                 (double)(clock() - begin) / CLOCKS_PER_SEC
             };
         }
@@ -111,18 +131,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
         const ClosedNode close_n = (ClosedNode){*n_score, true};
         closed[XY_TO_IDX(pos.x, pos.y)] = close_n;
 
-        const Vec2 successors[] = {
-            {(int16_t)(pos.x - 1), pos.y},
-            {pos.x, (int16_t)(pos.y - 1)},
-            {(int16_t)(pos.x + 1), pos.y},
-            {pos.x, (int16_t)(pos.y + 1)},
-
-            {(int16_t)(pos.x + 1), (int16_t)(pos.y + 1)},
-            {(int16_t)(pos.x + 1), (int16_t)(pos.y - 1)},
-            {(int16_t)(pos.x - 1), (int16_t)(pos.y + 1)},
-            {(int16_t)(pos.x - 1), (int16_t)(pos.y - 1)},
-        };
-
+        const Vec2 successors[] = SUCCESSORS(pos.x, pos.y);
         const uint16_t score = scores[XY_TO_IDX(pos.x, pos.y)];
         for (int i = 0; i < 8; ++i)
         {
@@ -152,7 +161,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
 
             // update g-score and came_from
             scores[XY_TO_IDX(successor.x, successor.y)] = gn;
-            came_from[XY_TO_IDX(successor.x, successor.y)] = XY_TO_IDX(pos.x, pos.y);
+            came_from[XY_TO_IDX(successor.x, successor.y)] = i;
 
             FrontierNode* node = malloc(sizeof(FrontierNode));
             if (node == NULL)

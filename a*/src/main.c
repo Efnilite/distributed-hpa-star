@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define STB_DS_IMPLEMENTATION
+
 #include "a.h"
 #include "../../common/map.h"
 #include "../../common/parser.h"
