@@ -1,25 +1,22 @@
-// Variable-size bitset
-
 #ifndef VBITSET_H
 #define VBITSET_H
 
-// #ifdef VBITSET_IMPLEMENTATION
+#include <stddef.h>
+#include <stdint.h>
 
-#include <stdlib.h>
+typedef struct vbitset_t
+{
+    uint32_t* ptr;
+    uint8_t element_size;
+    size_t capacity;
+} VBitSet;
 
-#define _bit_header(bitset)
+VBitSet* vbitset_create(size_t capacity, uint8_t element_size);
 
-#define bit_get_value(bitset, map, index) \
-do { \
-    const uint32_t page_idx = index >> 5;\
-    const uint8_t in_page = 31 - index % 32;\
-    const unsigned int v = map->coordinates[page_idx].v;\
-\
-    return (v & 1 << in_page) >> in_page; \
-} while (0);
+uint8_t vbitset_get(const VBitSet* bitset, size_t index);
 
-#define bit_free(bitset) \
-    free(bitset);
+void vbitset_set(const VBitSet* bitset, size_t index, uint8_t value);
 
-// #endif
+void vbitset_free(VBitSet* bitset);
+
 #endif
