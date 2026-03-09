@@ -2,6 +2,8 @@
 #include <stdlib.h>
 
 #define STB_DS_IMPLEMENTATION
+// ReSharper disable once CppUnusedIncludeDirective
+#include "../../common/stb_ds.h"
 
 #include "a.h"
 #include "../../common/map.h"

@@ -5,6 +5,8 @@
 
 // #ifdef VBITSET_IMPLEMENTATION
 
+#include <stdlib.h>
+
 #define _bit_header(bitset)
 
 #define bit_get_value(bitset, map, index) \
@@ -16,7 +18,8 @@ do { \
     return (v & 1 << in_page) >> in_page; \
 } while (0);
 
-#define bit_free(bitset)
+#define bit_free(bitset) \
+    free(bitset);
 
 // #endif
 #endif

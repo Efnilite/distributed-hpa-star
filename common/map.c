@@ -1,5 +1,6 @@
 #include "map.h"
 #include "util.h"
+#include "vbitset.h"
 
 #include <stdlib.h>
 
