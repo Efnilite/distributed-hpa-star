@@ -96,7 +96,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
         }
 
         const Vec2 pos = n->pos;
-
+        const uint32_t pos_idx = XY_TO_IDX(pos.x, pos.y);
         if (pos.x == gx && pos.y == gy)
         {
             // reconstruct path
@@ -128,13 +128,14 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             };
         }
 
-        closed[XY_TO_IDX(pos.x, pos.y)] = true;
+        closed[pos_idx] = true;
 
         const Vec2 successors[] = SUCCESSORS(pos.x, pos.y);
-        const uint16_t score = scores[XY_TO_IDX(pos.x, pos.y)];
+        const uint16_t score = scores[pos_idx];
         for (int i = 0; i < 8; ++i)
         {
             const Vec2 successor = successors[i];
+            const uint32_t successor_idx = XY_TO_IDX(successor.x, successor.y);
 
             if (map_is_wall(map, successor.x, successor.y))
             {
@@ -145,21 +146,21 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             const uint16_t hn = (uint16_t)DISTANCE_FUNCTION(successor.x, successor.y, gx, gy);
             const uint16_t fn = gn + hn;
 
-            if (closed[XY_TO_IDX(successor.x, successor.y)])
+            if (closed[successor_idx])
             {
                 continue;
             }
 
             // only update if we found a better g-score
-            const uint16_t old_g = scores[XY_TO_IDX(successor.x, successor.y)];
+            const uint16_t old_g = scores[successor_idx];
             if (gn >= old_g)
             {
                 continue;
             }
 
             // update g-score and came_from
-            scores[XY_TO_IDX(successor.x, successor.y)] = gn;
-            came_from[XY_TO_IDX(successor.x, successor.y)] = i;
+            scores[successor_idx] = gn;
+            came_from[successor_idx] = i;
 
             FrontierNode* node = malloc(sizeof(FrontierNode));
             if (node == NULL)
