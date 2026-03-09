@@ -41,8 +41,8 @@ Using 8-directional octile.
 |------------------------------------|--------------|---------------|--------------|------------------------------------------|
 | stb_ds hashmaps                    | 405,139,880  | 1104          | 1.824        | a5e3d77098fc6b8824efdb3b6e9416d9940c94cf |
 | 1d array                           | 37,860,856   | 728           | 0.243        | a0075bbf704c743649f8572e5c85ccb43f75ffd5 |
-| 1d array, map stored in bitset     | 34,849,480   | 744           |              | de2a019e54e95b628832bb168a3378026b3dfe9c |
-| came_from uses relative directions | 24,524,456   | 688           | 0.270        |                                          |
+| 1d array, map stored in bitset     | 34,849,480   | 744           | 0.253        | de2a019e54e95b628832bb168a3378026b3dfe9c |
+| came_from uses relative directions | 24,524,456   | 688           | 0.270        | b97da60dbb1ce25a20338ec6432bd4f168354b35 |
 
 ### Links
 
