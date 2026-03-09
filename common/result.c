@@ -89,6 +89,7 @@ void result_visualize(const Map* map, const Result* result)
     if (result->visited != NULL)
     {
         fprintf(file, "Visited: %f%%\n", (double)visited / (map->w * map->h * 1.0) * 100.0);
+        free(result->visited);
     }
     fprintf(file, "CPU Time: %f secs\n", result->cpu_secs);
     for (int y = 0; y < map->h; ++y)

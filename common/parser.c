@@ -16,57 +16,44 @@ Map parse_map(const char* file_name)
 
     char buff[LINE_LENGTH];
     // skip type
-    fgets(buff, LINE_LENGTH, file);
+    (void)fgets(buff, LINE_LENGTH, file);
 
     // height
-    fgets(buff, LINE_LENGTH, file);
+    (void)fgets(buff, LINE_LENGTH, file);
     const uint16_t h = atoi(buff + 7);
 
     // width
-    fgets(buff, LINE_LENGTH, file);
+    (void)fgets(buff, LINE_LENGTH, file);
     const uint16_t w = atoi(buff + 6);
 
     // skip map
-    fgets(buff, LINE_LENGTH, file);
+    (void)fgets(buff, LINE_LENGTH, file);
 
-    CoordinateBitSet* map = calloc((w * h + 31) >> 5, sizeof(CoordinateBitSet));
+    VBitSet* map = vbitset_create(w * h, 1);
     if (map == NULL)
     {
         perror("Failed to malloc map");
         exit(EXIT_FAILURE);
     }
 
-    fgets(buff, LINE_LENGTH, file);
+    (void)fgets(buff, LINE_LENGTH, file);
+    uint32_t char_idx = 0;
     uint32_t line_idx = 0;
-    uint32_t page = 0;
     while (!feof(file))
     {
-        unsigned int v = 0;
-        int i = 31;
-        while (i >= 0)
+        if (buff[line_idx] == '\n')
         {
-            if (line_idx >= strlen(buff))
-            {
-                break;
-            }
-
-            if (buff[line_idx] == '\n')
-            {
-                fgets(buff, LINE_LENGTH, file);
-                line_idx = 0;
-            }
-
-            if (buff[line_idx] == '@')
-            {
-                v |= 1 << i;
-            }
-
-            i--;
-            line_idx++;
+            (void)fgets(buff, LINE_LENGTH, file);
+            line_idx = 0;
         }
 
-        map[page] = (CoordinateBitSet){v};
-        page++;
+        if (buff[line_idx] == '@')
+        {
+            vbitset_set(map, char_idx, 1);
+        }
+
+        line_idx++;
+        char_idx++;
     }
 
     fclose(file);
