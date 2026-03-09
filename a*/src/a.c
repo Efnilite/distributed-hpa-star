@@ -77,7 +77,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
     };
     heap_insert(&frontier, start, &start->estimated_score);
 
-    ClosedNode* closed = calloc(size, sizeof(ClosedNode));
+    bool* closed = calloc(size, sizeof(bool));
 
     uint16_t* scores = malloc(sizeof(uint16_t) * size);
     memset(scores, UINT16_MAX, sizeof(uint16_t) * size);
@@ -88,9 +88,9 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
     while (heap_size(&frontier) > 0)
     {
         FrontierNode* n = NULL;
-        uint16_t* n_score = NULL;
+        uint16_t* _n_score = NULL;
 
-        if (!heap_delmin(&frontier, (void**)&n, (void**)&n_score) || n == NULL || n_score == NULL)
+        if (!heap_delmin(&frontier, (void**)&n, (void**)&_n_score) || n == NULL || _n_score == NULL)
         {
             continue;
         }
@@ -128,8 +128,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             };
         }
 
-        const ClosedNode close_n = (ClosedNode){*n_score, true};
-        closed[XY_TO_IDX(pos.x, pos.y)] = close_n;
+        closed[XY_TO_IDX(pos.x, pos.y)] = true;
 
         const Vec2 successors[] = SUCCESSORS(pos.x, pos.y);
         const uint16_t score = scores[XY_TO_IDX(pos.x, pos.y)];
@@ -146,8 +145,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             const uint16_t hn = (uint16_t)DISTANCE_FUNCTION(successor.x, successor.y, gx, gy);
             const uint16_t fn = gn + hn;
 
-            const ClosedNode closed_data = closed[XY_TO_IDX(successor.x, successor.y)];
-            if (closed_data.is_closed)
+            if (closed[XY_TO_IDX(successor.x, successor.y)])
             {
                 continue;
             }
