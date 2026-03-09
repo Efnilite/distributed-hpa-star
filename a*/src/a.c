@@ -77,7 +77,8 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
     };
     heap_insert(&frontier, start, &start->estimated_score);
 
-    bool* closed = calloc(size, sizeof(bool));
+    VBitSet* closed = vbitset_create(size, 1);
+    // VBitSet* came_from = vbitset_create(size, 3);
 
     uint16_t* scores = malloc(sizeof(uint16_t) * size);
     memset(scores, UINT16_MAX, sizeof(uint16_t) * size);
@@ -128,11 +129,11 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             };
         }
 
-        closed[pos_idx] = true;
+        vbitset_set(closed, pos_idx, true);
 
         const Vec2 successors[] = SUCCESSORS(pos.x, pos.y);
         const uint16_t score = scores[pos_idx];
-        for (int i = 0; i < 8; ++i)
+        for (uint8_t i = 0; i < 8; ++i)
         {
             const Vec2 successor = successors[i];
             const uint32_t successor_idx = XY_TO_IDX(successor.x, successor.y);
@@ -146,7 +147,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             const uint16_t hn = (uint16_t)DISTANCE_FUNCTION(successor.x, successor.y, gx, gy);
             const uint16_t fn = gn + hn;
 
-            if (closed[successor_idx])
+            if (vbitset_get(closed, successor_idx))
             {
                 continue;
             }
