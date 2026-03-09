@@ -37,12 +37,12 @@ A more traditional, rectangular map.
 
 Using 8-directional octile.
 
-| Implementation                     | Heap (bytes) | Stack (bytes) | CPU Time (s) |
-|------------------------------------|--------------|---------------|--------------|
-| stb_ds hashmaps                    | 405,139,880  | 1104          |              |
-| 1d array                           | 37,860,856   | 728           |              |
-| 1d array, map stored in bitset     | 34,849,480   | 744           |              | 
-| came_from uses relative directions | 24,524,456   | 688           | 0.270        |
+| Implementation                     | Heap (bytes) | Stack (bytes) | CPU Time (s) | Revision                                 |
+|------------------------------------|--------------|---------------|--------------|------------------------------------------|
+| stb_ds hashmaps                    | 405,139,880  | 1104          | 1.824        | a5e3d77098fc6b8824efdb3b6e9416d9940c94cf |
+| 1d array                           | 37,860,856   | 728           |              |                                          |
+| 1d array, map stored in bitset     | 34,849,480   | 744           |              |                                          |
+| came_from uses relative directions | 24,524,456   | 688           | 0.270        |                                          |
 
 ### Links
 
