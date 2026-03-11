@@ -8,6 +8,8 @@ typedef struct vbitset_t
 {
     uint32_t* ptr;
     uint8_t element_size;
+    uint8_t elements_per_word;
+    uint8_t unused_word_bits;
     size_t capacity;
 } VBitSet;
 

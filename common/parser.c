@@ -10,7 +10,7 @@ Map parse_map(const char* file_name)
     FILE* file = fopen(file_name, "r");
     if (file == NULL)
     {
-        perror("Failed to open file");
+        perror("Failed to open map file");
         exit(EXIT_FAILURE);
     }
 
