@@ -3,3 +3,8 @@ build
 */target
 .idea
 cmake-build-debug
+*.cmake
+Makefile
+CMakeCache.txt
+CMakeFiles
+bin/
