@@ -78,13 +78,11 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
     heap_insert(&frontier, start, &start->estimated_score);
 
     VBitSet* closed = vbitset_create(size, 1);
-    // VBitSet* came_from = vbitset_create(size, 3);
+    VBitSet* came_from = vbitset_create(size, 3);
 
     uint16_t* scores = malloc(sizeof(uint16_t) * size);
     memset(scores, UINT16_MAX, sizeof(uint16_t) * size);
     scores[XY_TO_IDX(sx, sy)] = 0;
-
-    uint8_t* came_from = calloc(size, sizeof(uint8_t));
 
     while (heap_size(&frontier) > 0)
     {
@@ -108,7 +106,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
             while (current.x != start_pos.x || current.y != start_pos.y)
             {
                 const Vec2 predecessors[] = SUCCESSORS(current.x, current.y);
-                const uint8_t came_from_idx = came_from[XY_TO_IDX(current.x, current.y)];
+                const uint8_t came_from_idx = vbitset_get(came_from, XY_TO_IDX(current.x, current.y));;
                 const Vec2 reverse = predecessors[came_from_idx];
                 current = (Vec2){
                     (int16_t)(current.x + (current.x - reverse.x)),
@@ -161,7 +159,7 @@ Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t g
 
             // update g-score and came_from
             scores[successor_idx] = gn;
-            came_from[successor_idx] = i;
+            vbitset_set(came_from, successor_idx, i);
 
             FrontierNode* node = malloc(sizeof(FrontierNode));
             if (node == NULL)

@@ -10,7 +10,9 @@ VBitSet* vbitset_create(const size_t capacity, const uint8_t element_size)
 {
     assert(element_size <= 32);
 
-    const size_t size = ((capacity * element_size) >> 5) * sizeof(uint32_t) + sizeof(uint32_t) + sizeof(VBitSet);
+    const uint8_t elements_per_word = 32 / element_size;
+    const size_t words = (capacity * elements_per_word) >> 5;
+    const size_t size = sizeof(VBitSet) + words * sizeof(uint32_t);
 
     VBitSet* bitset = malloc(size);
     memset(bitset, 0, size);
