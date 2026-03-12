@@ -6,6 +6,6 @@
 
 #include <stdint.h>
 
-Result astar(const Map* map, int16_t sx, int16_t sy, int16_t gx, int16_t gy);
+Result a(const Map* map, int16_t sx, int16_t sy, int16_t gx, int16_t gy);
 
 #endif

@@ -62,7 +62,7 @@ static int frontier_compare(void* a, void* b)
     return 0;
 }
 
-Result astar(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx, const int16_t gy)
+Result a(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx, const int16_t gy)
 {
     const clock_t begin = clock();
     const size_t size = map->w * map->h;

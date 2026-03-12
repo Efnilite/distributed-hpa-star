@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.22.1)
-project(a C)
+project(hpa C)
 
 set(CMAKE_C_STANDARD 17)
 
-add_executable(a
-        src/a.c
+add_executable(hpa
+        src/hpa.c
         ../common/main.c
         ../common/parser.c
         ../common/map.c
@@ -13,4 +13,4 @@ add_executable(a
         ../common/result.c
         ../common/vbitset.c)
 
-target_link_libraries(a m)
+target_link_libraries(hpa m)
