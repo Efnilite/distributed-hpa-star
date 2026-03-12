@@ -7,6 +7,8 @@
 
 ### Todo
 
+- [ ] Make scores a dynamically allocated array which drops values that have not been visited recently
+
 ### Directions
 
 #### scene_mp_2p_01
