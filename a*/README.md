@@ -43,9 +43,9 @@ Using 8-directional octile.
 | 1d array                             | 37,860,856   | 728           | 0.243        | 1.43%            | a0075bbf704c743649f8572e5c85ccb43f75ffd5 |
 | 1d array, map stored in bitset       | 34,849,480   | 744           | 0.253        |                  | de2a019e54e95b628832bb168a3378026b3dfe9c |
 | came_from uses relative directions   | 24,524,456   | 688           | 0.270        |                  | b97da60dbb1ce25a20338ec6432bd4f168354b35 |
-| struct ClosedNode replaced with bool | 14,199,464   | 688           | 0.268        |                  | e00ee5aa153190970142fccb4bc262c7f56d6359 |
+| struct ClosedNode replaced with bool | 14,199,464   | 688           | 0.268        | 0.87%            | e00ee5aa153190970142fccb4bc262c7f56d6359 |
 | closed uses vbitset                  | 11,242,352   | 712           | 0.275        |                  | 771e88a72524f87468fd6145448af850408df284 |
-| came_from uses vbitset               | 9,037,192    | 712           | 0.307        |                  | 5e64e3aec4c1312ceb8f14ec293279747fa35a85 |
+| came_from uses vbitset               | 9,037,192    | 712           | 0.307        | 0.89%            | 5e64e3aec4c1312ceb8f14ec293279747fa35a85 |
 
 ### Links
 
