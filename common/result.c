@@ -88,7 +88,7 @@ void result_visualize(const Map* map, const Result* result)
     fprintf(file, "Path Cost: %f\n", cost);
     if (result->visited != NULL)
     {
-        fprintf(file, "Visited: %f%%\n", (double)visited / (map->w * map->h * 1.0) * 100.0);
+        fprintf(file, "Visited: %f%%\n", (double)visited / ((double)map->size * 1.0) * 100.0);
         free(result->visited);
     }
     fprintf(file, "CPU Time: %f secs\n", result->cpu_secs);

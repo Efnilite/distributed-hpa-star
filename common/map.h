@@ -10,6 +10,7 @@ typedef struct map_t
 {
     uint16_t w;
     uint16_t h;
+    size_t size;
     VBitSet* coordinates; // 0 = empty, 1 = wall
 } Map;
 
