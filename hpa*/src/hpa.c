@@ -9,16 +9,17 @@
 typedef struct cluster_t
 {
     Vec2 pos;
-    Vec2* inter_edges;
+    Vec2 inter_edges[12];
 } Cluster;
 
 #define CLUSTER_XY_TO_IDX(x, y) (cx * CLUSTER_SIZE + (x) + (cy * CLUSTER_SIZE + (y)) * map->w)
 
 #define MIN(a, b) (a) > (b) ? (b) : (a)
 
+// returns the inter edges from one side of a cluster
 size_t get_inter_edges_side(const Map* map, const Vec2 cluster,
-                           const Vec2 start, const Vec2 direction, const Vec2 to_other_cluster,
-                           Vec2* result)
+                            const Vec2 start, const Vec2 direction, const Vec2 to_other_cluster,
+                            Vec2* result)
 {
     assert(direction.x == 1 || direction.y == 1);
 
@@ -71,6 +72,42 @@ size_t get_inter_edges_side(const Map* map, const Vec2 cluster,
     return result_size;
 }
 
+// returns all inter edges of a cluster
+void get_inter_edges(const Map* map, const Vec2 cluster, Vec2 inter_edges[12])
+{
+    {
+        Vec2 top_edges[3];
+        const size_t count = get_inter_edges_side(map, cluster,
+                                                  (Vec2){0, 0}, (Vec2){1, 0}, (Vec2){0, -1},
+                                                  top_edges);
+        memcpy(top_edges, inter_edges, count * sizeof(Vec2));
+    }
+
+    {
+        Vec2 left_edges[3];
+        const size_t count = get_inter_edges_side(map, cluster,
+                                                  (Vec2){0, 0}, (Vec2){0, 1}, (Vec2){-1, 0},
+                                                  left_edges);
+        memcpy(left_edges, inter_edges + 3, count * sizeof(Vec2));
+    }
+
+    {
+        Vec2 right_edges[3];
+        const size_t count = get_inter_edges_side(map, cluster,
+                                                  (Vec2){CLUSTER_SIZE, 0}, (Vec2){0, 1}, (Vec2){1, 0},
+                                                  right_edges);
+        memcpy(right_edges, inter_edges + 6, count * sizeof(Vec2));
+    }
+
+    {
+        Vec2 bottom_edges[3];
+        const size_t count = get_inter_edges_side(map, cluster,
+                                                  (Vec2){0, CLUSTER_SIZE}, (Vec2){1, 0}, (Vec2){0, 1},
+                                                  bottom_edges);
+        memcpy(bottom_edges, inter_edges + 9, count * sizeof(Vec2));
+    }
+}
+
 Result hpa(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx, const int16_t gy)
 {
     const clock_t begin = clock();
@@ -85,29 +122,17 @@ Result hpa(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx,
     {
         for (int cx = 0; cx < cluster_w; ++cx)
         {
-            Vec2* inter_edges = NULL;
+            const Vec2 pos = (Vec2){(int16_t)cx, (int16_t)cy};
 
-            get_inter_edges(map, cx, cy, inter_edges);
+            Vec2 inter_edges[12];
+            get_inter_edges(map, pos, inter_edges);
 
-            clusters[cy * cluster_w + cx] = (Cluster){
-                .pos = (Vec2){(int16_t)cx, (int16_t)cy},
-                .inter_edges = inter_edges,
-            };
+            Cluster cluster;
+            cluster.pos = pos;
+            memcpy(cluster.inter_edges, inter_edges, 12 * sizeof(Vec2));
+
+            clusters[cy * cluster_w + cx] = cluster;
         }
-    }
-
-    for (int i = 0; i < cluster_size; ++i)
-    {
-        if (vbitset_get(clusters[i].bitset, 0))
-        {
-            printf("adf");
-        }
-    }
-
-    // cleanup
-    for (int i = 0; i < cluster_size; ++i)
-    {
-        vbitset_free(clusters[i].bitset);
     }
 
     return (Result){NULL, NULL, false, (double)(clock() - begin) / CLOCKS_PER_SEC};
