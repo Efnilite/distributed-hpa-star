@@ -40,6 +40,15 @@ void result_visualize(const Map* map, const Result* result)
         }
     }
 
+    if (result->inter_edges != NULL)
+    {
+        for (int i = 0; i < arrlen(result->inter_edges); ++i)
+        {
+            const Vec2 pos = result->inter_edges[i];
+            text[XY_TO_IDX(pos.x, pos.y)] = '~';
+        }
+    }
+
     float cost = 0.0f;
     if (result->path != NULL)
     {
@@ -54,7 +63,7 @@ void result_visualize(const Map* map, const Result* result)
                 exit(EXIT_FAILURE);
             }
 
-            text[XY_TO_IDX(pos.x, pos.y)] = '.';
+            text[XY_TO_IDX(pos.x, pos.y)] = '*';
             if (previous.x != pos.x && previous.y != pos.y)
             {
                 cost += M_SQRT2;

@@ -16,10 +16,10 @@ typedef struct closed_node_t
 typedef struct result_t
 {
     ClosedNode* visited;
-
     Vec2* path;
     bool success;
     double cpu_secs;
+    Vec2* inter_edges;
 } Result;
 
 void result_visualize(const Map* map, const Result* result);
