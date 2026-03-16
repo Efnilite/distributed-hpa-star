@@ -4,7 +4,9 @@ project(hpa C)
 set(CMAKE_C_STANDARD 17)
 
 add_executable(hpa
+        src/graph.c
         src/hpa.c
+        ../a*/src/a.c
         ../common/main.c
         ../common/parser.c
         ../common/map.c

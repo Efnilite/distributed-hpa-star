@@ -11,9 +11,11 @@ typedef struct cluster_t
 {
     Vec2 pos;
     Vec2 inter_edges[12];
+    uint8_t inter_scores[CLUSTER_SIZE * CLUSTER_SIZE];
 } Cluster;
 
 #define CLUSTER_XY_TO_IDX(x, y) (cx * CLUSTER_SIZE + (x) + (cy * CLUSTER_SIZE + (y)) * map->w)
+#define XY_TO_CLUSTER_IDX(x, y) (((x) / CLUSTER_SIZE) + ((y) / CLUSTER_SIZE) * cluster_w)
 
 #define MIN(a, b) (a) > (b) ? (b) : (a)
 
@@ -125,9 +127,13 @@ Result hpa(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx,
             cluster.pos = pos;
             memcpy(cluster.inter_edges, inter_edges, 12 * sizeof(Vec2));
 
+            memset(cluster.inter_scores, 1, CLUSTER_SIZE * CLUSTER_SIZE);
+
             clusters[cy * cluster_w + cx] = cluster;
         }
     }
+
+    const Cluster start_cluster = clusters[XY_TO_CLUSTER_IDX(sx, sy)];
 
     return (Result){NULL, NULL, false, (double)(clock() - begin) / CLOCKS_PER_SEC, NULL};
 }
