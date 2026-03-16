@@ -19,7 +19,7 @@ typedef struct result_t
     Vec2* path;
     bool success;
     double cpu_secs;
-    Vec2* inter_edges;
+    Graph* graph;
 } Result;
 
 void result_visualize(const Map* map, const Result* result);

@@ -4,8 +4,9 @@
 
 static bool vec2_equal(Vec2 a, Vec2 b) { return a.x == b.x && a.y == b.y; }
 
-void graph_init(Graph* graph)
+Graph* graph_create(void)
 {
+    Graph* graph = malloc(sizeof(Graph));
     if (graph == NULL)
     {
         return;
@@ -13,6 +14,7 @@ void graph_init(Graph* graph)
 
     graph->nodes = NULL;
     graph->node_count = 0;
+    return graph;
 }
 
 static void graph_free_edges(GraphEdge* edge)

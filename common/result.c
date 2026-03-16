@@ -1,12 +1,13 @@
 #include "result.h"
+#include "graph.h"
 #include "stb_ds.h"
 #include "util.h"
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/time.h>
+#include <unistd.h>
 
 void result_visualize(const Map* map, const Result* result)
 {
@@ -40,12 +41,12 @@ void result_visualize(const Map* map, const Result* result)
         }
     }
 
-    if (result->inter_edges != NULL)
+    if (result->graph != NULL)
     {
-        for (int i = 0; i < arrlen(result->inter_edges); ++i)
+        for (int i = 0; i < result->graph->node_count; ++i)
         {
-            const Vec2 pos = result->inter_edges[i];
-            text[XY_TO_IDX(pos.x, pos.y)] = '~';
+            const GraphNode node = result->graph->nodes[i];
+            text[XY_TO_IDX(node.pos.x, node.pos.y)] = '~';
         }
     }
 

@@ -1,7 +1,7 @@
-#ifndef HPA_GRAPH_H
-#define HPA_GRAPH_H
+#ifndef GRAPH_H
+#define GRAPH_H
 
-#include "../../common/vec2.h"
+#include "vec2.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -26,7 +26,7 @@ typedef struct graph_node_t
     GraphNode* next;
 } GraphNode;
 
-void graph_init(Graph* graph);
+Graph* graph_create(void);
 void graph_free(Graph* graph);
 
 GraphNode* graph_find_node(Graph* graph, Vec2 pos);
