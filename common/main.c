@@ -25,7 +25,7 @@ int main()
     // Map map = parse_map("../data/ih/scene_test");
     // const Result result = ALGORITHM(&map, 3, 1, 3, 3);
     Map map = parse_map("../data/ih/scene_test_small");
-    const Result result = ALGORITHM(&map, 10, 10, 18, 18);
+    const Result result = ALGORITHM(&map, (Vec2){10, 10}, (Vec2){18, 18});
     // Map map = parse_map("../data/ih/scene_mp_2p_01");
     // const Result result = ALGORITHM(&map, 260, 180, 1565, 1745);
     // Map map = parse_map("../../data/ih/scene_mp_2p_04");

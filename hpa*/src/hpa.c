@@ -93,7 +93,7 @@ void get_inter_edges_side(const Map* map, const Vec2 cluster, const Vec2 local_s
     }
 }
 
-Result hpa(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx, const int16_t gy)
+Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
 {
     const clock_t begin = clock();
 

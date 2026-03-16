@@ -8,6 +8,7 @@
 
 VBitSet* vbitset_create(const size_t capacity, const uint8_t element_size)
 {
+    // uses uint32 so max size is 32
     assert(element_size <= 32);
 
     const size_t elements_per_word = 32 / element_size;
@@ -33,6 +34,7 @@ VBitSet* vbitset_create(const size_t capacity, const uint8_t element_size)
 uint8_t vbitset_get(const VBitSet* bitset, const size_t index)
 {
     const size_t size = bitset->element_size;
+    // get index accounting for unused bits in word
     const size_t element_index = index / bitset->elements_per_word * bitset->unused_word_bits + size * index;
     const size_t word_index = element_index >> 5;
     const uint8_t in_page = 31 - element_index % 32;
@@ -50,6 +52,7 @@ uint8_t vbitset_get(const VBitSet* bitset, const size_t index)
 void vbitset_set(const VBitSet* bitset, const size_t index, const uint8_t value)
 {
     const size_t size = bitset->element_size;
+    // get index accounting for unused bits in word
     const size_t element_index = index / bitset->elements_per_word * bitset->unused_word_bits + size * index;
     const size_t word_index = element_index >> 5;
     const uint8_t in_page = 31 - element_index % 32;
@@ -64,7 +67,4 @@ void vbitset_set(const VBitSet* bitset, const size_t index, const uint8_t value)
     bitset->ptr[word_index] = word;
 }
 
-void vbitset_free(VBitSet* bitset)
-{
-    free(bitset);
-}
+void vbitset_free(VBitSet* bitset) { free(bitset); }

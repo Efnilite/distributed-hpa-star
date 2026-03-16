@@ -4,12 +4,12 @@
 #include <string.h>
 #include <time.h>
 
-#include "a.h"
 #include "../../common/mheap.h"
 #include "../../common/result.h"
 #include "../../common/stb_ds.h"
 #include "../../common/util.h"
 #include "../../common/vec2.h"
+#include "a.h"
 
 // #define EUCLIDEAN
 #define OCTILE
@@ -28,18 +28,18 @@
 #define NEIGHBOUR_COST 1
 #endif
 
-#define SUCCESSORS(x, y) \
-            { \
-                {(int16_t)(x - 1), y}, \
-                {x, (int16_t)(y - 1)}, \
-                {(int16_t)(x + 1), y}, \
-                {x, (int16_t)(y + 1)}, \
-                \
-                {(int16_t)(x + 1), (int16_t)(y + 1)}, \
-                {(int16_t)(x + 1), (int16_t)(y - 1)}, \
-                {(int16_t)(x - 1), (int16_t)(y + 1)}, \
-                {(int16_t)(x - 1), (int16_t)(y - 1)},\
-            }
+#define SUCCESSORS(x, y)                                                                                               \
+    {                                                                                                                  \
+        {(int16_t)(x - 1), y},                                                                                         \
+        {x, (int16_t)(y - 1)},                                                                                         \
+        {(int16_t)(x + 1), y},                                                                                         \
+        {x, (int16_t)(y + 1)},                                                                                         \
+                                                                                                                       \
+        {(int16_t)(x + 1), (int16_t)(y + 1)},                                                                          \
+        {(int16_t)(x + 1), (int16_t)(y - 1)},                                                                          \
+        {(int16_t)(x - 1), (int16_t)(y + 1)},                                                                          \
+        {(int16_t)(x - 1), (int16_t)(y - 1)},                                                                          \
+    }
 
 typedef struct frontier_node_t
 {
@@ -62,7 +62,7 @@ static int frontier_compare(void* a, void* b)
     return 0;
 }
 
-Result a(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx, const int16_t gy)
+Result a(const Map* map, const Vec2 start, const Vec2 goal)
 {
     const clock_t begin = clock();
     const size_t size = map->w * map->h;
@@ -70,19 +70,19 @@ Result a(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx, c
     heap frontier;
     heap_create(&frontier, map->w + map->h, frontier_compare);
 
-    FrontierNode* start = malloc(sizeof(FrontierNode));
-    *start = (FrontierNode){
-        .pos = {sx, sy},
-        .estimated_score = (uint16_t)DISTANCE_FUNCTION(sx, sy, gx, gy),
+    FrontierNode* startn = malloc(sizeof(FrontierNode));
+    *startn = (FrontierNode){
+        .pos = start,
+        .estimated_score = (uint16_t)DISTANCE_FUNCTION(start, goal),
     };
-    heap_insert(&frontier, start, &start->estimated_score);
+    heap_insert(&frontier, startn, &startn->estimated_score);
 
     VBitSet* closed = vbitset_create(size, 1);
     VBitSet* came_from = vbitset_create(size, 3);
 
     uint16_t* scores = malloc(sizeof(uint16_t) * size);
     memset(scores, UINT16_MAX, sizeof(uint16_t) * size);
-    scores[XY_TO_IDX(sx, sy)] = 0;
+    scores[XY_TO_IDX(start.x, start.y)] = 0;
 
     while (heap_size(&frontier) > 0)
     {
@@ -96,22 +96,21 @@ Result a(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx, c
 
         const Vec2 pos = n->pos;
         const uint32_t pos_idx = XY_TO_IDX(pos.x, pos.y);
-        if (pos.x == gx && pos.y == gy)
+        if (vec2_equal(pos, goal))
         {
             // reconstruct path
             Vec2* path = NULL;
             Vec2 current = pos;
-            const Vec2 start_pos = (Vec2){sx, sy};
+            const Vec2 start_pos = start;
             arrput(path, current);
             while (current.x != start_pos.x || current.y != start_pos.y)
             {
                 const Vec2 predecessors[] = SUCCESSORS(current.x, current.y);
-                const uint8_t came_from_idx = vbitset_get(came_from, XY_TO_IDX(current.x, current.y));;
+                const uint8_t came_from_idx = vbitset_get(came_from, XY_TO_IDX(current.x, current.y));
+                ;
                 const Vec2 reverse = predecessors[came_from_idx];
-                current = (Vec2){
-                    (int16_t)(current.x + (current.x - reverse.x)),
-                    (int16_t)(current.y + (current.y - reverse.y))
-                };
+                current = (Vec2){(int16_t)(current.x + (current.x - reverse.x)),
+                                 (int16_t)(current.y + (current.y - reverse.y))};
                 arrput(path, current);
             }
 
@@ -121,10 +120,7 @@ Result a(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx, c
             free(came_from);
             free(closed);
 
-            return (Result){
-                NULL, path, true,
-                (double)(clock() - begin) / CLOCKS_PER_SEC
-            };
+            return (Result){NULL, path, true, (double)(clock() - begin) / CLOCKS_PER_SEC};
         }
 
         vbitset_set(closed, pos_idx, true);
@@ -142,7 +138,7 @@ Result a(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx, c
             }
 
             const uint16_t gn = score + NEIGHBOUR_COST;
-            const uint16_t hn = (uint16_t)DISTANCE_FUNCTION(successor.x, successor.y, gx, gy);
+            const uint16_t hn = (uint16_t)DISTANCE_FUNCTION(successor, goal);
             const uint16_t fn = gn + hn;
 
             if (vbitset_get(closed, successor_idx))
@@ -181,8 +177,5 @@ Result a(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx, c
     free(scores);
     free(came_from);
 
-    return (Result){
-        NULL, NULL, false,
-        (double)(clock() - begin) / CLOCKS_PER_SEC
-    };
+    return (Result){NULL, NULL, false, (double)(clock() - begin) / CLOCKS_PER_SEC};
 }
