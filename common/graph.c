@@ -9,7 +9,7 @@ Graph* graph_create(void)
     Graph* graph = malloc(sizeof(Graph));
     if (graph == NULL)
     {
-        return;
+        return NULL;
     }
 
     graph->nodes = NULL;

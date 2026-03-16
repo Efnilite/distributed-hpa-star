@@ -1,5 +1,4 @@
 #include "result.h"
-#include "graph.h"
 #include "stb_ds.h"
 #include "util.h"
 
@@ -35,7 +34,7 @@ void result_visualize(const Map* map, const Result* result)
             const ClosedNode m = result->visited[i];
             if (m.is_closed && text[i] != '@')
             {
-                text[size] = 'o';
+                text[i] = 'o';
                 visited++;
             }
         }
@@ -43,10 +42,20 @@ void result_visualize(const Map* map, const Result* result)
 
     if (result->graph != NULL)
     {
-        for (int i = 0; i < result->graph->node_count; ++i)
+        GraphNode* node = result->graph->nodes;
+        while (node != NULL)
         {
-            const GraphNode node = result->graph->nodes[i];
-            text[XY_TO_IDX(node.pos.x, node.pos.y)] = '~';
+            // if (text[XY_TO_IDX(node->pos.x, node->pos.y)] == '@')
+            // {
+            //     perror("Graph replaced wall");
+            //     free(text);
+            //     exit(EXIT_FAILURE);
+            //     return;
+            // }
+
+            text[XY_TO_IDX(node->pos.x, node->pos.y)] = '~';
+
+            node = node->next;
         }
     }
 
@@ -62,6 +71,7 @@ void result_visualize(const Map* map, const Result* result)
                 perror("Pathfinding replaced wall");
                 free(text);
                 exit(EXIT_FAILURE);
+                return;
             }
 
             text[XY_TO_IDX(pos.x, pos.y)] = '*';

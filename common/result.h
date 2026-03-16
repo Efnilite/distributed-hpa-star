@@ -6,6 +6,7 @@
 
 #include "map.h"
 #include "vec2.h"
+#include "graph.h"
 
 typedef struct closed_node_t
 {

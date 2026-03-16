@@ -1,12 +1,13 @@
 #include "hpa.h"
 
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
 
+#include "../../common/graph.h"
 #include "../../common/stb_ds.h"
-#include "graph.h"
 
 #define CLUSTER_XY_TO_IDX(x, y) (cx * CLUSTER_SIZE + (x) + (cy * CLUSTER_SIZE + (y)) * map->w)
 #define XY_TO_CLUSTER_IDX(x, y) (((x) / CLUSTER_SIZE) + ((y) / CLUSTER_SIZE) * cluster_w)
@@ -23,10 +24,7 @@ size_t get_inter_edges_side(const Map* map, const Vec2 cluster, const Vec2 start
     const int cx = cluster.x;
     const int cy = cluster.y;
 
-    const int to_bx = cluster.x + to_other_cluster.x;
-    const int to_by = cluster.y + to_other_cluster.y;
-
-    Vec2 current = start;
+    Vec2 current = (Vec2){start.x + cx * CLUSTER_SIZE, start.y + cy * CLUSTER_SIZE};
 
     Vec2 options_a[CLUSTER_SIZE];
     Vec2 options_b[CLUSTER_SIZE];
@@ -40,14 +38,14 @@ size_t get_inter_edges_side(const Map* map, const Vec2 cluster, const Vec2 start
             continue;
         }
 
-        const int16_t bx = current.x + to_bx;
-        const int16_t by = current.y + to_by;
-        const ssize_t symm = CLUSTER_XY_TO_IDX(bx, by);
-        if (symm < 0 || symm > map->size)
+        const int16_t bx = current.x + to_other_cluster.x;
+        const int16_t by = current.y + to_other_cluster.y;
+
+        if (bx >= map->w || by >= map->h)
         {
             continue;
         }
-        if (vbitset_get(map->coordinates, symm))
+        if (vbitset_get(map->coordinates, CLUSTER_XY_TO_IDX(bx, by)))
         {
             continue;
         }
@@ -101,10 +99,10 @@ Result hpa(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx,
     const clock_t begin = clock();
 
     // preprocess
-    const Graph* graph = graph_create();
+    Graph* graph = graph_create();
 
-    const size_t cluster_w = map->w / CLUSTER_SIZE;
-    const size_t cluster_h = map->h / CLUSTER_SIZE;
+    const size_t cluster_w = (size_t)ceil(map->w / (float)CLUSTER_SIZE);
+    const size_t cluster_h = (size_t)ceil(map->h / (float)CLUSTER_SIZE);
     const size_t cluster_size = cluster_w * cluster_h;
     for (int cy = 0; cy < cluster_h; ++cy)
     {
@@ -121,7 +119,7 @@ Result hpa(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx,
 
     // cleanup
 
-    graph_free(graph);
+    // graph_free(graph);
 
-    return (Result){NULL, NULL, false, (double)(clock() - begin) / CLOCKS_PER_SEC, NULL};
+    return (Result){NULL, NULL, false, (double)(clock() - begin) / CLOCKS_PER_SEC, graph};
 }

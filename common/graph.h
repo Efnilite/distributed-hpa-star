@@ -6,6 +6,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+typedef struct graph_node_t GraphNode;
+typedef struct graph_edge_t GraphEdge;
+
 typedef struct graph_t
 {
     GraphNode* nodes;
@@ -19,12 +22,12 @@ typedef struct graph_edge_t
     GraphEdge* next;
 } GraphEdge;
 
-typedef struct graph_node_t
+struct graph_node_t
 {
     Vec2 pos;
     GraphEdge* edges;
     GraphNode* next;
-} GraphNode;
+};
 
 Graph* graph_create(void);
 void graph_free(Graph* graph);
