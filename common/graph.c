@@ -2,8 +2,6 @@
 
 #include <stdlib.h>
 
-static bool vec2_equal(Vec2 a, Vec2 b) { return a.x == b.x && a.y == b.y; }
-
 Graph* graph_create(void)
 {
     Graph* graph = malloc(sizeof(Graph));

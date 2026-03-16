@@ -13,7 +13,7 @@ typedef struct vec2_t
     int16_t y;
 } Vec2;
 
-inline bool vec2_equal(Vec2 a, Vec2 b) { return a.x == b.x && a.y == b.y; }
+static inline bool vec2_equal(Vec2 a, Vec2 b) { return a.x == b.x && a.y == b.y; }
 
 /**
  * Get the Manhattan distance between two vectors.

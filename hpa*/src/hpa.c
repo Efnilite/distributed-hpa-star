@@ -13,7 +13,7 @@
 #define MIN(a, b) (a) > (b) ? (b) : (a)
 
 // returns the inter edges from one side of a cluster
-void get_inter_edges_side(const Map* map, const Vec2 cluster, const Vec2 local_start, const Vec2 direction,
+static void get_inter_edges_side(const Map* map, const Vec2 cluster, const Vec2 local_start, const Vec2 direction,
                           const Vec2 to_other_cluster, Graph* graph)
 {
     assert(direction.x == 1 || direction.y == 1);
@@ -107,12 +107,12 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
     {
         for (int cx = 0; cx < cluster_w; ++cx)
         {
-            const Vec2 pos = (Vec2){(int16_t)cx, (int16_t)cy};
+            const Vec2 cluster = (Vec2){(int16_t)cx, (int16_t)cy};
 
-            get_inter_edges_side(map, pos, (Vec2){0, 0}, (Vec2){1, 0}, (Vec2){0, -1}, graph);
-            get_inter_edges_side(map, pos, (Vec2){0, 0}, (Vec2){0, 1}, (Vec2){-1, 0}, graph);
-            get_inter_edges_side(map, pos, (Vec2){CLUSTER_SIZE, 0}, (Vec2){0, 1}, (Vec2){1, 0}, graph);
-            get_inter_edges_side(map, pos, (Vec2){0, CLUSTER_SIZE}, (Vec2){1, 0}, (Vec2){0, 1}, graph);
+            get_inter_edges_side(map, cluster, (Vec2){0, 0}, (Vec2){1, 0}, (Vec2){0, -1}, graph);
+            get_inter_edges_side(map, cluster, (Vec2){0, 0}, (Vec2){0, 1}, (Vec2){-1, 0}, graph);
+            get_inter_edges_side(map, cluster, (Vec2){CLUSTER_SIZE - 1, 0}, (Vec2){0, 1}, (Vec2){1, 0}, graph);
+            get_inter_edges_side(map, cluster, (Vec2){0, CLUSTER_SIZE - 1}, (Vec2){1, 0}, (Vec2){0, 1}, graph);
         }
     }
 
