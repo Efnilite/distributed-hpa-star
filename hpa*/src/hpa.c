@@ -38,20 +38,18 @@ size_t get_inter_edges_side(const Map* map, const Vec2 cluster, const Vec2 start
             continue;
         }
 
-        const int16_t bx = current.x + to_other_cluster.x;
-        const int16_t by = current.y + to_other_cluster.y;
-
-        if (bx >= map->w || by >= map->h)
+        const Vec2 other = (Vec2){current.x + to_other_cluster.x, current.y + to_other_cluster.y};
+        if (other.x >= map->w || other.y >= map->h)
         {
             continue;
         }
-        if (vbitset_get(map->coordinates, CLUSTER_XY_TO_IDX(bx, by)))
+        if (vbitset_get(map->coordinates, CLUSTER_XY_TO_IDX(other.x, other.y)))
         {
             continue;
         }
 
         options_a[options_size] = current;
-        options_b[options_size] = (Vec2){bx, by};
+        options_b[options_size] = other;
         options_size++;
         current.x += direction.x;
         current.y += direction.y;
