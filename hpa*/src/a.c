@@ -50,7 +50,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
     memset(closed, 0, sizeof(uint16_t) * size);
 
     Vec2* came_from = malloc(sizeof(bool) * size);
-    memset(closed, 0, sizeof(uint16_t) * size);
+    memset(came_from, 0, sizeof(uint16_t) * size);
 
     uint16_t* scores = malloc(sizeof(uint16_t) * size);
     memset(scores, UINT16_MAX, sizeof(uint16_t) * size);
@@ -86,10 +86,11 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
             free(came_from);
             free(closed);
 
-            return NULL;
+            return path;
         }
 
-        vbitset_set(closed, pos_idx, true);
+        const size_t pos_idx = XY_TO_IDX(pos.x, pos.y);
+        closed[pos_idx] = true;
 
         const Vec2 successors[] = SUCCESSORS(pos.x, pos.y);
         const uint16_t score = scores[pos_idx];
@@ -97,12 +98,13 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
         while (to_successor != NULL)
         {
             const GraphNode* successor = to_successor->to;
+            const size_t successor_idx = XY_TO_IDX(successor->pos.x, successor->pos.y);
 
-            const uint16_t gn = score + NEIGHBOUR_COST;
-            const uint16_t hn = (uint16_t)vec2_distance_chebyshev(to_successor, goal);
+            const uint16_t gn = score + to_successor->weight;
+            const uint16_t hn = (uint16_t)vec2_distance_chebyshev(successor->pos, goal);
             const uint16_t fn = gn + hn;
 
-            if (vbitset_get(closed, successor_idx))
+            if (closed[successor_idx])
             {
                 continue;
             }
@@ -116,7 +118,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
 
             // update g-score and came_from
             scores[successor_idx] = gn;
-            vbitset_set(came_from, successor_idx, i);
+            came_from[successor_idx] = pos;
 
             FrontierNode* node = malloc(sizeof(FrontierNode));
             if (node == NULL)
@@ -124,7 +126,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
                 perror("Failed node malloc");
                 exit(EXIT_FAILURE);
             }
-            node->pos = to_successor;
+            node->pos = successor->pos;
             node->estimated_score = fn;
 
             heap_insert(&frontier, node, &node->estimated_score);
@@ -136,6 +138,9 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
     }
 
     heap_destroy(&frontier);
+    free(scores);
+    free(came_from);
+    free(closed);
 
     return NULL;
 }
