@@ -8,6 +8,6 @@
 
 #include <stdint.h>
 
-Result hpa(const Map* map, int16_t sx, int16_t sy, int16_t gx, int16_t gy);
+Result hpa(const Map* map, Vec2 start, Vec2 goal);
 
 #endif

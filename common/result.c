@@ -5,8 +5,8 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/time.h>
+#include <unistd.h>
 
 void result_visualize(const Map* map, const Result* result)
 {
@@ -34,18 +34,28 @@ void result_visualize(const Map* map, const Result* result)
             const ClosedNode m = result->visited[i];
             if (m.is_closed && text[i] != '@')
             {
-                text[size] = 'o';
+                text[i] = 'o';
                 visited++;
             }
         }
     }
 
-    if (result->inter_edges != NULL)
+    if (result->graph != NULL)
     {
-        for (int i = 0; i < arrlen(result->inter_edges); ++i)
+        GraphNode* node = result->graph->nodes;
+        while (node != NULL)
         {
-            const Vec2 pos = result->inter_edges[i];
-            text[XY_TO_IDX(pos.x, pos.y)] = '~';
+            // if (text[XY_TO_IDX(node->pos.x, node->pos.y)] == '@')
+            // {
+            //     perror("Graph replaced wall");
+            //     free(text);
+            //     exit(EXIT_FAILURE);
+            //     return;
+            // }
+
+            text[XY_TO_IDX(node->pos.x, node->pos.y)] = '~';
+
+            node = node->next;
         }
     }
 
@@ -61,6 +71,7 @@ void result_visualize(const Map* map, const Result* result)
                 perror("Pathfinding replaced wall");
                 free(text);
                 exit(EXIT_FAILURE);
+                return;
             }
 
             text[XY_TO_IDX(pos.x, pos.y)] = '*';

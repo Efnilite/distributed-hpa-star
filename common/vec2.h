@@ -1,20 +1,42 @@
 #ifndef VEC2_H
 #define VEC2_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
+/**
+ * A 2d int vector.
+ */
 typedef struct vec2_t
 {
     int16_t x;
     int16_t y;
 } Vec2;
 
-float vec2_distance(Vec2 a, Vec2 b);
+static inline bool vec2_equal(Vec2 a, Vec2 b) { return a.x == b.x && a.y == b.y; }
 
-int16_t vec2_distance_manhattan(int16_t ax, int16_t ay, int16_t bx, int16_t by);
+/**
+ * Get the Manhattan distance between two vectors.
+ * @param a The first vector.
+ * @param b The second vector.
+ * @returns The distance.
+ */
+int16_t vec2_distance_manhattan(Vec2 a, Vec2 b);
 
-float vec2_distance_euclidean(int16_t ax, int16_t ay, int16_t bx, int16_t by);
+/**
+ * Get the Euclidean distance between two vectors.
+ * @param a The first vector.
+ * @param b The second vector.
+ * @returns The distance.
+ */
+float vec2_distance_euclidean(Vec2 a, Vec2 b);
 
-int16_t vec2_distance_chebyshev(int16_t ax, int16_t ay, int16_t bx, int16_t by);
+/**
+ * Get the Chebyshev distance between two vectors.
+ * @param a The first vector.
+ * @param b The second vector.
+ * @returns The distance.
+ */
+int16_t vec2_distance_chebyshev(Vec2 a, Vec2 b);
 
 #endif

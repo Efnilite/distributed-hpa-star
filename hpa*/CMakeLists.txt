@@ -5,12 +5,14 @@ set(CMAKE_C_STANDARD 17)
 
 add_executable(hpa
         src/hpa.c
+        src/a.c
         ../common/main.c
         ../common/parser.c
         ../common/map.c
         ../common/vec2.c
         ../common/mheap.c
         ../common/result.c
-        ../common/vbitset.c)
+        ../common/vbitset.c
+        ../common/graph.c)
 
 target_link_libraries(hpa m)

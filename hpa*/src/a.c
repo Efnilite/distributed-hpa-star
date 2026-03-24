@@ -1,45 +1,11 @@
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-
-#include "../../common/mheap.h"
-#include "../../common/result.h"
-#include "../../common/stb_ds.h"
-#include "../../common/util.h"
-#include "../../common/vec2.h"
 #include "a.h"
+#include "../../common/graph.h"
+#include "../../common/mheap.h"
+#include "../../common/util.h"
+#include "hpa.h"
 
-// #define EUCLIDEAN
-#define OCTILE
-// #define MANHATTAN
-
-#ifdef EUCLIDEAN
-#define DISTANCE_FUNCTION vec2_distance_euclidean
-#define NEIGHBOUR_COST ((i < 4) ? 5 : 7)
-#endif
-#ifdef OCTILE
-#define DISTANCE_FUNCTION vec2_distance_chebyshev
-#define NEIGHBOUR_COST ((i < 4) ? 5 : 7)
-#endif
-#ifdef MANHATTAN
-#define DISTANCE_FUNCTION vec2_distance_manhattan
-#define NEIGHBOUR_COST 1
-#endif
-
-#define SUCCESSORS(x, y)                                                                                               \
-    {                                                                                                                  \
-        {(int16_t)(x - 1), y},                                                                                         \
-        {x, (int16_t)(y - 1)},                                                                                         \
-        {(int16_t)(x + 1), y},                                                                                         \
-        {x, (int16_t)(y + 1)},                                                                                         \
-                                                                                                                       \
-        {(int16_t)(x + 1), (int16_t)(y + 1)},                                                                          \
-        {(int16_t)(x + 1), (int16_t)(y - 1)},                                                                          \
-        {(int16_t)(x - 1), (int16_t)(y + 1)},                                                                          \
-        {(int16_t)(x - 1), (int16_t)(y - 1)},                                                                          \
-    }
+#include <stdlib.h>
+#include <time.h>
 
 typedef struct frontier_node_t
 {
@@ -62,13 +28,12 @@ static int frontier_compare(void* a, void* b)
     return 0;
 }
 
-Result a(const Map* map, const Vec2 start, const Vec2 goal)
+Vec2* a(const Graph* graph, const Vec2 start, const Vec2 goal)
 {
-    const clock_t begin = clock();
-    const size_t size = map->w * map->h;
+    const size_t size = graph->node_count;
 
     heap frontier;
-    heap_create(&frontier, map->w + map->h, frontier_compare);
+    heap_create(&frontier, CLUSTER_SIZE, frontier_compare);
 
     FrontierNode* startn = malloc(sizeof(FrontierNode));
     *startn = (FrontierNode){
@@ -120,7 +85,7 @@ Result a(const Map* map, const Vec2 start, const Vec2 goal)
             free(came_from);
             free(closed);
 
-            return (Result){NULL, path, true, (double)(clock() - begin) / CLOCKS_PER_SEC};
+            return NULL;
         }
 
         vbitset_set(closed, pos_idx, true);
@@ -138,7 +103,7 @@ Result a(const Map* map, const Vec2 start, const Vec2 goal)
             }
 
             const uint16_t gn = score + NEIGHBOUR_COST;
-            const uint16_t hn = (uint16_t)DISTANCE_FUNCTION(successor, goal);
+            const uint16_t hn = (uint16_t)vec2_distance_chebyshev(successor, goal);
             const uint16_t fn = gn + hn;
 
             if (vbitset_get(closed, successor_idx))
@@ -177,5 +142,5 @@ Result a(const Map* map, const Vec2 start, const Vec2 goal)
     free(scores);
     free(came_from);
 
-    return (Result){NULL, NULL, false, (double)(clock() - begin) / CLOCKS_PER_SEC};
+    return NULL;
 }
