@@ -34,7 +34,7 @@ static int frontier_compare(void* a, void* b)
 
 Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 goal)
 {
-    const size_t size = graph->node_count;
+    const size_t size = map->size;
 
     heap frontier;
     heap_create(&frontier, CLUSTER_SIZE, frontier_compare);
@@ -47,10 +47,10 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
     heap_insert(&frontier, startn, &startn->estimated_score);
 
     bool* closed = malloc(sizeof(bool) * size);
-    memset(closed, 0, sizeof(uint16_t) * size);
+    memset(closed, false, sizeof(bool) * size);
 
-    Vec2* came_from = malloc(sizeof(bool) * size);
-    memset(came_from, 0, sizeof(uint16_t) * size);
+    Vec2* came_from = malloc(sizeof(Vec2) * size);
+    memset(came_from, 0, sizeof(Vec2) * size);
 
     uint16_t* scores = malloc(sizeof(uint16_t) * size);
     memset(scores, UINT16_MAX, sizeof(uint16_t) * size);
@@ -65,6 +65,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
         {
             continue;
         }
+        printf("Analyzed %d,%d\n", n->pos.x, n->pos.y);
 
         const Vec2 pos = n->pos;
         const GraphNode* node = graph_find_node_const(graph, pos);
@@ -77,6 +78,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
             arrput(path, current);
             while (current.x != start_pos.x || current.y != start_pos.y)
             {
+                graph_find_node_const(graph, current);
                 arrput(path, current);
             }
 
@@ -92,7 +94,6 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
         const size_t pos_idx = XY_TO_IDX(pos.x, pos.y);
         closed[pos_idx] = true;
 
-        const Vec2 successors[] = SUCCESSORS(pos.x, pos.y);
         const uint16_t score = scores[pos_idx];
         GraphEdge* to_successor = node->edges;
         while (to_successor != NULL)
@@ -106,6 +107,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
 
             if (closed[successor_idx])
             {
+                to_successor = to_successor->next;
                 continue;
             }
 
@@ -113,6 +115,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
             const uint16_t old_g = scores[successor_idx];
             if (gn >= old_g)
             {
+                to_successor = to_successor->next;
                 continue;
             }
 

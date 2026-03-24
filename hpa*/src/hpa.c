@@ -162,28 +162,91 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
     }
 
     populate_edges(map, clusters, graph);
+    printf("Populated edge\n");
 
     // find paths in cluster
-
     for (size_t i = 0; i < cluster_size; i++)
     {
-        const Cluster* cluster = &cluster[i];
+        Cluster* cluster = &clusters[i];
 
-        a(map, cluster->inter_edges[0], cluster->inter_edges[1]);
+        for (size_t a_idx = 0; a_idx < cluster->inter_edges_count; ++a_idx)
+        {
+            for (size_t b_idx = a_idx + 1; b_idx < cluster->inter_edges_count; ++b_idx)
+            {
+                Result res = a(map, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx]);
+
+                if (res.success)
+                {
+                    graph_add_edge(graph, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx],
+                                   arrlen(res.path) - 1);
+                }
+            }
+        }
+
+        printf("Finalized cluster %d,%d\n", cluster->pos.x, cluster->pos.y);
     }
 
-
+    // find paths from start and goal to their cluster's inter edges
     graph_add_node(graph, start);
     graph_add_node(graph, goal);
 
+    Cluster* start_cluster = &clusters[(start.y / CLUSTER_SIZE) * cluster_w + (start.x / CLUSTER_SIZE)];
+    for (size_t i = 0; i < start_cluster->inter_edges_count; ++i)
+    {
+        Result res = a(map, start, start_cluster->inter_edges[i]);
+        if (res.success)
+        {
+            graph_add_edge(graph, start, start_cluster->inter_edges[i], arrlen(res.path) - 1);
+        }
+    }
+
+    Cluster* goal_cluster = &clusters[(goal.y / CLUSTER_SIZE) * cluster_w + (goal.x / CLUSTER_SIZE)];
+    for (size_t i = 0; i < goal_cluster->inter_edges_count; ++i)
+    {
+        Result res = a(map, goal, goal_cluster->inter_edges[i]);
+        if (res.success)
+        {
+            graph_add_edge(graph, goal_cluster->inter_edges[i], goal, arrlen(res.path) - 1);
+        }
+    }
+    printf("Finalized extremity cluster finding\n");
+
     // 2. calculate
-
     Vec2* graph_path = graph_a(map, graph, start, goal);
+    if (graph_path == NULL)
+    {
+        printf("Failed to find graph path\n");
+        return (Result){NULL, NULL, false, (double)(clock() - begin) / CLOCKS_PER_SEC, graph};
+    }
 
-    // 3. cleanup
+    printf("Found graph path\n");
 
+    // 3. build final path
+    Vec2* final_path = NULL;
+    if (graph_path)
+    {
+        for (int i = 0; i < arrlen(graph_path) - 1; ++i)
+        {
+            Result res = a(map, graph_path[i], graph_path[i + 1]);
+            if (res.success)
+            {
+                // Concatenate the paths (excluding the first node of the next segment
+                // to avoid duplication, except for the very first segment)
+                int start_idx = (i == 0) ? 0 : 1;
+                for (int j = start_idx; j < arrlen(res.path); ++j)
+                {
+                    arrput(final_path, res.path[j]);
+                }
+            }
+        }
+    }
+
+    bool success = final_path != NULL && arrlen(final_path) > 0;
+
+    // 4. cleanup
+    free(clusters);
 
     // graph_free(graph);
 
-    return (Result){NULL, NULL, false, (double)(clock() - begin) / CLOCKS_PER_SEC, graph};
+    return (Result){NULL, final_path, success, (double)(clock() - begin) / CLOCKS_PER_SEC, graph};
 }
