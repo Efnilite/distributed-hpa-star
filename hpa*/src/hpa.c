@@ -1,4 +1,6 @@
 #include "hpa.h"
+#include "../../a*/src/a.h"
+#include "a.h"
 
 #include <assert.h>
 #include <math.h>
@@ -20,18 +22,14 @@ typedef struct cluster_t
 } Cluster;
 
 // returns the inter edges from one side of a cluster
-static void get_inter_edges_side(
-    const Map* map,
-    Cluster* cluster_a, Cluster* cluster_b,
-    const Vec2 local_start, const Vec2 direction,
-    const Vec2 to_other_cluster, Graph* graph)
+static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cluster_b, const Vec2 local_start,
+                                 const Vec2 direction, const Vec2 to_other_cluster, Graph* graph)
 {
     assert(direction.x == 1 || direction.y == 1);
     assert(direction.x + direction.y == 1);
 
-    Vec2 current = (Vec2){
-        local_start.x + cluster_a->pos.x * CLUSTER_SIZE,
-        local_start.y + cluster_a->pos.y * CLUSTER_SIZE};
+    Vec2 current =
+        (Vec2){local_start.x + cluster_a->pos.x * CLUSTER_SIZE, local_start.y + cluster_a->pos.y * CLUSTER_SIZE};
 
     // find all options along the edge
     Vec2 options_a[CLUSTER_SIZE];
@@ -73,6 +71,7 @@ static void get_inter_edges_side(
         res_a[0] = options_a[0];
         res_a[1] = options_a[options_size / 2];
         res_a[2] = options_a[options_size - 1];
+
         res_b[0] = options_b[0];
         res_b[1] = options_b[options_size / 2];
         res_b[2] = options_b[options_size - 1];
@@ -81,12 +80,14 @@ static void get_inter_edges_side(
     {
         res_a[0] = options_a[0];
         res_a[1] = options_a[1];
+
         res_b[0] = options_b[0];
         res_b[1] = options_b[1];
     }
     else if (result_size == 1)
     {
         res_a[0] = options_a[0];
+
         res_b[0] = options_b[0];
     }
 
@@ -95,6 +96,7 @@ static void get_inter_edges_side(
         graph_add_node(graph, res_a[i]);
         graph_add_node(graph, res_b[i]);
         graph_add_edge(graph, res_a[i], res_b[i], 1.f);
+
         if (cluster_a->inter_edges_count < 12)
         {
             cluster_a->inter_edges[cluster_a->inter_edges_count++] = res_a[i];
@@ -119,10 +121,7 @@ static void populate_edges(const Map* map, Cluster* clusters, Graph* graph)
             Cluster* ca = &clusters[cy * cluster_w + cx];
             Cluster* cb = &clusters[cy * cluster_w + cx + 1];
 
-            get_inter_edges_side(
-                map, ca, cb,
-                (Vec2){CLUSTER_SIZE - 1, 0}, (Vec2){0, 1},
-                (Vec2){1, 0}, graph);
+            get_inter_edges_side(map, ca, cb, (Vec2){CLUSTER_SIZE - 1, 0}, (Vec2){0, 1}, (Vec2){1, 0}, graph);
         }
     }
 
@@ -134,10 +133,7 @@ static void populate_edges(const Map* map, Cluster* clusters, Graph* graph)
             Cluster* ca = &clusters[cy * cluster_w + cx];
             Cluster* cb = &clusters[(cy + 1) * cluster_w + cx];
 
-            get_inter_edges_side(
-                map, ca, cb,
-                (Vec2){0, CLUSTER_SIZE - 1}, (Vec2){1, 0},
-                (Vec2){0, 1}, graph);
+            get_inter_edges_side(map, ca, cb, (Vec2){0, CLUSTER_SIZE - 1}, (Vec2){1, 0}, (Vec2){0, 1}, graph);
         }
     }
 }
@@ -146,7 +142,8 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
 {
     const clock_t begin = clock();
 
-    // create abstract graph
+    // 1. preprocess
+    // create graph
     Graph* graph = graph_create();
 
     const size_t cluster_w = (size_t)ceil(map->w / (float)CLUSTER_SIZE);
@@ -166,7 +163,25 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
 
     populate_edges(map, clusters, graph);
 
-    // cleanup
+    // find paths in cluster
+
+    for (size_t i = 0; i < cluster_size; i++)
+    {
+        const Cluster* cluster = &cluster[i];
+
+        a(map, cluster->inter_edges[0], cluster->inter_edges[1]);
+    }
+
+
+    graph_add_node(graph, start);
+    graph_add_node(graph, goal);
+
+    // 2. calculate
+
+    Vec2* graph_path = graph_a(map, graph, start, goal);
+
+    // 3. cleanup
+
 
     // graph_free(graph);
 
