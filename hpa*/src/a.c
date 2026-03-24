@@ -75,11 +75,10 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
             Vec2* path = NULL;
             Vec2 current = pos;
             const Vec2 start_pos = start;
-            arrput(path, current);
             while (current.x != start_pos.x || current.y != start_pos.y)
             {
-                graph_find_node_const(graph, current);
                 arrput(path, current);
+                current = came_from[XY_TO_IDX(current.x, current.y)];
             }
 
             free(n);
