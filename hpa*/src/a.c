@@ -1,11 +1,15 @@
 #include "a.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
 #include "../../common/graph.h"
 #include "../../common/mheap.h"
+#include "../../common/stb_ds.h"
 #include "../../common/util.h"
 #include "hpa.h"
-
-#include <stdlib.h>
-#include <time.h>
 
 typedef struct frontier_node_t
 {
@@ -28,7 +32,7 @@ static int frontier_compare(void* a, void* b)
     return 0;
 }
 
-Vec2* graph_a(const Graph* graph, const Vec2 start, const Vec2 goal)
+Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 goal)
 {
     const size_t size = graph->node_count;
 
@@ -41,6 +45,16 @@ Vec2* graph_a(const Graph* graph, const Vec2 start, const Vec2 goal)
         .estimated_score = (uint16_t)vec2_distance_chebyshev(start, goal),
     };
     heap_insert(&frontier, startn, &startn->estimated_score);
+
+    bool* closed = malloc(sizeof(bool) * size);
+    memset(closed, 0, sizeof(uint16_t) * size);
+
+    Vec2* came_from = malloc(sizeof(bool) * size);
+    memset(closed, 0, sizeof(uint16_t) * size);
+
+    uint16_t* scores = malloc(sizeof(uint16_t) * size);
+    memset(scores, UINT16_MAX, sizeof(uint16_t) * size);
+    scores[XY_TO_IDX(start.x, start.y)] = 0;
 
     while (heap_size(&frontier) > 0)
     {
@@ -68,6 +82,9 @@ Vec2* graph_a(const Graph* graph, const Vec2 start, const Vec2 goal)
 
             free(n);
             heap_destroy(&frontier);
+            free(scores);
+            free(came_from);
+            free(closed);
 
             return NULL;
         }
