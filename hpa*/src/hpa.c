@@ -15,6 +15,7 @@ typedef struct cluster_t
 
 #define DEBUG
 #define CLUSTER_XY_TO_IDX(x, y) (cx * CLUSTER_SIZE + (x) + (cy * CLUSTER_SIZE + (y)) * map->w)
+#define CLUSTER_XY_TO_XY(vec) ((Vec2){vec.x + cx * CLUSTER_SIZE, vec.y + cy * CLUSTER_SIZE})
 
 #define MIN(a, b) (a) > (b) ? (b) : (a)
 
@@ -94,7 +95,7 @@ static size_t get_inter_edges_side(
     return result_size;
 }
 
-static void populate_edges(const Map* map, Cluster* clusters, Vec2* inter_edges)
+static void populate_edges(const Map* map, Cluster* clusters, Vec2** inter_edges)
 {
     const size_t cluster_w = map->w / CLUSTER_SIZE;
     const size_t cluster_h = map->h / CLUSTER_SIZE;
@@ -131,8 +132,8 @@ static void populate_edges(const Map* map, Cluster* clusters, Vec2* inter_edges)
                 ca->inter_edges[ca->inter_edges_count++] = result_a[i];
                 cb->inter_edges[cb->inter_edges_count++] = result_b[i];
 #ifdef DEBUG
-                arrpush(inter_edges, result_a[i]);
-                arrpush(inter_edges, result_b[i]);
+                arrpush(*inter_edges, CLUSTER_XY_TO_XY(result_a[i]));
+                arrpush(*inter_edges, CLUSTER_XY_TO_XY(result_b[i]));
 #endif
             }
         }
@@ -170,8 +171,8 @@ static void populate_edges(const Map* map, Cluster* clusters, Vec2* inter_edges)
                 ca->inter_edges[ca->inter_edges_count++] = result_a[i];
                 cb->inter_edges[cb->inter_edges_count++] = result_b[i];
 #ifdef DEBUG
-                arrpush(inter_edges, result_a[i]);
-                arrpush(inter_edges, result_b[i]);
+                arrpush(*inter_edges, CLUSTER_XY_TO_XY(result_a[i]));
+                arrpush(*inter_edges, CLUSTER_XY_TO_XY(result_b[i]));
 #endif
             }
         }
@@ -196,12 +197,12 @@ Result hpa(const Map* map, const int16_t sx, const int16_t sy, const int16_t gx,
             clusters[cy * cluster_w + cx].inter_edges_count = 0;
         }
     }
-    populate_edges(map, clusters, inter_edges);
+    populate_edges(map, clusters, &inter_edges);
 
     // 2. pathfind
 
     // 3. cleanup
-    // free(clusters);
+    free(clusters);
 
     return (Result){NULL, NULL, false, (double)(clock() - begin) / CLOCKS_PER_SEC, inter_edges};
 }
