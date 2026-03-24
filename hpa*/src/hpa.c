@@ -12,17 +12,26 @@
 
 #define MIN(a, b) (a) > (b) ? (b) : (a)
 
+typedef struct cluster_t
+{
+    Vec2 pos;
+    Vec2 inter_edges[12];
+    size_t inter_edges_count;
+} Cluster;
+
 // returns the inter edges from one side of a cluster
-static void get_inter_edges_side(const Map* map, const Vec2 cluster, const Vec2 local_start, const Vec2 direction,
-                          const Vec2 to_other_cluster, Graph* graph)
+static void get_inter_edges_side(
+    const Map* map,
+    Cluster* cluster_a, Cluster* cluster_b,
+    const Vec2 local_start, const Vec2 direction,
+    const Vec2 to_other_cluster, Graph* graph)
 {
     assert(direction.x == 1 || direction.y == 1);
     assert(direction.x + direction.y == 1);
 
-    const int cx = cluster.x;
-    const int cy = cluster.y;
-
-    Vec2 current = (Vec2){local_start.x + cluster.x * CLUSTER_SIZE, local_start.y + cluster.y * CLUSTER_SIZE};
+    Vec2 current = (Vec2){
+        local_start.x + cluster_a->pos.x * CLUSTER_SIZE,
+        local_start.y + cluster_a->pos.y * CLUSTER_SIZE};
 
     // find all options along the edge
     Vec2 options_a[CLUSTER_SIZE];
@@ -56,40 +65,80 @@ static void get_inter_edges_side(const Map* map, const Vec2 cluster, const Vec2 
     }
 
     // select from options
-    switch (MIN(options_size, 3))
+    const size_t result_size = MIN(options_size, 3);
+    Vec2 res_a[3];
+    Vec2 res_b[3];
+    if (result_size >= 3)
     {
-    case 3:
-        graph_add_node(graph, options_a[0]);
-        graph_add_node(graph, options_a[options_size / 2]);
-        graph_add_node(graph, options_a[options_size - 1]);
+        res_a[0] = options_a[0];
+        res_a[1] = options_a[options_size / 2];
+        res_a[2] = options_a[options_size - 1];
+        res_b[0] = options_b[0];
+        res_b[1] = options_b[options_size / 2];
+        res_b[2] = options_b[options_size - 1];
+    }
+    else if (result_size == 2)
+    {
+        res_a[0] = options_a[0];
+        res_a[1] = options_a[1];
+        res_b[0] = options_b[0];
+        res_b[1] = options_b[1];
+    }
+    else if (result_size == 1)
+    {
+        res_a[0] = options_a[0];
+        res_b[0] = options_b[0];
+    }
 
-        graph_add_node(graph, options_b[0]);
-        graph_add_node(graph, options_b[options_size / 2]);
-        graph_add_node(graph, options_b[options_size - 1]);
+    for (size_t i = 0; i < result_size; ++i)
+    {
+        graph_add_node(graph, res_a[i]);
+        graph_add_node(graph, res_b[i]);
+        graph_add_edge(graph, res_a[i], res_b[i], 1.f);
+        if (cluster_a->inter_edges_count < 12)
+        {
+            cluster_a->inter_edges[cluster_a->inter_edges_count++] = res_a[i];
+        }
+        if (cluster_b->inter_edges_count < 12)
+        {
+            cluster_b->inter_edges[cluster_b->inter_edges_count++] = res_b[i];
+        }
+    }
+}
 
-        graph_add_edge(graph, options_a[0], options_b[0], 1.f);
-        graph_add_edge(graph, options_a[options_size / 2], options_b[options_size / 2], 1.f);
-        graph_add_edge(graph, options_a[options_size - 1], options_b[options_size - 1], 1.f);
-        break;
-    case 2:
-        graph_add_node(graph, options_a[0]);
-        graph_add_node(graph, options_a[1]);
+static void populate_edges(const Map* map, Cluster* clusters, Graph* graph)
+{
+    const size_t cluster_w = (size_t)ceil(map->w / (float)CLUSTER_SIZE);
+    const size_t cluster_h = (size_t)ceil(map->h / (float)CLUSTER_SIZE);
 
-        graph_add_node(graph, options_b[0]);
-        graph_add_node(graph, options_b[1]);
+    // horizontal edges
+    for (int cy = 0; cy < cluster_h; ++cy)
+    {
+        for (int cx = 0; cx < cluster_w - 1; ++cx)
+        {
+            Cluster* ca = &clusters[cy * cluster_w + cx];
+            Cluster* cb = &clusters[cy * cluster_w + cx + 1];
 
-        graph_add_edge(graph, options_a[0], options_b[0], 1.f);
-        graph_add_edge(graph, options_a[1], options_b[1], 1.f);
-        break;
-    case 1:
-        graph_add_node(graph, options_a[0]);
+            get_inter_edges_side(
+                map, ca, cb,
+                (Vec2){CLUSTER_SIZE - 1, 0}, (Vec2){0, 1},
+                (Vec2){1, 0}, graph);
+        }
+    }
 
-        graph_add_node(graph, options_b[0]);
+    // vertical edges
+    for (int cy = 0; cy < cluster_h - 1; ++cy)
+    {
+        for (int cx = 0; cx < cluster_w; ++cx)
+        {
+            Cluster* ca = &clusters[cy * cluster_w + cx];
+            Cluster* cb = &clusters[(cy + 1) * cluster_w + cx];
 
-        graph_add_edge(graph, options_a[0], options_b[0], 1.f);
-        break;
-    default:
-        break;
+            get_inter_edges_side(
+                map, ca, cb,
+                (Vec2){0, CLUSTER_SIZE - 1}, (Vec2){1, 0},
+                (Vec2){0, 1}, graph);
+        }
     }
 }
 
@@ -103,18 +152,19 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
     const size_t cluster_w = (size_t)ceil(map->w / (float)CLUSTER_SIZE);
     const size_t cluster_h = (size_t)ceil(map->h / (float)CLUSTER_SIZE);
     const size_t cluster_size = cluster_w * cluster_h;
+
+    Cluster* clusters = malloc(sizeof(Cluster) * cluster_size);
+
     for (int cy = 0; cy < cluster_h; ++cy)
     {
         for (int cx = 0; cx < cluster_w; ++cx)
         {
-            const Vec2 cluster = (Vec2){(int16_t)cx, (int16_t)cy};
-
-            get_inter_edges_side(map, cluster, (Vec2){0, 0}, (Vec2){1, 0}, (Vec2){0, -1}, graph);
-            get_inter_edges_side(map, cluster, (Vec2){0, 0}, (Vec2){0, 1}, (Vec2){-1, 0}, graph);
-            get_inter_edges_side(map, cluster, (Vec2){CLUSTER_SIZE - 1, 0}, (Vec2){0, 1}, (Vec2){1, 0}, graph);
-            get_inter_edges_side(map, cluster, (Vec2){0, CLUSTER_SIZE - 1}, (Vec2){1, 0}, (Vec2){0, 1}, graph);
+            clusters[cy * cluster_w + cx].pos = (Vec2){(int16_t)cx, (int16_t)cy};
+            clusters[cy * cluster_w + cx].inter_edges_count = 0;
         }
     }
+
+    populate_edges(map, clusters, graph);
 
     // cleanup
 

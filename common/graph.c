@@ -67,9 +67,9 @@ GraphNode* graph_find_node(Graph* graph, Vec2 pos)
 
 const GraphNode* graph_find_node_const(const Graph* graph, Vec2 pos) { return graph_find_node((Graph*)graph, pos); }
 
-bool graph_has_node(const Graph* graph, Vec2 pos) { return graph_find_node_const(graph, pos) != NULL; }
+bool graph_has_node(const Graph* graph, const Vec2 pos) { return graph_find_node_const(graph, pos) != NULL; }
 
-bool graph_add_node(Graph* graph, Vec2 pos)
+bool graph_add_node(Graph* graph, const Vec2 pos)
 {
     if (graph == NULL)
     {
@@ -80,7 +80,7 @@ bool graph_add_node(Graph* graph, Vec2 pos)
         return true;
     }
 
-    GraphNode* node = (GraphNode*)malloc(sizeof(GraphNode));
+    GraphNode* node = malloc(sizeof(GraphNode));
     if (node == NULL)
     {
         return false;

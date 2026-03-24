@@ -1,5 +1,5 @@
 #ifndef A_H
-#define A_H
+#define GA_H
 
 #include "../../common/map.h"
 #include "../../common/result.h"
