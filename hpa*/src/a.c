@@ -28,7 +28,7 @@ static int frontier_compare(void* a, void* b)
     return 0;
 }
 
-Vec2* a(const Graph* graph, const Vec2 start, const Vec2 goal)
+Vec2* graph_a(const Graph* graph, const Vec2 start, const Vec2 goal)
 {
     const size_t size = graph->node_count;
 
@@ -38,16 +38,9 @@ Vec2* a(const Graph* graph, const Vec2 start, const Vec2 goal)
     FrontierNode* startn = malloc(sizeof(FrontierNode));
     *startn = (FrontierNode){
         .pos = start,
-        .estimated_score = (uint16_t)DISTANCE_FUNCTION(start, goal),
+        .estimated_score = (uint16_t)vec2_distance_chebyshev(start, goal),
     };
     heap_insert(&frontier, startn, &startn->estimated_score);
-
-    VBitSet* closed = vbitset_create(size, 1);
-    VBitSet* came_from = vbitset_create(size, 3);
-
-    uint16_t* scores = malloc(sizeof(uint16_t) * size);
-    memset(scores, UINT16_MAX, sizeof(uint16_t) * size);
-    scores[XY_TO_IDX(start.x, start.y)] = 0;
 
     while (heap_size(&frontier) > 0)
     {
@@ -60,7 +53,7 @@ Vec2* a(const Graph* graph, const Vec2 start, const Vec2 goal)
         }
 
         const Vec2 pos = n->pos;
-        const uint32_t pos_idx = XY_TO_IDX(pos.x, pos.y);
+        const GraphNode* node = graph_find_node_const(graph, pos);
         if (vec2_equal(pos, goal))
         {
             // reconstruct path
@@ -70,20 +63,11 @@ Vec2* a(const Graph* graph, const Vec2 start, const Vec2 goal)
             arrput(path, current);
             while (current.x != start_pos.x || current.y != start_pos.y)
             {
-                const Vec2 predecessors[] = SUCCESSORS(current.x, current.y);
-                const uint8_t came_from_idx = vbitset_get(came_from, XY_TO_IDX(current.x, current.y));
-
-                const Vec2 reverse = predecessors[came_from_idx];
-                current = (Vec2){(int16_t)(current.x + (current.x - reverse.x)),
-                                 (int16_t)(current.y + (current.y - reverse.y))};
                 arrput(path, current);
             }
 
             free(n);
             heap_destroy(&frontier);
-            free(scores);
-            free(came_from);
-            free(closed);
 
             return NULL;
         }
@@ -92,18 +76,13 @@ Vec2* a(const Graph* graph, const Vec2 start, const Vec2 goal)
 
         const Vec2 successors[] = SUCCESSORS(pos.x, pos.y);
         const uint16_t score = scores[pos_idx];
-        for (uint8_t i = 0; i < 8; ++i)
+        GraphEdge* to_successor = node->edges;
+        while (to_successor != NULL)
         {
-            const Vec2 successor = successors[i];
-            const uint32_t successor_idx = XY_TO_IDX(successor.x, successor.y);
-
-            if (map_is_wall(map, successor.x, successor.y))
-            {
-                continue;
-            }
+            const GraphNode* successor = to_successor->to;
 
             const uint16_t gn = score + NEIGHBOUR_COST;
-            const uint16_t hn = (uint16_t)vec2_distance_chebyshev(successor, goal);
+            const uint16_t hn = (uint16_t)vec2_distance_chebyshev(to_successor, goal);
             const uint16_t fn = gn + hn;
 
             if (vbitset_get(closed, successor_idx))
@@ -128,19 +107,18 @@ Vec2* a(const Graph* graph, const Vec2 start, const Vec2 goal)
                 perror("Failed node malloc");
                 exit(EXIT_FAILURE);
             }
-            node->pos = successor;
+            node->pos = to_successor;
             node->estimated_score = fn;
 
             heap_insert(&frontier, node, &node->estimated_score);
+
+            to_successor = to_successor->next;
         }
 
         free(n);
     }
 
     heap_destroy(&frontier);
-    free(closed);
-    free(scores);
-    free(came_from);
 
     return NULL;
 }

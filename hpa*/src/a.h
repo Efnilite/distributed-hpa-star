@@ -3,6 +3,6 @@
 
 #include "../../common/graph.h"
 
-Vec2* a(const Graph* graph, const Vec2 start, const Vec2 goal);
+Vec2* graph_a(const Graph* graph, const Vec2 start, const Vec2 goal);
 
 #endif
