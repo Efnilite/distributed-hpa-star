@@ -65,7 +65,6 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
         {
             continue;
         }
-        printf("Analyzed %d,%d\n", n->pos.x, n->pos.y);
 
         const Vec2 pos = n->pos;
         const GraphNode* node = graph_find_node_const(graph, pos);
@@ -74,12 +73,12 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
             // reconstruct path
             Vec2* path = NULL;
             Vec2 current = pos;
-            const Vec2 start_pos = start;
-            while (current.x != start_pos.x || current.y != start_pos.y)
+            while (current.x != start.x || current.y != start.y)
             {
                 arrput(path, current);
                 current = came_from[XY_TO_IDX(current.x, current.y)];
             }
+            arrput(path, current);
 
             free(n);
             heap_destroy(&frontier);
@@ -94,7 +93,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
         closed[pos_idx] = true;
 
         const uint16_t score = scores[pos_idx];
-        GraphEdge* to_successor = node->edges;
+        const GraphEdge* to_successor = node->edges;
         while (to_successor != NULL)
         {
             const GraphNode* successor = to_successor->to;
@@ -122,16 +121,16 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
             scores[successor_idx] = gn;
             came_from[successor_idx] = pos;
 
-            FrontierNode* node = malloc(sizeof(FrontierNode));
-            if (node == NULL)
+            FrontierNode* fnode = malloc(sizeof(FrontierNode));
+            if (fnode == NULL)
             {
                 perror("Failed node malloc");
                 exit(EXIT_FAILURE);
             }
-            node->pos = successor->pos;
-            node->estimated_score = fn;
+            fnode->pos = successor->pos;
+            fnode->estimated_score = fn;
 
-            heap_insert(&frontier, node, &node->estimated_score);
+            heap_insert(&frontier, fnode, &fnode->estimated_score);
 
             to_successor = to_successor->next;
         }
