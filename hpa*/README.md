@@ -5,15 +5,22 @@
 Using 8-directional octile. Using release candidate build, measured by Valgrind + Massif (stacks enabled), and perf.
 All tests performed with a cluster size of 100.
 
-| Nodes per side of cluster | Path length |
-|---------------------------|-------------|
-| 3                         | 1648        |
-| 2                         |             |
-| 1                         | 1765        |
-
 | Implementation                                          | Heap (bytes) | Stack (bytes) | CPU Time (s) | Cache misses (%) | Revision                                 |
 |---------------------------------------------------------|--------------|---------------|--------------|------------------|------------------------------------------|
 | initial implementations                                 | 28,976,600   | 856           | 34.56        | 28.28%           | 2dbb63f64eaca8a83dffa0b92b431fda681cd0a6 |
 | minor optimizations                                     | 405,139,880  | 1104          | 14.48        | 28.28%           | c9eaf3de4391259986e6180d0b4aaae7a2e4a170 |
-| reduce arr sizes in cluster_a to only be within cluster | 405,139,880  | 1104          | 0.910        | 28.28%           |  |
+| reduce arr sizes in cluster_a to only be within cluster | 405,139,880  | 1104          | 0.910        | 28.28%           | f8e8e9e6bcc9df3f28198feddbea41b9cafb2e6e |
 
+### Analysis of nodes per side of cluster
+
+| Nodes per side of cluster | Node picked   | CPU Time (s) | Path length | Error (from 1634) |
+|---------------------------|---------------|--------------|-------------|-------------------|
+| 3                         | 0, 1/2, 1     | 8.364        | 1683        | 3%                |
+| 3                         | 1/3, 1/2, 2/3 | 7.989        | 1668        | 2%                |
+| 2                         | 1/3, 2/3      | 3.624        | 1668        | 2%                |
+| 1                         | 1/2           | 0.897        | 1765        | 8%                |
+| 1                         | Random        | 0.932        | ~2004       | 22%               |
+
+All tests run with revision f8e8e9e6bcc9df3f28198feddbea41b9cafb2e6e with release mode.
+The node picked indicates the indices of all nodes that were picked out of all possible options.
+For example, 0 picks the first node out of all available ones, 1/2 picks the middle node, and 1 the last one.
