@@ -32,7 +32,7 @@ struct graph_node_t
 Graph* graph_create(void);
 void graph_free(Graph* graph);
 
-GraphNode* graph_find_node(Graph* graph, Vec2 pos);
+GraphNode* graph_find_node(const Graph* graph, Vec2 pos);
 const GraphNode* graph_find_node_const(const Graph* graph, Vec2 pos);
 bool graph_has_node(const Graph* graph, Vec2 pos);
 bool graph_add_node(Graph* graph, Vec2 pos);

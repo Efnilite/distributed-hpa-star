@@ -45,7 +45,7 @@ void graph_free(Graph* graph)
     graph->node_count = 0;
 }
 
-GraphNode* graph_find_node(Graph* graph, Vec2 pos)
+GraphNode* graph_find_node(const Graph* graph, const Vec2 pos)
 {
     if (graph == NULL)
     {
@@ -65,7 +65,10 @@ GraphNode* graph_find_node(Graph* graph, Vec2 pos)
     return NULL;
 }
 
-const GraphNode* graph_find_node_const(const Graph* graph, Vec2 pos) { return graph_find_node((Graph*)graph, pos); }
+const GraphNode* graph_find_node_const(const Graph* graph, const Vec2 pos)
+{
+    return graph_find_node((Graph*)graph, pos);
+}
 
 bool graph_has_node(const Graph* graph, const Vec2 pos) { return graph_find_node_const(graph, pos) != NULL; }
 
@@ -95,7 +98,7 @@ bool graph_add_node(Graph* graph, const Vec2 pos)
     return true;
 }
 
-static GraphEdge* graph_find_edge(GraphNode* from, GraphNode* to)
+static GraphEdge* graph_find_edge(const GraphNode* from, const GraphNode* to)
 {
     GraphEdge* edge = from->edges;
     while (edge != NULL)
@@ -110,7 +113,7 @@ static GraphEdge* graph_find_edge(GraphNode* from, GraphNode* to)
     return NULL;
 }
 
-static bool graph_add_or_update_edge(GraphNode* from, GraphNode* to, float weight)
+static bool graph_add_or_update_edge(GraphNode* from, GraphNode* to, const float weight)
 {
     GraphEdge* existing = graph_find_edge(from, to);
     if (existing != NULL)
@@ -119,7 +122,7 @@ static bool graph_add_or_update_edge(GraphNode* from, GraphNode* to, float weigh
         return true;
     }
 
-    GraphEdge* edge = (GraphEdge*)malloc(sizeof(GraphEdge));
+    GraphEdge* edge = malloc(sizeof(GraphEdge));
     if (edge == NULL)
     {
         return false;
@@ -132,7 +135,7 @@ static bool graph_add_or_update_edge(GraphNode* from, GraphNode* to, float weigh
     return true;
 }
 
-bool graph_add_edge(Graph* graph, Vec2 a, Vec2 b, float weight)
+bool graph_add_edge(Graph* graph, const Vec2 a, const Vec2 b, const float weight)
 {
     if (graph == NULL)
     {
@@ -176,7 +179,7 @@ size_t graph_node_count(const Graph* graph)
     return graph->node_count;
 }
 
-size_t graph_edge_count(const Graph* graph, Vec2 pos)
+size_t graph_edge_count(const Graph* graph, const Vec2 pos)
 {
     const GraphNode* node = graph_find_node_const(graph, pos);
     if (node == NULL)
@@ -194,7 +197,7 @@ size_t graph_edge_count(const Graph* graph, Vec2 pos)
     return count;
 }
 
-const GraphEdge* graph_neighbors(const Graph* graph, Vec2 pos)
+const GraphEdge* graph_neighbors(const Graph* graph, const Vec2 pos)
 {
     const GraphNode* node = graph_find_node_const(graph, pos);
     if (node == NULL)
