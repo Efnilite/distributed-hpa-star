@@ -79,12 +79,12 @@ Vec2* cluster_a(const Map* map, const Vec2 start, const Vec2 goal)
     heap frontier;
     heap_create(&frontier, 2 * CLUSTER_SIZE, frontier_compare);
 
-    FrontierNode* startn = malloc(sizeof(FrontierNode));
-    *startn = (FrontierNode){
+    FrontierNode* start_n = malloc(sizeof(FrontierNode));
+    *start_n = (FrontierNode){
         .pos = start,
         .estimated_score = (uint16_t)DISTANCE_FUNCTION(start, goal),
     };
-    heap_insert(&frontier, startn, &startn->estimated_score);
+    heap_insert(&frontier, start_n, &start_n->estimated_score);
 
     VBitSet* closed = vbitset_create(size, 1);
     VBitSet* came_from = vbitset_create(size, 3);
