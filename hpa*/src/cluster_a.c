@@ -97,8 +97,8 @@ Vec2* cluster_a(const Map* map, const Cluster* cluster, const Vec2 global_start,
     VBitSet* closed = vbitset_create(size, 1);
     VBitSet* came_from = vbitset_create(size, 3);
 
-    uint8_t* scores = malloc(sizeof(uint8_t) * size);
-    memset(scores, UINT8_MAX, sizeof(uint8_t) * size);
+    uint16_t* scores = malloc(sizeof(uint16_t) * size);
+    memset(scores, UINT8_MAX, sizeof(uint16_t) * size);
     scores[XY_TO_IDX_CLUSTER_A(start.x, start.y)] = 0;
 
     while (heap_size(&frontier) > 0)
