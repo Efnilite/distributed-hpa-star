@@ -111,6 +111,14 @@ void result_visualize(const Map* map, const Result* result)
         fprintf(file, "Visited: %f%%\n", (double)visited / ((double)map->size * 1.0) * 100.0);
         free(result->visited);
     }
+
+    if (result->graph != NULL)
+    {
+        fprintf(file, "L1 Nodes: %ld\n", graph_node_count(result->graph));
+
+        graph_free(result->graph);
+    }
+
     fprintf(file, "CPU Time: %f secs\n", result->cpu_secs);
     for (int y = 0; y < map->h; ++y)
     {

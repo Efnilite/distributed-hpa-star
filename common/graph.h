@@ -34,13 +34,10 @@ void graph_free(Graph* graph);
 
 GraphNode* graph_find_node(const Graph* graph, Vec2 pos);
 const GraphNode* graph_find_node_const(const Graph* graph, Vec2 pos);
-bool graph_has_node(const Graph* graph, Vec2 pos);
 bool graph_add_node(Graph* graph, Vec2 pos);
 
 bool graph_add_edge(const Graph* graph, Vec2 a, Vec2 b, float weight);
 
 size_t graph_node_count(const Graph* graph);
-size_t graph_edge_count(const Graph* graph, Vec2 pos);
-const GraphEdge* graph_neighbors(const Graph* graph, Vec2 pos);
 
 #endif
