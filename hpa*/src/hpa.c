@@ -42,10 +42,14 @@ static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cl
         const Vec2 other = (Vec2){current.x + to_other_cluster.x, current.y + to_other_cluster.y};
         if (other.x < 0 || other.x >= map->w || other.y < 0 || other.y >= map->h)
         {
+            current.x += direction.x;
+            current.y += direction.y;
             continue;
         }
         if (vbitset_get(map->coordinates, XY_TO_IDX(other.x, other.y)))
         {
+            current.x += direction.x;
+            current.y += direction.y;
             continue;
         }
 
@@ -124,7 +128,7 @@ static void populate_edges(const Map* map, Cluster* clusters, Graph* graph)
 
 Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
 {
-    const clock_t begin = clock();
+    const clock_t pre_begin = clock();
 
     // 1. preprocess
     // create graph
@@ -146,7 +150,7 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
     }
 
     populate_edges(map, clusters, graph);
-    printf("Populated edges - %fs\n", (double)(clock() - begin) / CLOCKS_PER_SEC);
+    printf("Populated edges - %fs\n", (double)(clock() - pre_begin) / CLOCKS_PER_SEC);
 
     // find paths in cluster
     for (size_t i = 0; i < cluster_size; i++)
@@ -170,7 +174,10 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
             }
         }
     }
+    printf("Preprocessed - %fs\n", (double)(clock() - pre_begin) / CLOCKS_PER_SEC);
 
+    const clock_t calc_begin = clock();
+    // 2. calculate
     // find paths from start and goal to their cluster's inter edges
     graph_add_node(graph, start);
     graph_add_node(graph, goal);
@@ -200,9 +207,7 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
         graph_add_edge(graph, goal_cluster->inter_edges[i], goal, arrlen(path) - 1);
         arrfree(path);
     }
-    printf("Finalized extremity cluster finding - %fs\n", (double)(clock() - begin) / CLOCKS_PER_SEC);
-
-    // 2. calculate
+    printf("Finalized extremity cluster finding - %fs\n", (double)(clock() - calc_begin) / CLOCKS_PER_SEC);
 
     // if start and goal cluster are the same, just run A*
     if (start_cluster == goal_cluster)
@@ -210,7 +215,7 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
         Vec2* final_path = cluster_a(map, start_cluster, start, goal);
         printf("Found overall path due to start and goal cluster being the same\n");
         return (Result){NULL, final_path, final_path != NULL && arrlen(final_path) > 0,
-                        (double)(clock() - begin) / CLOCKS_PER_SEC, graph};
+                        (double)(clock() - calc_begin) / CLOCKS_PER_SEC, graph};
     }
 
     // else run graph pathfinding
@@ -218,10 +223,10 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
     if (graph_path == NULL)
     {
         printf("Failed to find graph path\n");
-        return (Result){NULL, NULL, false, (double)(clock() - begin) / CLOCKS_PER_SEC, graph};
+        return (Result){NULL, NULL, false, (double)(clock() - calc_begin) / CLOCKS_PER_SEC, graph};
     }
 
-    printf("Found graph path - %fs\n", (double)(clock() - begin) / CLOCKS_PER_SEC);
+    printf("Found graph path - %fs\n", (double)(clock() - calc_begin) / CLOCKS_PER_SEC);
 
     // 3. build final path
     Vec2* final_path = NULL;
@@ -255,7 +260,7 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
 
     // graph_free(graph);
 
-    printf("Found overall path - %fs\n", (double)(clock() - begin) / CLOCKS_PER_SEC);
+    printf("Found overall path - %fs\n", (double)(clock() - calc_begin) / CLOCKS_PER_SEC);
     return (Result){NULL, final_path, final_path != NULL && arrlen(final_path) > 0,
-                    (double)(clock() - begin) / CLOCKS_PER_SEC, graph};
+                    (double)(clock() - calc_begin) / CLOCKS_PER_SEC, graph};
 }
