@@ -11,6 +11,8 @@
 #include "../../common/vec2.h"
 #include "a.h"
 
+#include <assert.h>
+
 // #define EUCLIDEAN
 #define OCTILE
 // #define MANHATTAN
@@ -64,6 +66,9 @@ static int frontier_compare(void* a, void* b)
 
 Result a(const Map* map, const Vec2 start, const Vec2 goal)
 {
+    assert(start.x > 0 && start.x < map->w && start.y > 0 && start.y < map->h);
+    assert(goal.x > 0 && goal.x < map->w && goal.y > 0 && goal.y < map->h);
+
     const clock_t begin = clock();
     const size_t size = map->w * map->h;
 
