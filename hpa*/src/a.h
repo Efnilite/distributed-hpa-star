@@ -1,9 +1,17 @@
-#ifndef GA_H
-#define GA_H
+#ifndef A_H
+#define A_H
 
-#include "../../common/graph.h"
 #include "../../common/map.h"
+#include "../../common/result.h"
 
-Vec2* graph_a(const Map* map, const Graph* graph, Vec2 start, Vec2 goal);
+#include <stdint.h>
+
+/**
+ * Runs A*.
+ * @param map The map.
+ * @param start The starting location.
+ * @param goal The goal location.
+ */
+Result a(const Map* map, Vec2 start, Vec2 goal);
 
 #endif

@@ -1,6 +1,6 @@
 #include "hpa.h"
 #include "a.h"
-#include "../../a*/src/a.h"
+#include "graph_a.h"
 
 #include <assert.h>
 #include <math.h>
@@ -202,7 +202,7 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
         graph_add_edge(graph, start, start_cluster->inter_edges[i], arrlen(res.path) - 1);
     }
 
-    const Cluster* goal_cluster = &clusters[(goal.y / CLUSTER_SIZE) * cluster_w + (goal.x / CLUSTER_SIZE)];
+    const Cluster* goal_cluster = &clusters[goal.y / CLUSTER_SIZE * cluster_w + goal.x / CLUSTER_SIZE];
     for (size_t i = 0; i < goal_cluster->inter_edges_count; ++i)
     {
         const Result res = a(map, goal, goal_cluster->inter_edges[i]);
