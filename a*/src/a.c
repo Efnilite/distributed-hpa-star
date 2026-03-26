@@ -122,8 +122,8 @@ Result a(const Map* map, const Vec2 start, const Vec2 goal)
             free(n);
             heap_destroy(&frontier);
             free(scores);
-            free(came_from);
-            free(closed);
+            vbitset_free(came_from);
+            vbitset_free(closed);
 
             return (Result){NULL, path, true, (double)(clock() - begin) / CLOCKS_PER_SEC};
         }
@@ -178,9 +178,9 @@ Result a(const Map* map, const Vec2 start, const Vec2 goal)
     }
 
     heap_destroy(&frontier);
-    free(closed);
+    vbitset_free(closed);
     free(scores);
-    free(came_from);
+    vbitset_free(came_from);
 
     return (Result){NULL, NULL, false, (double)(clock() - begin) / CLOCKS_PER_SEC};
 }
