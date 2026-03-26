@@ -33,6 +33,11 @@ static int frontier_compare(void* a, void* b)
     return 0;
 }
 
+static void heap_free_elements(void* key, void* value)
+{
+    free(key);
+}
+
 Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 goal)
 {
     const size_t size = map->size;
@@ -83,6 +88,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
             arrput(path, current);
 
             free(n);
+            heap_foreach(&frontier, heap_free_elements);
             heap_destroy(&frontier);
             free(scores);
             free(came_from);
@@ -141,6 +147,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
         free(n);
     }
 
+    heap_foreach(&frontier, heap_free_elements);
     heap_destroy(&frontier);
     free(scores);
     free(came_from);

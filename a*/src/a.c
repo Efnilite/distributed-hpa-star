@@ -64,6 +64,11 @@ static int frontier_compare(void* a, void* b)
     return 0;
 }
 
+static void heap_free_elements(void* key, void* value)
+{
+    free(key);
+}
+
 Result a(const Map* map, const Vec2 start, const Vec2 goal)
 {
     assert(start.x > 0 && start.x < map->w && start.y > 0 && start.y < map->h);
@@ -120,6 +125,7 @@ Result a(const Map* map, const Vec2 start, const Vec2 goal)
             }
 
             free(n);
+            heap_foreach(&frontier, heap_free_elements);
             heap_destroy(&frontier);
             free(scores);
             vbitset_free(came_from);
@@ -177,6 +183,7 @@ Result a(const Map* map, const Vec2 start, const Vec2 goal)
         free(n);
     }
 
+    heap_foreach(&frontier, heap_free_elements);
     heap_destroy(&frontier);
     vbitset_free(closed);
     free(scores);
