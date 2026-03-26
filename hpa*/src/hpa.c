@@ -61,9 +61,9 @@ static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cl
     }
 
     // select from options
-    const size_t result_size = MIN(options_size, INTER_EDGES_PER_CLUSTER_SIDE);
-    Vec2 res_a[INTER_EDGES_PER_CLUSTER_SIDE];
-    Vec2 res_b[INTER_EDGES_PER_CLUSTER_SIDE];
+    const size_t result_size = MIN(options_size, 2);
+    Vec2 res_a[2];
+    Vec2 res_b[2];
     if (result_size >= 2)
     {
         res_a[0] = options_a[options_size / 3];
@@ -85,11 +85,11 @@ static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cl
         graph_add_node(graph, res_b[i]);
         graph_add_edge(graph, res_a[i], res_b[i], 1.f);
 
-        if (cluster_a->inter_edges_count < 2 * INTER_EDGES_PER_CLUSTER_SIDE)
+        if (cluster_a->inter_edges_count < 12)
         {
             cluster_a->inter_edges[cluster_a->inter_edges_count++] = res_a[i];
         }
-        if (cluster_b->inter_edges_count < 2 * INTER_EDGES_PER_CLUSTER_SIDE)
+        if (cluster_b->inter_edges_count < 12)
         {
             cluster_b->inter_edges[cluster_b->inter_edges_count++] = res_b[i];
         }
