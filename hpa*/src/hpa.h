@@ -4,7 +4,7 @@
 #include "../../common/map.h"
 #include "../../common/result.h"
 
-#define CLUSTER_SIZE 5
+#define CLUSTER_SIZE 100
 
 typedef struct cluster_t
 {

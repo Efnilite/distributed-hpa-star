@@ -214,6 +214,17 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
     printf("Finalized extremity cluster finding\n");
 
     // 2. calculate
+
+    // if start and goal cluster are the same, just run A*
+    if (start_cluster == goal_cluster)
+    {
+        Vec2* final_path = cluster_a(map, start, goal);
+        printf("Found overall path due to start and goal cluster being the same\n");
+        return (Result){NULL, final_path, final_path != NULL && arrlen(final_path) > 0,
+                        (double)(clock() - begin) / CLOCKS_PER_SEC, graph};
+    }
+
+    // else run graph pathfinding
     Vec2* graph_path = graph_a(map, graph, start, goal);
     if (graph_path == NULL)
     {
@@ -248,6 +259,7 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
 
     // graph_free(graph);
 
+    printf("Found overall path\n");
     return (Result){NULL, final_path, final_path != NULL && arrlen(final_path) > 0,
                     (double)(clock() - begin) / CLOCKS_PER_SEC, graph};
 }
