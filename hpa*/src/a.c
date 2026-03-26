@@ -1,15 +1,18 @@
+#include "a.h"
+
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
+#include "hpa.h"
 #include "../../common/mheap.h"
 #include "../../common/result.h"
 #include "../../common/stb_ds.h"
-#include "../../common/util.h"
 #include "../../common/vec2.h"
-#include "a.h"
+#include "../../common/util.h"
 
 // #define EUCLIDEAN
 #define OCTILE
@@ -41,6 +44,8 @@
         {(int16_t)(x - 1), (int16_t)(y - 1)},                                                                          \
     }
 
+// #define XY_TO_IDX_CLUSTER_A_STAR(x, y) ((x) + (y) * CLUSTER_SIZE)
+
 typedef struct frontier_node_t
 {
     Vec2 pos;
@@ -62,19 +67,17 @@ static int frontier_compare(void* a, void* b)
     return 0;
 }
 
-Result a(const Map* map, const Vec2 start, const Vec2 goal)
+// A* implementation where all coordinates are near 0,0 to reduce memory usage by requiring minimal memory allocation
+Vec2* cluster_a(const Map* map, const Vec2 start, const Vec2 goal)
 {
-    const clock_t begin = clock();
+    // assert(start.x > 0 && start.x < CLUSTER_SIZE && start.y > 0 && start.y < CLUSTER_SIZE);
+    // assert(goal.x > 0 && goal.x < CLUSTER_SIZE && goal.y > 0 && goal.y < CLUSTER_SIZE);
 
-#define A_COMPACT_MODE
-#ifdef A_COMPACT_MODE
-    const size_t size = abs(start.x - goal.x) * abs(start.y - goal.y);
-#else
+    // const size_t size = CLUSTER_SIZE * CLUSTER_SIZE;
     const size_t size = map->w * map->h;
-#endif
 
     heap frontier;
-    heap_create(&frontier, map->w + map->h, frontier_compare);
+    heap_create(&frontier, 2 * CLUSTER_SIZE, frontier_compare);
 
     FrontierNode* startn = malloc(sizeof(FrontierNode));
     *startn = (FrontierNode){
@@ -126,7 +129,7 @@ Result a(const Map* map, const Vec2 start, const Vec2 goal)
             free(came_from);
             free(closed);
 
-            return (Result){NULL, path, true, (double)(clock() - begin) / CLOCKS_PER_SEC};
+            return path;
         }
 
         vbitset_set(closed, pos_idx, true);
@@ -183,5 +186,5 @@ Result a(const Map* map, const Vec2 start, const Vec2 goal)
     free(scores);
     free(came_from);
 
-    return (Result){NULL, NULL, false, (double)(clock() - begin) / CLOCKS_PER_SEC};
+    return NULL;
 }

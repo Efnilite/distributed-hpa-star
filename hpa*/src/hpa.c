@@ -14,13 +14,6 @@
 
 #define MIN(a, b) (a) > (b) ? (b) : (a)
 
-typedef struct cluster_t
-{
-    Vec2 pos;
-    Vec2 inter_edges[12];
-    size_t inter_edges_count;
-} Cluster;
-
 // returns the inter edges from one side of a cluster
 static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cluster_b, const Vec2 local_start,
                                  const Vec2 direction, const Vec2 to_other_cluster, Graph* graph)
@@ -173,13 +166,16 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
         {
             for (size_t b_idx = a_idx + 1; b_idx < cluster->inter_edges_count; ++b_idx)
             {
-                const Result res = a(map, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx]);
-
-                if (res.success)
+                Vec2* path = cluster_a(map, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx]);
+                if (path == NULL)
                 {
-                    graph_add_edge(graph, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx],
-                                   arrlen(res.path) - 1);
+                    continue;
                 }
+
+                graph_add_edge(graph, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx],
+                               arrlen(path) - 1);
+
+                arrfree(path);
             }
         }
 
@@ -193,25 +189,27 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
     const Cluster* start_cluster = &clusters[start.y / CLUSTER_SIZE * cluster_w + start.x / CLUSTER_SIZE];
     for (size_t i = 0; i < start_cluster->inter_edges_count; ++i)
     {
-        const Result res = a(map, start, start_cluster->inter_edges[i]);
-        if (!res.success)
+        Vec2* path = cluster_a(map, start, start_cluster->inter_edges[i]);
+        if (path == NULL)
         {
             continue;
         }
 
-        graph_add_edge(graph, start, start_cluster->inter_edges[i], arrlen(res.path) - 1);
+        graph_add_edge(graph, start, start_cluster->inter_edges[i], arrlen(path) - 1);
+        arrfree(path);
     }
 
     const Cluster* goal_cluster = &clusters[goal.y / CLUSTER_SIZE * cluster_w + goal.x / CLUSTER_SIZE];
     for (size_t i = 0; i < goal_cluster->inter_edges_count; ++i)
     {
-        const Result res = a(map, goal, goal_cluster->inter_edges[i]);
-        if (!res.success)
+        Vec2* path = cluster_a(map, goal, goal_cluster->inter_edges[i]);
+        if (path == NULL)
         {
             continue;
         }
 
-        graph_add_edge(graph, goal_cluster->inter_edges[i], goal, arrlen(res.path) - 1);
+        graph_add_edge(graph, goal_cluster->inter_edges[i], goal, arrlen(path) - 1);
+        arrfree(path);
     }
     printf("Finalized extremity cluster finding\n");
 
@@ -229,22 +227,24 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
     Vec2* final_path = NULL;
     for (int i = 0; i < arrlen(graph_path) - 1; ++i)
     {
-        const Result res = a(map, graph_path[i], graph_path[i + 1]);
-        if (!res.success)
+        Vec2* path = cluster_a(map, graph_path[i], graph_path[i + 1]);
+        if (path == NULL)
         {
             continue;
         }
 
         // concat paths
         const int start_idx = i == 0 ? 0 : 1;
-        for (int j = start_idx; j < arrlen(res.path); ++j)
+        for (int j = start_idx; j < arrlen(path); ++j)
         {
-            arrput(final_path, res.path[j]);
+            arrput(final_path, path[j]);
         }
+        arrfree(path);
     }
 
     // 4. cleanup
     free(clusters);
+    arrfree(graph_path);
 
     // graph_free(graph);
 

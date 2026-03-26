@@ -141,14 +141,14 @@ bool graph_add_edge(Graph* graph, const Vec2 a, const Vec2 b, const float weight
     {
         return false;
     }
-    if (!graph_add_node(graph, a))
-    {
-        return false;
-    }
-    if (!graph_add_node(graph, b))
-    {
-        return false;
-    }
+    // if (!graph_add_node(graph, a))
+    // {
+    //     return false;
+    // }
+    // if (!graph_add_node(graph, b))
+    // {
+    //     return false;
+    // }
 
     GraphNode* na = graph_find_node(graph, a);
     GraphNode* nb = graph_find_node(graph, b);

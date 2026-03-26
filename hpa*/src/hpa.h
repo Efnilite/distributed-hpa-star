@@ -6,6 +6,13 @@
 
 #define CLUSTER_SIZE 5
 
+typedef struct cluster_t
+{
+    Vec2 pos;
+    Vec2 inter_edges[12];
+    size_t inter_edges_count;
+} Cluster;
+
 Result hpa(const Map* map, Vec2 start, Vec2 goal);
 
 #endif
