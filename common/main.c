@@ -33,7 +33,7 @@ int main(void)
     Map map = parse_map("../../data/ih/scene_mp_2p_01");
     const Result result = ALGORITHM(&map, (Vec2){260, 180}, (Vec2){1565, 1745});
     // Map map = parse_map("../../data/ih/scene_mp_2p_04");
-    // const Result result = ALGORITHM(&map, 170, 170, 2000, 2600);
+    // const Result result = ALGORITHM(&map, (Vec2){170, 170}, (Vec2){2000, 2600});
 #endif
 
     if (!result.success)

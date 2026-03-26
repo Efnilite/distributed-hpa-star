@@ -96,10 +96,9 @@ Vec2* cluster_a(const Map* map, const Cluster* cluster, const Vec2 global_start,
 
     VBitSet* closed = vbitset_create(size, 1);
     VBitSet* came_from = vbitset_create(size, 3);
-    // VBitSet* scores = vbitset_create_with_default(size, 10);
 
-    uint16_t* scores = malloc(sizeof(uint16_t) * size);
-    memset(scores, UINT8_MAX, sizeof(uint16_t) * size);
+    uint8_t* scores = malloc(sizeof(uint8_t) * size);
+    memset(scores, UINT8_MAX, sizeof(uint8_t) * size);
     scores[XY_TO_IDX_CLUSTER_A(start.x, start.y)] = 0;
 
     while (heap_size(&frontier) > 0)
@@ -145,7 +144,7 @@ Vec2* cluster_a(const Map* map, const Cluster* cluster, const Vec2 global_start,
         vbitset_set(closed, pos_idx, true);
 
         const Vec2 successors[] = SUCCESSORS(pos.x, pos.y);
-        const uint16_t score = scores[pos_idx];
+        const uint8_t score = scores[pos_idx];
         for (uint8_t i = 0; i < 8; ++i)
         {
             const Vec2 successor = successors[i];
@@ -176,7 +175,7 @@ Vec2* cluster_a(const Map* map, const Cluster* cluster, const Vec2 global_start,
             }
 
             // only update if we found a better g-score
-            const uint16_t old_g = scores[successor_idx];
+            const uint8_t old_g = scores[successor_idx];
             if (gn >= old_g)
             {
                 continue;
