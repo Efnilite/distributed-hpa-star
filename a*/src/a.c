@@ -65,12 +65,7 @@ static int frontier_compare(void* a, void* b)
 Result a(const Map* map, const Vec2 start, const Vec2 goal)
 {
     const clock_t begin = clock();
-
-#ifdef A_COMPACT_MODE
-    const size_t size = abs(start.x - goal.x) * abs(start.y - goal.y);
-#else
     const size_t size = map->w * map->h;
-#endif
 
     heap frontier;
     heap_create(&frontier, map->w + map->h, frontier_compare);
