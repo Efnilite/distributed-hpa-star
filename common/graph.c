@@ -135,17 +135,9 @@ static bool graph_add_or_update_edge(GraphNode* from, GraphNode* to, const float
     return true;
 }
 
-bool graph_add_edge(Graph* graph, const Vec2 a, const Vec2 b, const float weight)
+bool graph_add_edge(const Graph* graph, const Vec2 a, const Vec2 b, const float weight)
 {
     if (graph == NULL)
-    {
-        return false;
-    }
-    if (!graph_add_node(graph, a))
-    {
-        return false;
-    }
-    if (!graph_add_node(graph, b))
     {
         return false;
     }

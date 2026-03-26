@@ -4,7 +4,9 @@
 #include "../../common/map.h"
 #include "../../common/result.h"
 
-#define CLUSTER_SIZE 100
+#define CLUSTER_SIZE 5
+
+_Static_assert(CLUSTER_SIZE >= 3, "Cluster size must be at least 3");
 
 typedef struct cluster_t
 {
