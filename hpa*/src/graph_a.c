@@ -14,7 +14,6 @@
 typedef struct frontier_node_t
 {
     Vec2 pos;
-    GraphNode* node;
     uint16_t estimated_score;
 } FrontierNode;
 
@@ -40,13 +39,12 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
     heap frontier;
     heap_create(&frontier, CLUSTER_SIZE, frontier_compare);
 
-    FrontierNode* start_n = malloc(sizeof(FrontierNode));
-    *start_n = (FrontierNode){
+    FrontierNode* startn = malloc(sizeof(FrontierNode));
+    *startn = (FrontierNode){
         .pos = start,
-        .node = graph_find_node(graph, start),
         .estimated_score = (uint16_t)vec2_distance_chebyshev(start, goal),
     };
-    heap_insert(&frontier, start_n, &start_n->estimated_score);
+    heap_insert(&frontier, startn, &startn->estimated_score);
 
     bool* closed = malloc(sizeof(bool) * size);
     memset(closed, false, sizeof(bool) * size);
@@ -69,7 +67,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
         }
 
         const Vec2 pos = n->pos;
-        const GraphNode* node = n->node;
+        const GraphNode* node = graph_find_node_const(graph, pos);
         if (vec2_equal(pos, goal))
         {
             // reconstruct path
@@ -98,7 +96,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
         const GraphEdge* to_successor = node->edges;
         while (to_successor != NULL)
         {
-            GraphNode* successor = to_successor->to;
+            const GraphNode* successor = to_successor->to;
             const size_t successor_idx = XY_TO_IDX(successor->pos.x, successor->pos.y);
 
             const uint16_t gn = score + to_successor->weight;
@@ -123,17 +121,16 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
             scores[successor_idx] = gn;
             came_from[successor_idx] = pos;
 
-            FrontierNode* f_node = malloc(sizeof(FrontierNode));
-            if (f_node == NULL)
+            FrontierNode* fnode = malloc(sizeof(FrontierNode));
+            if (fnode == NULL)
             {
                 perror("Failed node malloc");
                 exit(EXIT_FAILURE);
             }
-            f_node->pos = successor->pos;
-            f_node->node = successor;
-            f_node->estimated_score = fn;
+            fnode->pos = successor->pos;
+            fnode->estimated_score = fn;
 
-            heap_insert(&frontier, f_node, &f_node->estimated_score);
+            heap_insert(&frontier, fnode, &fnode->estimated_score);
 
             to_successor = to_successor->next;
         }

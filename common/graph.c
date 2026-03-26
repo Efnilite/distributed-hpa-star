@@ -70,21 +70,21 @@ const GraphNode* graph_find_node_const(const Graph* graph, const Vec2 pos)
     return graph_find_node((Graph*)graph, pos);
 }
 
-GraphNode* graph_add_node(Graph* graph, const Vec2 pos)
+bool graph_add_node(Graph* graph, const Vec2 pos)
 {
     if (graph == NULL)
     {
-        return NULL;
+        return false;
     }
     if (graph_find_node(graph, pos) != NULL)
     {
-        return NULL;
+        return true;
     }
 
     GraphNode* node = malloc(sizeof(GraphNode));
     if (node == NULL)
     {
-        return NULL;
+        return false;
     }
 
     node->pos = pos;
@@ -93,11 +93,33 @@ GraphNode* graph_add_node(Graph* graph, const Vec2 pos)
     graph->nodes = node;
     graph->node_count++;
 
-    return node;
+    return true;
 }
 
-static bool graph_add_edge_(GraphNode* from, GraphNode* to, const float weight)
+static GraphEdge* graph_find_edge(const GraphNode* from, const GraphNode* to)
 {
+    GraphEdge* edge = from->edges;
+    while (edge != NULL)
+    {
+        if (edge->to == to)
+        {
+            return edge;
+        }
+        edge = edge->next;
+    }
+
+    return NULL;
+}
+
+static bool graph_add_or_update_edge(GraphNode* from, GraphNode* to, const float weight)
+{
+    GraphEdge* existing = graph_find_edge(from, to);
+    if (existing != NULL)
+    {
+        existing->weight = weight;
+        return true;
+    }
+
     GraphEdge* edge = malloc(sizeof(GraphEdge));
     if (edge == NULL)
     {
@@ -108,25 +130,6 @@ static bool graph_add_edge_(GraphNode* from, GraphNode* to, const float weight)
     edge->weight = weight;
     edge->next = from->edges;
     from->edges = edge;
-    return true;
-}
-
-bool graph_add_edge_from_nodes(GraphNode* na, GraphNode* nb, const float weight)
-{
-    if (na == NULL || nb == NULL)
-    {
-        return false;
-    }
-
-    if (!graph_add_edge_(na, nb, weight))
-    {
-        return false;
-    }
-    if (!graph_add_edge_(nb, na, weight))
-    {
-        return false;
-    }
-
     return true;
 }
 
@@ -144,11 +147,11 @@ bool graph_add_edge(const Graph* graph, const Vec2 a, const Vec2 b, const float 
         return false;
     }
 
-    if (!graph_add_edge_(na, nb, weight))
+    if (!graph_add_or_update_edge(na, nb, weight))
     {
         return false;
     }
-    if (!graph_add_edge_(nb, na, weight))
+    if (!graph_add_or_update_edge(nb, na, weight))
     {
         return false;
     }

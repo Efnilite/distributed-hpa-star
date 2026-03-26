@@ -45,5 +45,5 @@ int main(void)
 
     map_free(&map);
 
-    return result.success ? 0 : 1;
+    return result.success;
 }

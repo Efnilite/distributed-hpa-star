@@ -86,12 +86,9 @@ static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cl
 
     for (size_t i = 0; i < result_size; ++i)
     {
-        GraphNode* node_a = graph_add_node(graph, res_a[i]);
-        GraphNode* node_b = graph_add_node(graph, res_b[i]);
-        if (node_a != NULL && node_b != NULL)
-        {
-            graph_add_edge_from_nodes(node_a, node_b, 1.f);
-        }
+        graph_add_node(graph, res_a[i]);
+        graph_add_node(graph, res_b[i]);
+        graph_add_edge(graph, res_a[i], res_b[i], 1.f);
 
         if (cluster_a->inter_edges_count < 12)
         {
