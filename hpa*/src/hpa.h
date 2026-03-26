@@ -4,7 +4,7 @@
 #include "../../common/map.h"
 #include "../../common/result.h"
 
-#define CLUSTER_SIZE 50
+#define CLUSTER_SIZE 100
 
 _Static_assert(CLUSTER_SIZE >= 3, "Cluster size must be at least 3");
 

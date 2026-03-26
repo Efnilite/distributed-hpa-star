@@ -13,6 +13,7 @@
 #include "../../common/util.h"
 
 #define MIN(a, b) (a) > (b) ? (b) : (a)
+#define VEC_TO_CLUSTER(vec) (vec.y / CLUSTER_SIZE * cluster_w + vec.x / CLUSTER_SIZE)
 
 // returns the inter edges from one side of a cluster
 static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cluster_b, const Vec2 local_start,
@@ -56,26 +57,16 @@ static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cl
     }
 
     // select from options
-    const size_t result_size = MIN(options_size, 3);
-    Vec2 res_a[3];
-    Vec2 res_b[3];
-    if (result_size >= 3)
+    const size_t result_size = MIN(options_size, 2);
+    Vec2 res_a[2];
+    Vec2 res_b[2];
+    if (result_size >= 2)
     {
-        res_a[0] = options_a[0];
-        res_a[1] = options_a[options_size / 2];
-        res_a[2] = options_a[options_size - 1];
+        res_a[0] = options_a[options_size / 3];
+        res_a[1] = options_a[2 * options_size / 3];
 
-        res_b[0] = options_b[0];
-        res_b[1] = options_b[options_size / 2];
-        res_b[2] = options_b[options_size - 1];
-    }
-    else if (result_size == 2)
-    {
-        res_a[0] = options_a[0];
-        res_a[1] = options_a[1];
-
-        res_b[0] = options_b[0];
-        res_b[1] = options_b[1];
+        res_b[0] = options_b[options_size / 3];
+        res_b[1] = options_b[2 * options_size / 3];
     }
     else if (result_size == 1)
     {
@@ -166,31 +157,38 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
         {
             for (size_t b_idx = a_idx + 1; b_idx < cluster->inter_edges_count; ++b_idx)
             {
-                Vec2* path = cluster_a(map, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx]);
+                const clock_t pic_begin = clock();
+                Vec2* path = cluster_a(map, cluster, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx]);
                 if (path == NULL)
                 {
                     continue;
                 }
+                const clock_t pic_path = clock();
 
                 graph_add_edge(graph, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx],
                                arrlen(path) - 1);
 
+                const clock_t pic_add_edge = clock();
+
                 arrfree(path);
+
+                printf("Pathfinding %f - ", (double)(clock() - pic_begin) / CLOCKS_PER_SEC);
+                printf("Add edge %f - ", (double)(clock() - pic_path) / CLOCKS_PER_SEC);
+                printf("Free %f\n", (double)(clock() - pic_add_edge) / CLOCKS_PER_SEC);
             }
         }
 
-        printf("Finalized cluster %d,%d - %fs\n", cluster->pos.x, cluster->pos.y,
-               (double)(clock() - begin) / CLOCKS_PER_SEC);
+        printf("Finalized cluster %d,%d\n", cluster->pos.x, cluster->pos.y);
     }
 
     // find paths from start and goal to their cluster's inter edges
     graph_add_node(graph, start);
     graph_add_node(graph, goal);
 
-    const Cluster* start_cluster = &clusters[start.y / CLUSTER_SIZE * cluster_w + start.x / CLUSTER_SIZE];
+    const Cluster* start_cluster = &clusters[VEC_TO_CLUSTER(start)];
     for (size_t i = 0; i < start_cluster->inter_edges_count; ++i)
     {
-        Vec2* path = cluster_a(map, start, start_cluster->inter_edges[i]);
+        Vec2* path = cluster_a(map, start_cluster, start, start_cluster->inter_edges[i]);
         if (path == NULL)
         {
             continue;
@@ -200,10 +198,10 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
         arrfree(path);
     }
 
-    const Cluster* goal_cluster = &clusters[goal.y / CLUSTER_SIZE * cluster_w + goal.x / CLUSTER_SIZE];
+    const Cluster* goal_cluster = &clusters[VEC_TO_CLUSTER(goal)];
     for (size_t i = 0; i < goal_cluster->inter_edges_count; ++i)
     {
-        Vec2* path = cluster_a(map, goal, goal_cluster->inter_edges[i]);
+        Vec2* path = cluster_a(map, goal_cluster, goal, goal_cluster->inter_edges[i]);
         if (path == NULL)
         {
             continue;
@@ -219,7 +217,7 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
     // if start and goal cluster are the same, just run A*
     if (start_cluster == goal_cluster)
     {
-        Vec2* final_path = cluster_a(map, start, goal);
+        Vec2* final_path = cluster_a(map, start_cluster, start, goal);
         printf("Found overall path due to start and goal cluster being the same\n");
         return (Result){NULL, final_path, final_path != NULL && arrlen(final_path) > 0,
                         (double)(clock() - begin) / CLOCKS_PER_SEC, graph};
@@ -239,7 +237,14 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
     Vec2* final_path = NULL;
     for (int i = 0; i < arrlen(graph_path) - 1; ++i)
     {
-        Vec2* path = cluster_a(map, graph_path[i], graph_path[i + 1]);
+        // when transferring between clusters
+        if (vec2_distance_manhattan(graph_path[i], graph_path[i + 1]) == 1)
+        {
+            arrput(final_path, graph_path[i]);
+            continue;
+        }
+
+        Vec2* path = cluster_a(map, &clusters[VEC_TO_CLUSTER(graph_path[i])], graph_path[i], graph_path[i + 1]);
         if (path == NULL)
         {
             continue;

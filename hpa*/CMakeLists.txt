@@ -6,7 +6,7 @@ set(CMAKE_C_STANDARD 17)
 add_executable(hpa
         src/hpa.c
         src/graph_a.c
-        src/a.c
+        src/cluster_a.c
         ../common/main.c
         ../common/parser.c
         ../common/map.c
