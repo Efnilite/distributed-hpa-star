@@ -96,6 +96,7 @@ Vec2* cluster_a(const Map* map, const Cluster* cluster, const Vec2 global_start,
 
     VBitSet* closed = vbitset_create(size, 1);
     VBitSet* came_from = vbitset_create(size, 3);
+    // VBitSet* scores = vbitset_create_with_default(size, 10);
 
     uint16_t* scores = malloc(sizeof(uint16_t) * size);
     memset(scores, UINT8_MAX, sizeof(uint16_t) * size);

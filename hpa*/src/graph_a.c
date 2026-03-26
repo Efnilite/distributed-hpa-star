@@ -129,17 +129,17 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
             scores[successor_idx] = gn;
             came_from[successor_idx] = pos;
 
-            FrontierNode* fnode = malloc(sizeof(FrontierNode));
-            if (fnode == NULL)
+            FrontierNode* f_node = malloc(sizeof(FrontierNode));
+            if (f_node == NULL)
             {
                 perror("Failed node malloc");
                 exit(EXIT_FAILURE);
             }
-            fnode->pos = successor->pos;
-            fnode->node = successor;
-            fnode->estimated_score = fn;
+            f_node->pos = successor->pos;
+            f_node->node = successor;
+            f_node->estimated_score = fn;
 
-            heap_insert(&frontier, fnode, &fnode->estimated_score);
+            heap_insert(&frontier, f_node, &f_node->estimated_score);
 
             to_successor = to_successor->next;
         }
