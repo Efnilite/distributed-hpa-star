@@ -1,5 +1,5 @@
 #include "hpa.h"
-#include "a.h"
+#include "cluster_a.h"
 #include "graph_a.h"
 
 #include <assert.h>
@@ -155,7 +155,7 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
     }
 
     populate_edges(map, clusters, graph);
-    printf("Populated edges\n");
+    printf("Populated edges - %fs\n", (double)(clock() - begin) / CLOCKS_PER_SEC);
 
     // find paths in cluster
     for (size_t i = 0; i < cluster_size; i++)
@@ -179,7 +179,8 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
             }
         }
 
-        printf("Finalized cluster %d,%d\n", cluster->pos.x, cluster->pos.y);
+        printf("Finalized cluster %d,%d - %fs\n", cluster->pos.x, cluster->pos.y,
+               (double)(clock() - begin) / CLOCKS_PER_SEC);
     }
 
     // find paths from start and goal to their cluster's inter edges
@@ -211,7 +212,7 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
         graph_add_edge(graph, goal_cluster->inter_edges[i], goal, arrlen(path) - 1);
         arrfree(path);
     }
-    printf("Finalized extremity cluster finding\n");
+    printf("Finalized extremity cluster finding - %fs\n", (double)(clock() - begin) / CLOCKS_PER_SEC);
 
     // 2. calculate
 
@@ -232,7 +233,7 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
         return (Result){NULL, NULL, false, (double)(clock() - begin) / CLOCKS_PER_SEC, graph};
     }
 
-    printf("Found graph path\n");
+    printf("Found graph path - %fs\n", (double)(clock() - begin) / CLOCKS_PER_SEC);
 
     // 3. build final path
     Vec2* final_path = NULL;
@@ -259,7 +260,7 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
 
     // graph_free(graph);
 
-    printf("Found overall path\n");
+    printf("Found overall path - %fs\n", (double)(clock() - begin) / CLOCKS_PER_SEC);
     return (Result){NULL, final_path, final_path != NULL && arrlen(final_path) > 0,
                     (double)(clock() - begin) / CLOCKS_PER_SEC, graph};
 }

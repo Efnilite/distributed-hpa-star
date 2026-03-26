@@ -14,6 +14,7 @@
 typedef struct frontier_node_t
 {
     Vec2 pos;
+    const GraphNode* node;
     uint16_t estimated_score;
 } FrontierNode;
 
@@ -42,6 +43,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
     FrontierNode* startn = malloc(sizeof(FrontierNode));
     *startn = (FrontierNode){
         .pos = start,
+        .node = graph_find_node(graph, start),
         .estimated_score = (uint16_t)vec2_distance_chebyshev(start, goal),
     };
     heap_insert(&frontier, startn, &startn->estimated_score);
@@ -67,7 +69,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
         }
 
         const Vec2 pos = n->pos;
-        const GraphNode* node = graph_find_node_const(graph, pos);
+        const GraphNode* node = n->node;
         if (vec2_equal(pos, goal))
         {
             // reconstruct path
@@ -128,6 +130,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
                 exit(EXIT_FAILURE);
             }
             fnode->pos = successor->pos;
+            fnode->node = successor;
             fnode->estimated_score = fn;
 
             heap_insert(&frontier, fnode, &fnode->estimated_score);

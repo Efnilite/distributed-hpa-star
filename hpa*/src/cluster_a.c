@@ -1,4 +1,4 @@
-#include "a.h"
+#include "cluster_a.h"
 
 #include <assert.h>
 #include <stdint.h>
@@ -77,7 +77,7 @@ Vec2* cluster_a(const Map* map, const Vec2 start, const Vec2 goal)
     const size_t size = map->w * map->h;
 
     heap frontier;
-    heap_create(&frontier, 2 * CLUSTER_SIZE, frontier_compare);
+    heap_create(&frontier, map->w + map->h, frontier_compare);
 
     FrontierNode* startn = malloc(sizeof(FrontierNode));
     *startn = (FrontierNode){
