@@ -17,6 +17,14 @@ typedef struct vbitset_t
 } VBitSet;
 
 /**
+ * Create a new vbitset with malloc and a default value.
+ * @param capacity The amount of elements that this bitset can hold.
+ * @param element_size The amount of bits used by one element.
+ * @param default_value The default value to set all words to.
+ */
+VBitSet* vbitset_create_with_default(size_t capacity, uint8_t element_size, int32_t default_value);
+
+/**
  * Create a new vbitset with malloc.
  * @param capacity The amount of elements that this bitset can hold.
  * @param element_size The amount of bits used by one element.
@@ -29,7 +37,7 @@ VBitSet* vbitset_create(size_t capacity, uint8_t element_size);
  * @param index The index of the element in the bitset.
  * @returns The value of element at index, with 0 being the default value.
  */
-uint8_t vbitset_get(const VBitSet* bitset, size_t index);
+unsigned int vbitset_get(const VBitSet* bitset, size_t index);
 
 /**
  * Set a value in a vbitset.
@@ -37,7 +45,7 @@ uint8_t vbitset_get(const VBitSet* bitset, size_t index);
  * @param index The index of the value to set.
  * @param value The value to set at index.
  */
-void vbitset_set(const VBitSet* bitset, size_t index, uint8_t value);
+void vbitset_set(const VBitSet* bitset, size_t index, unsigned int value);
 
 /**
  * Frees a vbitset from memory.
