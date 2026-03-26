@@ -157,28 +157,18 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
         {
             for (size_t b_idx = a_idx + 1; b_idx < cluster->inter_edges_count; ++b_idx)
             {
-                const clock_t pic_begin = clock();
                 Vec2* path = cluster_a(map, cluster, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx]);
                 if (path == NULL)
                 {
                     continue;
                 }
-                const clock_t pic_path = clock();
 
                 graph_add_edge(graph, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx],
                                arrlen(path) - 1);
 
-                const clock_t pic_add_edge = clock();
-
                 arrfree(path);
-
-                printf("Pathfinding %f - ", (double)(clock() - pic_begin) / CLOCKS_PER_SEC);
-                printf("Add edge %f - ", (double)(clock() - pic_path) / CLOCKS_PER_SEC);
-                printf("Free %f\n", (double)(clock() - pic_add_edge) / CLOCKS_PER_SEC);
             }
         }
-
-        printf("Finalized cluster %d,%d\n", cluster->pos.x, cluster->pos.y);
     }
 
     // find paths from start and goal to their cluster's inter edges
