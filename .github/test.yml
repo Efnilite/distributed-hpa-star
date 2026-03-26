@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure A*
+        run: cd a* && cmake .
+      - name: Build A*
+        run: make
+      - name: Run A*
+        run: ./a -DA -DTEST
+
+      - name: Configure HPA*
+        run: cd hpa* && cmake .
+      - name: Build HPA*
+        run: make
+      - name: Run HPA*
+        run: ./hpa -DHPA -DTEST
