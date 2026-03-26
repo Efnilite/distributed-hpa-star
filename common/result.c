@@ -42,16 +42,15 @@ void result_visualize(const Map* map, const Result* result)
 
     if (result->graph != NULL)
     {
-        GraphNode* node = result->graph->nodes;
+        const GraphNode* node = result->graph->nodes;
         while (node != NULL)
         {
-            // if (text[XY_TO_IDX(node->pos.x, node->pos.y)] == '@')
-            // {
-            //     perror("Graph replaced wall");
-            //     free(text);
-            //     exit(EXIT_FAILURE);
-            //     return;
-            // }
+            if (text[XY_TO_IDX(node->pos.x, node->pos.y)] == '@')
+            {
+                fprintf(stderr, "Graph replaced wall at %d,%d", node->pos.x, node->pos.y);
+                free(text);
+                exit(EXIT_FAILURE);
+            }
 
             text[XY_TO_IDX(node->pos.x, node->pos.y)] = '~';
 
@@ -68,10 +67,9 @@ void result_visualize(const Map* map, const Result* result)
             const Vec2 pos = result->path[i];
             if (text[XY_TO_IDX(pos.x, pos.y)] == '@')
             {
-                perror("Pathfinding replaced wall");
+                fprintf(stderr, "Pathfinding replaced wall at %d,%d", pos.x, pos.y);
                 free(text);
                 exit(EXIT_FAILURE);
-                return;
             }
 
             text[XY_TO_IDX(pos.x, pos.y)] = '*';
