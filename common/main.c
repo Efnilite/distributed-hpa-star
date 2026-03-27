@@ -25,14 +25,15 @@
 int main(void)
 {
 #ifdef TEST
-    Map map = parse_map("../../data/ih/scene_test_small");
+    const Map map = parse_map("../../data/ih/scene_test_small");
     const Result result = ALGORITHM(&map, (Vec2){1, 1}, (Vec2){18, 18});
 #else
-    // Map map = parse_map("../../data/ih/scene_test_small");
+    // const Map map = parse_map("../../data/ih/scene_test_small");
     // const Result result = ALGORITHM(&map, (Vec2){1, 1}, (Vec2){18, 18});
-    Map map = parse_map("../../data/ih/scene_mp_2p_01");
+    const Map map = parse_map("../../data/ih/scene_mp_2p_01");
+    return 0;
     const Result result = ALGORITHM(&map, (Vec2){260, 180}, (Vec2){1565, 1745});
-    // Map map = parse_map("../../data/ih/scene_mp_2p_04");
+    // const Map map = parse_map("../../data/ih/scene_mp_2p_04");
     // const Result result = ALGORITHM(&map, (Vec2){170, 170}, (Vec2){2000, 2600});
 #endif
 

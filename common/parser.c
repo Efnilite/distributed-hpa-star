@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "block_map.h"
+
 Map parse_map(const char* file_name)
 {
     FILE* file = fopen(file_name, "r");
@@ -29,7 +31,7 @@ Map parse_map(const char* file_name)
     // skip map
     (void)fgets(buff, LINE_LENGTH, file);
 
-    VBitSet* map = vbitset_create(w * h, 1);
+    BlockMap* map = block_map_create();
     if (map == NULL)
     {
         perror("Failed to malloc map");
@@ -37,23 +39,34 @@ Map parse_map(const char* file_name)
     }
 
     (void)fgets(buff, LINE_LENGTH, file);
-    uint32_t char_idx = 0;
-    uint32_t line_idx = 0;
+    int16_t x = 0;
+    int16_t y = 0;
     while (!feof(file))
     {
-        if (buff[line_idx] == '\n')
+        const char cluster_c = buff[x];
+        int16_t cluster_w = 1;
+        const int16_t cluster_h = 1;
+
+        char loop_c;
+        while ((loop_c = buff[x + cluster_w]) == cluster_c)
+        {
+            cluster_w++;
+        }
+
+        block_map_add(map, (BlockMapCluster){
+                          .pos = (Vec2){x, y},
+                          .dimensions = (Vec2){cluster_w, cluster_h},
+                          .value = cluster_c == '@',
+                      });
+
+        if (loop_c == '\n')
         {
             (void)fgets(buff, LINE_LENGTH, file);
-            line_idx = 0;
+            y++;
+            x = 0;
+            continue;
         }
-
-        if (buff[line_idx] == '@')
-        {
-            vbitset_set(map, char_idx, 1);
-        }
-
-        line_idx++;
-        char_idx++;
+        x += cluster_w;
     }
 
     fclose(file);
