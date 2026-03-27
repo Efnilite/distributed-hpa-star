@@ -1,17 +1,18 @@
 #include "map.h"
-#include "util.h"
-#include "vbitset.h"
 
 #include <stdlib.h>
 
 bool map_is_wall(const Map* map, const uint16_t x, const uint16_t y)
 {
-    const uint32_t idx = XY_TO_IDX(x, y);
-    return vbitset_get(map->coordinates, idx);
+    const int8_t result = block_map_get(map->coordinates, (Vec2){x, y});
+    if (!result)
+    {
+        return false;
+    }
+    return true;
 }
 
-void map_free(Map* map)
+void map_free(const Map* map)
 {
-    vbitset_free(map->coordinates);
-    // free(map);
+    block_map_free(map->coordinates);
 }
