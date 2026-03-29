@@ -7,6 +7,7 @@ add_executable(a
         src/a.c
         ../common/main.c
         ../common/parser.c
+        ../common/graph.c
         ../common/map.c
         ../common/vec2.c
         ../common/mheap.c

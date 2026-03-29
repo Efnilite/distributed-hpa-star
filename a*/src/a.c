@@ -14,8 +14,8 @@
 #include <assert.h>
 
 // #define EUCLIDEAN
-#define OCTILE
-// #define MANHATTAN
+// #define OCTILE
+#define MANHATTAN
 
 #ifdef EUCLIDEAN
 #define DISTANCE_FUNCTION vec2_distance_euclidean
@@ -138,7 +138,7 @@ Result a(const Map* map, const Vec2 start, const Vec2 goal)
 
         const Vec2 successors[] = SUCCESSORS(pos.x, pos.y);
         const uint16_t score = scores[pos_idx];
-        for (uint8_t i = 0; i < 8; ++i)
+        for (uint8_t i = 0; i < 4; ++i)
         {
             const Vec2 successor = successors[i];
             const uint32_t successor_idx = XY_TO_IDX(successor.x, successor.y);

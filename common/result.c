@@ -1,12 +1,13 @@
 #include "result.h"
+#include "graph.h"
 #include "stb_ds.h"
 #include "util.h"
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/time.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 void result_visualize(const Map* map, const Result* result)
 {
