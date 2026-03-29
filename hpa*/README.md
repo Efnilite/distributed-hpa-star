@@ -13,6 +13,10 @@ All tests performed with a cluster size of 100.
 | fix memory leak in min heap                             | 784,248      | 864           | 3.752                   | 0.029             | 1%               | 41e3fcae3f140a104c9714da5e89c6ab9ae66b4b |
 | performance improvements                                | 780,696      | 848           | 1.929                   | 0.023             | 1%               | bcd338b39eec1edeea21482d0318f68b694c98c3 |
 
+### Graph peak memory 
+- old graph 24,861,296
+- new graph 899,123
+
 ### Analysis of nodes per side of cluster
 
 | Nodes per side of cluster | Node picked   | CPU Time (s) | Path length | Error (from 1634) |
