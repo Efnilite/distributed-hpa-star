@@ -48,6 +48,8 @@ void result_visualize(const Map* map, const Result* result)
             if (text[XY_TO_IDX(node->pos.x, node->pos.y)] == '@')
             {
                 fprintf(stderr, "Graph replaced wall at %d,%d", node->pos.x, node->pos.y);
+                free(text);
+                exit(EXIT_FAILURE);
             }
 
             text[XY_TO_IDX(node->pos.x, node->pos.y)] = '~';
@@ -66,6 +68,8 @@ void result_visualize(const Map* map, const Result* result)
             if (text[XY_TO_IDX(pos.x, pos.y)] == '@')
             {
                 fprintf(stderr, "Pathfinding replaced wall at %d,%d", pos.x, pos.y);
+                free(text);
+                exit(EXIT_FAILURE);
             }
 
             text[XY_TO_IDX(pos.x, pos.y)] = '*';
@@ -112,8 +116,6 @@ void result_visualize(const Map* map, const Result* result)
 
         graph_free(result->graph);
     }
-
-    fprintf(file, "Block Map Clusters: %ld\n", map->coordinates->cluster_count);
 
     fprintf(file, "CPU Time: %f secs\n", result->cpu_secs);
     for (int y = 0; y < map->h; ++y)

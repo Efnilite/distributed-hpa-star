@@ -14,7 +14,6 @@ add_executable(hpa
         ../common/mheap.c
         ../common/result.c
         ../common/vbitset.c
-        ../common/graph.c
-        ../common/block_map.c)
+        ../common/graph.c)
 
 target_link_libraries(hpa m)

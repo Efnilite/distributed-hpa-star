@@ -11,7 +11,6 @@
 #include "../../common/mheap.h"
 #include "../../common/result.h"
 #include "../../common/stb_ds.h"
-#include "../../common/vbitset.h"
 #include "../../common/vec2.h"
 
 // #define EUCLIDEAN
