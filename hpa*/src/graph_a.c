@@ -43,7 +43,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
     const size_t size = map->size;
 
     heap frontier;
-    heap_create(&frontier, CLUSTER_SIZE, frontier_compare);
+    heap_create(&frontier, graph->node_count / 2, frontier_compare);
 
     FrontierNode* startn = malloc(sizeof(FrontierNode));
     *startn = (FrontierNode){
@@ -53,15 +53,26 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
     };
     heap_insert(&frontier, startn, &startn->estimated_score);
 
-    bool* closed = malloc(sizeof(bool) * size);
-    memset(closed, false, sizeof(bool) * size);
+    struct
+    {
+        uint16_t key;
+        bool value;
+    }* closed = NULL;
+    hmdefault(closed, false);
 
-    Vec2* came_from = malloc(sizeof(Vec2) * size);
-    memset(came_from, 0, sizeof(Vec2) * size);
+    struct
+    {
+        uint16_t key;
+        Vec2 value;
+    }* came_from = NULL;
 
-    uint16_t* scores = malloc(sizeof(uint16_t) * size);
-    memset(scores, UINT16_MAX, sizeof(uint16_t) * size);
-    scores[XY_TO_IDX(start.x, start.y)] = 0;
+    struct
+    {
+        uint16_t key;
+        uint16_t value;
+    }* scores = NULL;
+    hmdefault(scores, UINT16_MAX);
+    hmput(scores, XY_TO_IDX(start.x, start.y), 0);
 
     while (heap_size(&frontier) > 0)
     {
@@ -83,24 +94,24 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
             while (current.x != start.x || current.y != start.y)
             {
                 arrput(path, current);
-                current = came_from[XY_TO_IDX(current.x, current.y)];
+                current = hmget(came_from, XY_TO_IDX(current.x, current.y));
             }
             arrput(path, current);
 
             free(n);
             heap_foreach(&frontier, heap_free_elements);
             heap_destroy(&frontier);
-            free(scores);
-            free(came_from);
-            free(closed);
+            hmfree(scores);
+            hmfree(came_from);
+            hmfree(closed);
 
             return path;
         }
 
         const size_t pos_idx = XY_TO_IDX(pos.x, pos.y);
-        closed[pos_idx] = true;
+        hmput(closed, pos_idx, true);
 
-        const uint16_t score = scores[pos_idx];
+        const uint16_t score = hmget(scores, pos_idx);
         const GraphEdge* to_successor = node->edges;
         while (to_successor != NULL)
         {
@@ -111,14 +122,14 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
             const uint16_t hn = (uint16_t)vec2_distance_chebyshev(successor->pos, goal);
             const uint16_t fn = gn + hn;
 
-            if (closed[successor_idx])
+            if (hmget(closed, successor_idx))
             {
                 to_successor = to_successor->next;
                 continue;
             }
 
             // only update if we found a better g-score
-            const uint16_t old_g = scores[successor_idx];
+            const uint16_t old_g = hmget(scores, successor_idx);
             if (gn >= old_g)
             {
                 to_successor = to_successor->next;
@@ -126,8 +137,8 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
             }
 
             // update g-score and came_from
-            scores[successor_idx] = gn;
-            came_from[successor_idx] = pos;
+            hmput(scores, successor_idx, gn);
+            hmput(came_from, successor_idx, pos);
 
             FrontierNode* f_node = malloc(sizeof(FrontierNode));
             if (f_node == NULL)
@@ -149,9 +160,9 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
 
     heap_foreach(&frontier, heap_free_elements);
     heap_destroy(&frontier);
-    free(scores);
-    free(came_from);
-    free(closed);
+    hmfree(scores);
+    hmfree(came_from);
+    hmfree(closed);
 
     return NULL;
 }
