@@ -10,13 +10,7 @@ The repo for distributed HPA*.
 - `hpa*/` contains the desktop HPA* implementation.
 
 ## Notes
-- HPA* implementation (~75% done), finish in the next couple of days
-
-- planning too optimistic
-- midterm report focussed on methods of reducing memory usage
-
-- next week, HPA* implementation and memory usage reduction
-- literature focus
-
-- focus on parallelization methods
-- gain/overhead analysis
+- pseudocode and ref lines
+- more detailed methodology
+- more detailed results + insights -> explain trends etc, lessons learned (in conclusion)
+- no need to change midterm report, apply to final report
