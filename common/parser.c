@@ -7,6 +7,8 @@
 
 #include "block_map.h"
 
+#define HEADER_LINES 4
+
 Map parse_map(const char* file_name)
 {
     FILE* file = fopen(file_name, "r");
@@ -18,18 +20,18 @@ Map parse_map(const char* file_name)
 
     char buff[LINE_LENGTH];
     // skip type
-    (void)fgets(buff, LINE_LENGTH, file);
+    fgets(buff, LINE_LENGTH, file);
 
     // height
-    (void)fgets(buff, LINE_LENGTH, file);
+    fgets(buff, LINE_LENGTH, file);
     const uint16_t h = atoi(buff + 7);
 
     // width
-    (void)fgets(buff, LINE_LENGTH, file);
+    fgets(buff, LINE_LENGTH, file);
     const uint16_t w = atoi(buff + 6);
 
     // skip map
-    (void)fgets(buff, LINE_LENGTH, file);
+    fgets(buff, LINE_LENGTH, file);
 
     BlockMap* map = block_map_create();
     if (map == NULL)
@@ -47,41 +49,50 @@ Map parse_map(const char* file_name)
         int16_t cluster_w = 1;
         int16_t cluster_h = 1;
 
+        char loop_c;
+        while ((loop_c = buff[x + cluster_w]) == cluster_c)
+        {
+            cluster_w++;
+        }
+
         while (true)
         {
+            (void)fgets(buff, LINE_LENGTH, file);
+
             bool fail = false;
-            for (size_t dy = 0; dy < cluster_h; dy++)
+            for (int dx = 0; dx < cluster_w; ++dx)
             {
-                if (buff[(x + cluster_w) + (y + dy) * w] != cluster_c)
-                {
-                    fail = true;
-                    break;
-                }
-            }
-            for (size_t dx = 0; dx < cluster_w; dx++)
-            {
-                if (buff[(x + dx) + (y + cluster_h) * w] != cluster_c)
+                if (buff[x + dx] != cluster_c)
                 {
                     fail = true;
                     break;
                 }
             }
 
-            if (fail)
+            if (fail || feof(file))
             {
                 break;
             }
 
-            cluster_w++;
             cluster_h++;
         }
+        fseek(file, -cluster_h * (w + 1),SEEK_CUR);
 
-        block_map_add(map,
-                      (BlockMapCluster){
+        printf("Added block (%d, %d) with size (%d, %d)\n", x, y, cluster_w, cluster_h);
+        block_map_add(map, (BlockMapCluster){
                           .pos = (Vec2){x, y},
                           .dimensions = (Vec2){cluster_w, cluster_h},
                           .value = cluster_c == '@',
                       });
+
+        if (loop_c == '\n')
+        {
+            (void)fgets(buff, LINE_LENGTH, file);
+            y++;
+            x = 0;
+            continue;
+        }
+        x += cluster_w;
     }
 
     fclose(file);
