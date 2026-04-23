@@ -23,6 +23,9 @@ static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cl
 
     Vec2 current =
         (Vec2){local_start.x + cluster_a->pos.x * CLUSTER_SIZE, local_start.y + cluster_a->pos.y * CLUSTER_SIZE};
+    int section_sizes[CLUSTER_SIZE];
+    size_t section_sizes_size = 0;
+    size_t current_section_size = 0;
 
     // find all options along the edge
     Vec2 options_a[CLUSTER_SIZE];
@@ -34,6 +37,9 @@ static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cl
         {
             current.x += direction.x;
             current.y += direction.y;
+            section_sizes[section_sizes_size] = current_section_size;
+            section_sizes_size++;
+            current_section_size = 0;
             continue;
         }
 
@@ -43,12 +49,18 @@ static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cl
         {
             current.x += direction.x;
             current.y += direction.y;
+            section_sizes[section_sizes_size] = current_section_size;
+            section_sizes_size++;
+            current_section_size = 0;
             continue;
         }
         if (map_is_wall(map, other.x, other.y))
         {
             current.x += direction.x;
             current.y += direction.y;
+            section_sizes[section_sizes_size] = current_section_size;
+            section_sizes_size++;
+            current_section_size = 0;
             continue;
         }
 
@@ -57,28 +69,29 @@ static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cl
         options_size++;
         current.x += direction.x;
         current.y += direction.y;
+        current_section_size++;
     }
+    section_sizes[section_sizes_size] = current_section_size;
+    section_sizes_size++;
+    current_section_size = 0;
 
-    // select from options
-    const size_t result_size = MIN(options_size, INTER_EDGES_PER_CLUSTER);
     Vec2 res_a[INTER_EDGES_PER_CLUSTER];
     Vec2 res_b[INTER_EDGES_PER_CLUSTER];
-    if (result_size >= 2)
+    size_t res_size = 0;
+    size_t section_start = 0;
+    for (size_t i = 0; i < section_sizes_size; i++)
     {
-        res_a[0] = options_a[options_size / 3];
-        res_a[1] = options_a[2 * options_size / 3];
+        size_t size = section_sizes[i];
 
-        res_b[0] = options_b[options_size / 3];
-        res_b[1] = options_b[2 * options_size / 3];
-    }
-    else if (result_size == 1)
-    {
-        res_a[0] = options_a[0];
+        res_a[res_size] = options_a[section_start + size / 2];
+        res_b[res_size] = options_b[section_start + size / 2];
 
-        res_b[0] = options_b[0];
+        res_size++;
+
+        section_start += size;
     }
 
-    for (size_t i = 0; i < result_size; ++i)
+    for (size_t i = 0; i < res_size; ++i)
     {
         graph_add_node(graph, res_a[i]);
         graph_add_node(graph, res_b[i]);
@@ -166,8 +179,7 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
                     continue;
                 }
 
-                graph_add_edge(graph, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx],
-                               arrlen(path) - 1);
+                graph_add_edge(graph, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx], arrlen(path) - 1);
 
                 arrfree(path);
             }
