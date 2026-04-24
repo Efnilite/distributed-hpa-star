@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "block_map.h"
+#include "vbitset.h"
 
 /**
  * A struct for map info.
@@ -14,7 +14,7 @@ typedef struct map_t
     uint16_t w;
     uint16_t h;
     size_t size;
-    BlockMap* coordinates; // 0 = empty, 1 = wall
+    VBitSet* coordinates; // 0 = empty, 1 = wall
 } Map;
 
 /**

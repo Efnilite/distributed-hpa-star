@@ -23,9 +23,9 @@ static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cl
 
     Vec2 current =
         (Vec2){local_start.x + cluster_a->pos.x * CLUSTER_SIZE, local_start.y + cluster_a->pos.y * CLUSTER_SIZE};
-    int section_sizes[CLUSTER_SIZE];
-    size_t section_sizes_size = 0;
-    size_t current_section_size = 0;
+    int section_sizes[CLUSTER_SIZE] = {0};
+    int section_sizes_size = 0;
+    int current_section_size = 0;
 
     // find all options along the edge
     Vec2 options_a[CLUSTER_SIZE];
@@ -35,11 +35,14 @@ static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cl
     {
         if (map_is_wall(map, current.x, current.y))
         {
+            if (current_section_size > 0)
+            {
+                section_sizes[section_sizes_size] = current_section_size;
+                section_sizes_size++;
+                current_section_size = 0;
+            }
             current.x += direction.x;
             current.y += direction.y;
-            section_sizes[section_sizes_size] = current_section_size;
-            section_sizes_size++;
-            current_section_size = 0;
             continue;
         }
 
@@ -47,20 +50,26 @@ static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cl
         const Vec2 other = (Vec2){current.x + to_other_cluster.x, current.y + to_other_cluster.y};
         if (other.x < 0 || other.x >= map->w || other.y < 0 || other.y >= map->h)
         {
+            if (current_section_size > 0)
+            {
+                section_sizes[section_sizes_size] = current_section_size;
+                section_sizes_size++;
+                current_section_size = 0;
+            }
             current.x += direction.x;
             current.y += direction.y;
-            section_sizes[section_sizes_size] = current_section_size;
-            section_sizes_size++;
-            current_section_size = 0;
             continue;
         }
         if (map_is_wall(map, other.x, other.y))
         {
+            if (current_section_size > 0)
+            {
+                section_sizes[section_sizes_size] = current_section_size;
+                section_sizes_size++;
+                current_section_size = 0;
+            }
             current.x += direction.x;
             current.y += direction.y;
-            section_sizes[section_sizes_size] = current_section_size;
-            section_sizes_size++;
-            current_section_size = 0;
             continue;
         }
 
@@ -71,9 +80,12 @@ static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cl
         current.y += direction.y;
         current_section_size++;
     }
-    section_sizes[section_sizes_size] = current_section_size;
-    section_sizes_size++;
-    current_section_size = 0;
+
+    if (current_section_size > 0)
+    {
+        section_sizes[section_sizes_size] = current_section_size;
+        section_sizes_size++;
+    }
 
     Vec2 res_a[INTER_EDGES_PER_CLUSTER];
     Vec2 res_b[INTER_EDGES_PER_CLUSTER];
@@ -81,7 +93,11 @@ static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cl
     size_t section_start = 0;
     for (size_t i = 0; i < section_sizes_size; i++)
     {
-        size_t size = section_sizes[i];
+        const size_t size = section_sizes[i];
+        if (size == 0)
+        {
+            continue;
+        }
 
         res_a[res_size] = options_a[section_start + size / 2];
         res_b[res_size] = options_b[section_start + size / 2];
@@ -163,6 +179,7 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
 
     populate_edges(map, clusters, graph);
     printf("Populated edges - %fs\n", (double)(clock() - pre_begin) / CLOCKS_PER_SEC);
+    printf("Graph nodes after populate_edges: %zu\n", graph->node_count);
 
     // find paths in cluster
     for (size_t i = 0; i < cluster_size; i++)
@@ -219,6 +236,9 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
         arrfree(path);
     }
     printf("Finalized extremity cluster finding - %fs\n", (double)(clock() - calc_begin) / CLOCKS_PER_SEC);
+    printf("Graph nodes after connecting start/goal: %zu\n", graph->node_count);
+    printf("Start: (%d, %d) in cluster (%d, %d)\n", start.x, start.y, start_cluster->pos.x, start_cluster->pos.y);
+    printf("Goal: (%d, %d) in cluster (%d, %d)\n", goal.x, goal.y, goal_cluster->pos.x, goal_cluster->pos.y);
 
     // if start and goal cluster are the same, just run A*
     if (start_cluster == goal_cluster)

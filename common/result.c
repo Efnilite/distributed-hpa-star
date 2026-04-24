@@ -114,8 +114,6 @@ void result_visualize(const Map* map, const Result* result)
         graph_free(result->graph);
     }
 
-    fprintf(file, "Block Map Clusters: %ld\n", map->coordinates->cluster_count);
-
     fprintf(file, "CPU Time: %f secs\n", result->cpu_secs);
     for (int y = 0; y < map->h; ++y)
     {

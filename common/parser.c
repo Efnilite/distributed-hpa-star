@@ -5,9 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "block_map.h"
-
-#define HEADER_LINES 4
+#include "vbitset.h"
 
 Map parse_map(const char* file_name)
 {
@@ -20,20 +18,20 @@ Map parse_map(const char* file_name)
 
     char buff[LINE_LENGTH];
     // skip type
-    fgets(buff, LINE_LENGTH, file);
+    (void)fgets(buff, LINE_LENGTH, file);
 
     // height
-    fgets(buff, LINE_LENGTH, file);
+    (void)fgets(buff, LINE_LENGTH, file);
     const uint16_t h = atoi(buff + 7);
 
     // width
-    fgets(buff, LINE_LENGTH, file);
+    (void)fgets(buff, LINE_LENGTH, file);
     const uint16_t w = atoi(buff + 6);
 
     // skip map
-    fgets(buff, LINE_LENGTH, file);
+    (void)fgets(buff, LINE_LENGTH, file);
 
-    BlockMap* map = block_map_create();
+    VBitSet* map = vbitset_create(w * h, 1);
     if (map == NULL)
     {
         perror("Failed to malloc map");
@@ -41,61 +39,28 @@ Map parse_map(const char* file_name)
     }
 
     (void)fgets(buff, LINE_LENGTH, file);
-    int16_t x = 0;
-    int16_t y = 0;
+    uint32_t char_idx = 0;
+    uint32_t line_idx = 0;
     while (!feof(file))
     {
-        const char cluster_c = buff[x];
-        int16_t cluster_w = 1;
-        int16_t cluster_h = 1;
-
-        char loop_c;
-        while ((loop_c = buff[x + cluster_w]) == cluster_c)
-        {
-            cluster_w++;
-        }
-
-        while (true)
+        if (buff[line_idx] == '\n')
         {
             (void)fgets(buff, LINE_LENGTH, file);
-
-            bool fail = false;
-            for (int dx = 0; dx < cluster_w; ++dx)
-            {
-                if (buff[x + dx] != cluster_c)
-                {
-                    fail = true;
-                    break;
-                }
-            }
-
-            if (fail || feof(file))
-            {
-                break;
-            }
-
-            cluster_h++;
+            line_idx = 0;
         }
-        fseek(file, -cluster_h * (w + 1),SEEK_CUR);
 
-        printf("Added block (%d, %d) with size (%d, %d)\n", x, y, cluster_w, cluster_h);
-        block_map_add(map, (BlockMapCluster){
-                          .pos = (Vec2){x, y},
-                          .dimensions = (Vec2){cluster_w, cluster_h},
-                          .value = cluster_c == '@',
-                      });
-
-        if (loop_c == '\n')
+        if (buff[line_idx] == '@')
         {
-            (void)fgets(buff, LINE_LENGTH, file);
-            y++;
-            x = 0;
-            continue;
+            vbitset_set(map, char_idx, 1);
         }
-        x += cluster_w;
+
+        line_idx++;
+        char_idx++;
     }
 
     fclose(file);
 
-    return (Map){.w = w, .h = h, .size = w * h, .coordinates = map};
+    return (Map){
+        .w = w, .h = h, .size = w * h, .coordinates = map
+    };
 }

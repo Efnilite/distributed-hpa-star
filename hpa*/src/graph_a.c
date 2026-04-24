@@ -43,10 +43,19 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
     heap frontier;
     heap_create(&frontier, graph->node_count / 2, frontier_compare);
 
+    const GraphNode* start_node = graph_find_node(graph, start);
+    const GraphNode* goal_node = graph_find_node(graph, goal);
+    if (start_node == NULL || goal_node == NULL)
+    {
+        fprintf(stderr, "Start or goal node not found in graph\n");
+        heap_destroy(&frontier);
+        return NULL;
+    }
+
     FrontierNode* startn = malloc(sizeof(FrontierNode));
     *startn = (FrontierNode){
         .pos = start,
-        .node = graph_find_node(graph, start),
+        .node = start_node,
         .estimated_score = (uint16_t)vec2_distance_chebyshev(start, goal),
     };
     heap_insert(&frontier, startn, &startn->estimated_score);
