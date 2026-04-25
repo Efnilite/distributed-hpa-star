@@ -4,8 +4,6 @@
 #include "../../common/map.h"
 #include "../../common/result.h"
 
-#include <stdint.h>
-
 /**
  * Runs A*.
  * @param map The map.

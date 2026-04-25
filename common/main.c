@@ -10,8 +10,8 @@
 
 // options
 
-// #define A
-#define HPA
+#define A
+// #define HPA
 
 #ifdef A
 #include "../a*/src/a.h"
@@ -34,7 +34,7 @@ int main(void)
     // const Result result = ALGORITHM(&map, (Vec2){260, 180}, (Vec2){1565, 1745});
     // const Map map = parse_map("../../data/sparse/scene_mp_2p_04");
     // const Result result = ALGORITHM(&map, (Vec2){170, 170}, (Vec2){2000, 2600});
-    const Map map = parse_map("../../data/sparse/scene_mp_2p_04");
+    const Map map = parse_map("../../data/dense/maze");
     const Result result = ALGORITHM(&map, (Vec2){1, 1}, (Vec2){2500, 2500});
 #endif
 

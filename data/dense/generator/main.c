@@ -96,6 +96,48 @@ void generate_maze_iterative(char** maze, const int start_x, const int start_y, 
     free(stack);
 }
 
+// Guarantee a path from top-left to bottom-right using a diagonal carving approach
+void guarantee_path(char** maze, const int width, const int height)
+{
+    int x = 1;
+    int y = 1;
+
+    while (x < width - 2 || y < height - 2)
+    {
+        const int can_go_right = x < width - 2;
+        const int can_go_down = y < height - 2;
+
+        if (can_go_right && can_go_down)
+        {
+            // Randomly choose direction
+            if (rand() % 2 == 0)
+            {
+                // Go right
+                maze[y][x + 1] = PATH;
+                x += 2;
+            }
+            else
+            {
+                // Go down
+                maze[y + 1][x] = PATH;
+                y += 2;
+            }
+        }
+        else if (can_go_right)
+        {
+            // Must go right
+            maze[y][x + 1] = PATH;
+            x += 2;
+        }
+        else if (can_go_down)
+        {
+            // Must go down
+            maze[y + 1][x] = PATH;
+            y += 2;
+        }
+    }
+}
+
 int main(int argc, char* argv[])
 {
     int width = 101;
@@ -131,6 +173,8 @@ int main(int argc, char* argv[])
 
     srand(time(NULL));
     generate_maze_iterative(maze, 1, 1, width, height);
+
+    guarantee_path(maze, width, height);
 
     for (int i = 0; i < width; i++)
     {
