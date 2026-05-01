@@ -237,10 +237,19 @@ void preprocess(Graph* graph, Cluster* clusters, const Vec2 start, const Vec2 go
         arrfree(path);
     }
 
-    map_free(&map);
-
     printf("Finalized extremity cluster finding - %fs\n", (double)(clock() - calc_begin) / CLOCKS_PER_SEC);
     printf("Graph nodes after connecting start/goal: %zu\n", graph->node_count);
     printf("Start: (%d, %d) in cluster (%d, %d)\n", start.x, start.y, start_cluster->pos.x, start_cluster->pos.y);
     printf("Goal: (%d, %d) in cluster (%d, %d)\n", goal.x, goal.y, goal_cluster->pos.x, goal_cluster->pos.y);
+
+    // if start and goal cluster are the same, just run A*
+    if (start_cluster == goal_cluster)
+    {
+        Vec2* final_path = cluster_a(&map, start_cluster, start, goal);
+        printf("Found overall path due to start and goal cluster being the same\n");
+        return (Result){NULL, final_path, final_path != NULL && arrlen(final_path) > 0,
+                        (double)(clock() - calc_begin) / CLOCKS_PER_SEC, graph};
+    }
+
+    map_free(&map);
 }
