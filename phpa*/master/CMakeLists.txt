@@ -1,13 +1,10 @@
 cmake_minimum_required(VERSION 3.22.1)
-project(wphpa C)
+project(mphpa C)
 
 set(CMAKE_C_STANDARD 17)
 
-add_executable(wphpa
+add_executable(mphpa
         src/main.c
-        src/hpa.c
-        src/graph_a.c
-        src/cluster_a.c
         ../../common/parser.c
         ../../common/map.c
         ../../common/vec2.c
@@ -17,4 +14,4 @@ add_executable(wphpa
         ../../common/graph.c
         ../../common/tcp.c)
 
-target_link_libraries(wphpa m)
+target_link_libraries(mphpa m)
