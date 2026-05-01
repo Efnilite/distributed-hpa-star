@@ -3,12 +3,7 @@
 
 #include "../../../common/map.h"
 #include "../../../common/result.h"
-
-#define CLUSTER_SIZE 100
-#define INTER_EDGES_PER_CLUSTER (CLUSTER_SIZE / 2 - 1)
-
-_Static_assert(CLUSTER_SIZE >= 3, "Cluster size must be at least 3");
-_Static_assert(CLUSTER_SIZE >= 1, "Inter edges per cluster must be at least 1");
+#include "../../../common/constants.h"
 
 typedef struct cluster_t
 {

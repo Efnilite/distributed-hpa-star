@@ -44,7 +44,7 @@ int main(int argc, char const* argv[])
         // Wait for task from master
         if (tcp_recv_task_request(socket_fd, &task) < 0)
         {
-            fprintf(stderr, "Failed to receive task request\n");
+            fprintf(stderr, "Waiting to receive task request\n");
             if (running)
             {
                 sleep(1);
