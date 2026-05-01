@@ -10,6 +10,7 @@
 #include "../../../common/result.h"
 #include "../../../common/tcp.h"
 #include "../../../common/vec2.h"
+#include "../../common/hpa.h"
 
 #define STB_DS_IMPLEMENTATION
 // ReSharper disable once CppUnusedIncludeDirective
@@ -97,6 +98,11 @@ int main(int argc, char const* argv[])
             break;
         }
     }
+
+
+    Graph* graph;
+    Cluster* clusters;
+    preprocess(graph, clusters);
 
     // Close server from accepting more connections
     tcp_server_destroy(&server);

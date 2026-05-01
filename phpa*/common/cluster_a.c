@@ -7,12 +7,12 @@
 #include <string.h>
 #include <time.h>
 
+#include "../../common/mheap.h"
+#include "../../common/result.h"
+#include "../../common/stb_ds.h"
+#include "../../common/vbitset.h"
+#include "../../common/vec2.h"
 #include "hpa.h"
-#include "../../../common/mheap.h"
-#include "../../../common/result.h"
-#include "../../../common/stb_ds.h"
-#include "../../../common/vbitset.h"
-#include "../../../common/vec2.h"
 
 // #define EUCLIDEAN
 // #define OCTILE
@@ -48,8 +48,10 @@
     }
 
 #define XY_TO_IDX_CLUSTER_A(x, y) ((x) + (y) * CLUSTER_SIZE)
-#define GLOBAL_VEC_TO_LOCAL_VEC(vec) ((Vec2){vec.x - cluster->pos.x * CLUSTER_SIZE, vec.y - cluster->pos.y * CLUSTER_SIZE})
-#define LOCAL_VEC_TO_GLOBAL_VEC(vec) ((Vec2){vec.x + cluster->pos.x * CLUSTER_SIZE, vec.y + cluster->pos.y * CLUSTER_SIZE})
+#define GLOBAL_VEC_TO_LOCAL_VEC(vec)                                                                                   \
+    ((Vec2){vec.x - cluster->pos.x * CLUSTER_SIZE, vec.y - cluster->pos.y * CLUSTER_SIZE})
+#define LOCAL_VEC_TO_GLOBAL_VEC(vec)                                                                                   \
+    ((Vec2){vec.x + cluster->pos.x * CLUSTER_SIZE, vec.y + cluster->pos.y * CLUSTER_SIZE})
 
 typedef struct frontier_node_t
 {
@@ -72,10 +74,7 @@ static int frontier_compare(void* a, void* b)
     return 0;
 }
 
-static void heap_free_elements(void* key, void* value)
-{
-    free(key);
-}
+static void heap_free_elements(void* key, void* value) { free(key); }
 
 // A* implementation where all coordinates are near 0,0 to reduce memory usage by requiring minimal memory allocation
 Vec2* cluster_a(const Map* map, const Cluster* cluster, const Vec2 global_start, const Vec2 global_goal)
@@ -153,8 +152,7 @@ Vec2* cluster_a(const Map* map, const Cluster* cluster, const Vec2 global_start,
         {
             const Vec2 successor = successors[i];
 
-            if (successor.x < 0 || successor.x >= CLUSTER_SIZE ||
-                successor.y < 0 || successor.y >= CLUSTER_SIZE)
+            if (successor.x < 0 || successor.x >= CLUSTER_SIZE || successor.y < 0 || successor.y >= CLUSTER_SIZE)
             {
                 continue;
             }

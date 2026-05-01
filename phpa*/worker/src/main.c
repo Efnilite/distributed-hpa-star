@@ -4,7 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "../../../common/tcp.h"
-#include "hpa.h"
+#include "../../common/hpa.h"
 
 #define STB_DS_IMPLEMENTATION
 // ReSharper disable once CppUnusedIncludeDirective

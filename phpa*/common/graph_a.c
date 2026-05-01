@@ -5,11 +5,11 @@
 #include <string.h>
 #include <time.h>
 
+#include "../../common/graph.h"
+#include "../../common/mheap.h"
+#include "../../common/stb_ds.h"
+#include "../../common/util.h"
 #include "hpa.h"
-#include "../../../common/graph.h"
-#include "../../../common/mheap.h"
-#include "../../../common/stb_ds.h"
-#include "../../../common/util.h"
 
 typedef struct frontier_node_t
 {
@@ -33,10 +33,7 @@ static int frontier_compare(void* a, void* b)
     return 0;
 }
 
-static void heap_free_elements(void* key, void* value)
-{
-    free(key);
-}
+static void heap_free_elements(void* key, void* value) { free(key); }
 
 Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 goal)
 {

@@ -1,9 +1,9 @@
 #ifndef A_H
 #define A_H
 
+#include "../../common/map.h"
+#include "../../common/result.h"
 #include "hpa.h"
-#include "../../../common/map.h"
-#include "../../../common/result.h"
 
 /**
  * Runs A* on a cluster.

@@ -1,9 +1,9 @@
 #ifndef HPA_H
 #define HPA_H
 
-#include "../../../common/map.h"
-#include "../../../common/result.h"
-#include "../../../common/constants.h"
+#include "../../common/constants.h"
+#include "../../common/map.h"
+#include "../../common/result.h"
 
 typedef struct cluster_t
 {

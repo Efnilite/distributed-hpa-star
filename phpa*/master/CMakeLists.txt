@@ -5,6 +5,10 @@ set(CMAKE_C_STANDARD 17)
 
 add_executable(mphpa
         src/main.c
+        src/preprocess.c
+        ../common/hpa.c
+        ../common/graph_a.c
+        ../common/cluster_a.c
         ../../common/parser.c
         ../../common/map.c
         ../../common/vec2.c

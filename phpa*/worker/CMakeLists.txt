@@ -5,9 +5,9 @@ set(CMAKE_C_STANDARD 17)
 
 add_executable(wphpa
         src/main.c
-        src/hpa.c
-        src/graph_a.c
-        src/cluster_a.c
+        ../common/hpa.c
+        ../common/graph_a.c
+        ../common/cluster_a.c
         ../../common/parser.c
         ../../common/map.c
         ../../common/vec2.c
