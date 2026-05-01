@@ -49,7 +49,7 @@ Map parse_map(const char* file_name)
             line_idx = 0;
         }
 
-        if (buff[line_idx] == '@')
+        if (buff[line_idx] != '.')
         {
             vbitset_set(map, char_idx, 1);
         }
