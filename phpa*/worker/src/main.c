@@ -1,9 +1,14 @@
-#include "../../common/tcp.h"
-#include "hpa.h"
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <signal.h>
+#include <unistd.h>
+#include "../../../common/tcp.h"
+#include "hpa.h"
+
+#define STB_DS_IMPLEMENTATION
+// ReSharper disable once CppUnusedIncludeDirective
+#include "../../../common/stb_ds.h"
 
 static volatile int running = 1;
 
@@ -13,22 +18,17 @@ void signal_handler(int sig)
     printf("\nShutdown signal received\n");
 }
 
-int main(int argc, char const *argv[])
+int main(int argc, char const* argv[])
 {
     signal(SIGINT, signal_handler);
 
-    if (argc < 3) {
-        fprintf(stderr, "Usage: %s <master_host> <master_port>\n", argv[0]);
-        fprintf(stderr, "Example: %s 127.0.0.1 9090\n", argv[0]);
-        return 1;
-    }
-
-    const char *master_host = argv[1];
-    uint16_t master_port = atoi(argv[2]);
+    const char* master_host = "127.0.0.1";
+    uint16_t master_port = 9090;
 
     // Connect to master server
-    tcp_client *client = tcp_client_create(master_host, master_port);
-    if (!client) {
+    tcp_client* client = tcp_client_create(master_host, master_port);
+    if (!client)
+    {
         fprintf(stderr, "Failed to connect to master at %s:%u\n", master_host, master_port);
         return 1;
     }
@@ -36,22 +36,28 @@ int main(int argc, char const *argv[])
     printf("Worker process connected to master at %s:%u\n", master_host, master_port);
 
     // Worker main loop - receive tasks and send responses
-    while (running && tcp_client_is_connected(client)) {
-        TaskRequest *task = NULL;
+    while (running && tcp_client_is_connected(client))
+    {
+        TaskRequest* task = NULL;
+        int socket_fd = tcp_client_get_socket_fd(client);
 
         // Wait for task from master
-        if (tcp_recv_task_request(client->socket_fd, &task) < 0) {
+        if (tcp_recv_task_request(socket_fd, &task) < 0)
+        {
             fprintf(stderr, "Failed to receive task request\n");
-            if (running) {
+            if (running)
+            {
                 sleep(1);
                 continue;
-            } else {
+            }
+            else
+            {
                 break;
             }
         }
 
-        printf("Received task (id=%u): start=(%.2f, %.2f) goal=(%.2f, %.2f)\n",
-               task->task_id, task->start_x, task->start_y, task->goal_x, task->goal_y);
+        printf("Received task (id=%u): start=(%.2f, %.2f) goal=(%.2f, %.2f)\n", task->task_id, task->start_x,
+               task->start_y, task->goal_x, task->goal_y);
 
         // TODO: Perform actual pathfinding using HPA*
         // For now, create a dummy response
@@ -60,14 +66,15 @@ int main(int argc, char const *argv[])
             .path_length = 0,
             .path = NULL,
             .iterations_used = 0,
-            .status_code = 0  // Success code
+            .status_code = 0 // Success code
         };
 
         // Example: Allocate and populate a dummy path (straight line)
         // In production, this would call actual HPA* implementation
         response.path_length = 2;
-        response.path = (float *)malloc(2 * 2 * sizeof(float));
-        if (response.path) {
+        response.path = (float*)malloc(2 * 2 * sizeof(float));
+        if (response.path)
+        {
             response.path[0] = task->start_x;
             response.path[1] = task->start_y;
             response.path[2] = task->goal_x;
@@ -75,15 +82,18 @@ int main(int argc, char const *argv[])
         }
 
         // Send response back to master
-        if (tcp_send_task_response(client->socket_fd, &response) < 0) {
+        if (tcp_send_task_response(socket_fd, &response) < 0)
+        {
             fprintf(stderr, "Failed to send task response\n");
-        } else {
-            printf("Sent task response (id=%u, path_length=%u)\n",
-                   response.task_id, response.path_length);
+        }
+        else
+        {
+            printf("Sent task response (id=%u, path_length=%u)\n", response.task_id, response.path_length);
         }
 
         // Cleanup
-        if (response.path) {
+        if (response.path)
+        {
             free(response.path);
         }
         tcp_taskrequest_free(&task);

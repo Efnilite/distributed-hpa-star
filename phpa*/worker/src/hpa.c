@@ -8,8 +8,8 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "../../common/graph.h"
-#include "../../common/stb_ds.h"
+#include "../../../common/graph.h"
+#include "../../../common/stb_ds.h"
 
 #define MIN(a, b) (a) > (b) ? (b) : (a)
 #define VEC_TO_CLUSTER(vec) (vec.y / CLUSTER_SIZE * cluster_w + vec.x / CLUSTER_SIZE)

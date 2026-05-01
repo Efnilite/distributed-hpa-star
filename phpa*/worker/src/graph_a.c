@@ -6,10 +6,10 @@
 #include <time.h>
 
 #include "hpa.h"
-#include "../../common/graph.h"
-#include "../../common/mheap.h"
-#include "../../common/stb_ds.h"
-#include "../../common/util.h"
+#include "../../../common/graph.h"
+#include "../../../common/mheap.h"
+#include "../../../common/stb_ds.h"
+#include "../../../common/util.h"
 
 typedef struct frontier_node_t
 {

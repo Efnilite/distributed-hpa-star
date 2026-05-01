@@ -2,8 +2,8 @@
 #define A_H
 
 #include "hpa.h"
-#include "../../common/map.h"
-#include "../../common/result.h"
+#include "../../../common/map.h"
+#include "../../../common/result.h"
 
 /**
  * Runs A* on a cluster.
