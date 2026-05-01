@@ -16,11 +16,11 @@
 // ReSharper disable once CppUnusedIncludeDirective
 #include "../../../common/stb_ds.h"
 
-static volatile int running = 1;
+static volatile bool running = true;
 
 void signal_handler(int sig)
 {
-    running = 0;
+    running = false;
     printf("\nShutdown signal received\n");
 }
 
@@ -49,7 +49,8 @@ void divide_clusters(int* clusters_per_worker, int connections_count)
 
             remaining_clusters--;
         }
-        printf("Worker %d is getting %d clusters: %d-%d\n", worker, clusters_per_worker[worker], remaining_clusters, old);
+        printf("Worker %d is getting %d clusters: %d-%d\n", worker, clusters_per_worker[worker], remaining_clusters,
+               old);
     }
 }
 
@@ -117,14 +118,12 @@ int main(int argc, char const* argv[])
         // Example: Send tasks to all connected workers
         for (int i = 0; i < arrlen(worker_fds); i++)
         {
-            TaskRequest task = {
-                .task_id = i + 1,
-                .start_x = (float)(i * 5),
-                .start_y = 0.0f,
-                .goal_x = (float)(i * 5 + 10),
-                .goal_y = 10.0f,
-                .max_iterations = 10000
-            };
+            TaskRequest task = {.task_id = i + 1,
+                                .start_x = (float)(i * 5),
+                                .start_y = 0.0f,
+                                .goal_x = (float)(i * 5 + 10),
+                                .goal_y = 10.0f,
+                                .max_iterations = 10000};
 
             if (tcp_send_task_request(worker_fds[i], &task) < 0)
             {

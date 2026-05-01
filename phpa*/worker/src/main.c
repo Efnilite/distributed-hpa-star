@@ -11,11 +11,11 @@
 // ReSharper disable once CppUnusedIncludeDirective
 #include "../../../common/stb_ds.h"
 
-static volatile int running = 1;
+static volatile bool running = true;
 
 void signal_handler(int sig)
 {
-    running = 0;
+    running = false;
     printf("\nShutdown signal received\n");
 }
 
