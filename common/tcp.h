@@ -17,7 +17,8 @@ typedef enum
     MSG_PING = 3, // Heartbeat/keepalive message
     MSG_PONG = 4, // Heartbeat response
     MSG_SHUTDOWN = 5, // Signal to shutdown
-    MSG_ERROR = 6 // Error message
+    MSG_ERROR = 6, // Error message
+    MSG_CLUSTER_ASSIGNMENT = 7 // Master sends cluster positions to worker
 } MessageType;
 
 /**
