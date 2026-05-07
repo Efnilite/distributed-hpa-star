@@ -54,6 +54,69 @@ void divide_clusters(int* clusters_per_worker, int connections_count)
     }
 }
 
+void send_cluster_assignments(int* worker_fds, int workers_count, int* clusters_per_worker)
+{
+    const Map map = parse_map("../data/sparse/scene_mp_2p_01");
+    const size_t cluster_w = (size_t)ceil(map.w / (float)CLUSTER_SIZE);
+    const size_t cluster_h = (size_t)ceil(map.h / (float)CLUSTER_SIZE);
+    const size_t cluster_size = cluster_w * cluster_h;
+
+    // Track which cluster index we're at for each worker
+    int cluster_offset = 0;
+
+    for (int worker = 0; worker < workers_count; worker++)
+    {
+        int num_clusters = clusters_per_worker[worker];
+
+        // Calculate payload size: 4 bytes for count + 4 bytes per cluster (2 bytes x, 2 bytes y)
+        uint32_t payload_size = sizeof(uint32_t) + (num_clusters * sizeof(int16_t) * 2);
+        void* payload = malloc(payload_size);
+
+        if (!payload)
+        {
+            fprintf(stderr, "Failed to allocate memory for cluster assignment payload\n");
+            continue;
+        }
+
+        // Pack the data: first 4 bytes = cluster count, then cluster positions
+        uint32_t* count_ptr = (uint32_t*)payload;
+        *count_ptr = num_clusters;
+
+        int16_t* positions = (int16_t*)(payload + sizeof(uint32_t));
+
+        // Extract cluster positions from linear cluster index
+        for (int i = 0; i < num_clusters; i++)
+        {
+            size_t cluster_idx = cluster_offset + i;
+            int16_t cluster_x = (int16_t)(cluster_idx % cluster_w);
+            int16_t cluster_y = (int16_t)(cluster_idx / cluster_w);
+
+            positions[i * 2] = cluster_x;
+            positions[i * 2 + 1] = cluster_y;
+        }
+
+        // Send the message to worker
+        if (tcp_send_message(worker_fds[worker], MSG_CLUSTER_ASSIGNMENT, payload, payload_size) < 0)
+        {
+            fprintf(stderr, "Failed to send cluster assignment to worker %d\n", worker);
+        }
+        else
+        {
+            printf("Sent cluster assignment to worker %d: %d clusters (indices %d-%d)\n", worker, num_clusters,
+                   cluster_offset, cluster_offset + num_clusters - 1);
+            for (int i = 0; i < num_clusters && i < 5; i++)
+            {
+                printf("  Cluster %d: pos (%d, %d)\n", cluster_offset + i, positions[i * 2], positions[i * 2 + 1]);
+            }
+            if (num_clusters > 5)
+                printf("  ... and %d more clusters\n", num_clusters - 5);
+        }
+
+        cluster_offset += num_clusters;
+        free(payload);
+    }
+}
+
 int main(int argc, char const* argv[])
 {
     signal(SIGINT, signal_handler);
@@ -96,6 +159,9 @@ int main(int argc, char const* argv[])
             // Calculate cluster distribution
             int clusters_per_worker[WORKERS_SIZE];
             divide_clusters(clusters_per_worker, WORKERS_SIZE);
+
+            // Send cluster assignments to all workers
+            send_cluster_assignments(worker_fds, WORKERS_SIZE, clusters_per_worker);
             break;
         }
     }
