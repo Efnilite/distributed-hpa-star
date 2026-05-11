@@ -1,0 +1,1454 @@
+{
+  "metadata": {
+    "timestamp": "2026-05-11T15:20:23.430539",
+    "cluster_sizes": [
+      1,
+      100,
+      200,
+      300,
+      400,
+      500,
+      600,
+      700,
+      800,
+      900,
+      1000
+    ],
+    "runs_per_size": 10,
+    "algorithms": [
+      "hpa"
+    ]
+  },
+  "data": [
+    {
+      "cluster_size": 1,
+      "algorithm": "hpa",
+      "run": 1,
+      "timings": {
+        "inter_edges": 0.044384,
+        "preprocessed": 10.04571,
+        "finish_abstract_graph": 0.035714,
+        "found_graph_path": 0.000821,
+        "found_overall_path": 0.000897,
+        "max_memory": 3.6
+      }
+    },
+    {
+      "cluster_size": 1,
+      "algorithm": "hpa",
+      "run": 2,
+      "timings": {
+        "inter_edges": 0.040034,
+        "preprocessed": 10.036187,
+        "finish_abstract_graph": 0.035563,
+        "found_graph_path": 0.000802,
+        "found_overall_path": 0.000884,
+        "max_memory": 3.6
+      }
+    },
+    {
+      "cluster_size": 1,
+      "algorithm": "hpa",
+      "run": 3,
+      "timings": {
+        "inter_edges": 0.040369,
+        "preprocessed": 10.061788,
+        "finish_abstract_graph": 0.035497,
+        "found_graph_path": 0.000852,
+        "found_overall_path": 0.000889,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 1,
+      "algorithm": "hpa",
+      "run": 4,
+      "timings": {
+        "inter_edges": 0.039351,
+        "preprocessed": 10.002255,
+        "finish_abstract_graph": 0.035348,
+        "found_graph_path": 0.000774,
+        "found_overall_path": 0.000884,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 1,
+      "algorithm": "hpa",
+      "run": 5,
+      "timings": {
+        "inter_edges": 0.040194,
+        "preprocessed": 10.14795,
+        "finish_abstract_graph": 0.037739,
+        "found_graph_path": 0.000785,
+        "found_overall_path": 0.000908,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 1,
+      "algorithm": "hpa",
+      "run": 6,
+      "timings": {
+        "inter_edges": 0.039391,
+        "preprocessed": 10.555577,
+        "finish_abstract_graph": 0.039638,
+        "found_graph_path": 0.000922,
+        "found_overall_path": 0.00105,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 1,
+      "algorithm": "hpa",
+      "run": 7,
+      "timings": {
+        "inter_edges": 0.039395,
+        "preprocessed": 10.273288,
+        "finish_abstract_graph": 0.035411,
+        "found_graph_path": 0.000814,
+        "found_overall_path": 0.000888,
+        "max_memory": 3.6
+      }
+    },
+    {
+      "cluster_size": 1,
+      "algorithm": "hpa",
+      "run": 8,
+      "timings": {
+        "inter_edges": 0.040513,
+        "preprocessed": 10.124746,
+        "finish_abstract_graph": 0.036124,
+        "found_graph_path": 0.000818,
+        "found_overall_path": 0.000882,
+        "max_memory": 3.59
+      }
+    },
+    {
+      "cluster_size": 1,
+      "algorithm": "hpa",
+      "run": 9,
+      "timings": {
+        "inter_edges": 0.040105,
+        "preprocessed": 9.956216,
+        "finish_abstract_graph": 0.035425,
+        "found_graph_path": 0.000822,
+        "found_overall_path": 0.000874,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 1,
+      "algorithm": "hpa",
+      "run": 10,
+      "timings": {
+        "inter_edges": 0.040511,
+        "preprocessed": 9.952868,
+        "finish_abstract_graph": 0.035286,
+        "found_graph_path": 0.000781,
+        "found_overall_path": 0.000887,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 100,
+      "algorithm": "hpa",
+      "run": 1,
+      "timings": {
+        "inter_edges": 0.041242,
+        "preprocessed": 9.956234,
+        "finish_abstract_graph": 0.035483,
+        "found_graph_path": 0.000849,
+        "found_overall_path": 0.000894,
+        "max_memory": 3.6
+      }
+    },
+    {
+      "cluster_size": 100,
+      "algorithm": "hpa",
+      "run": 2,
+      "timings": {
+        "inter_edges": 0.039839,
+        "preprocessed": 10.123897,
+        "finish_abstract_graph": 0.03596,
+        "found_graph_path": 0.00079,
+        "found_overall_path": 0.000892,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 100,
+      "algorithm": "hpa",
+      "run": 3,
+      "timings": {
+        "inter_edges": 0.040059,
+        "preprocessed": 10.078449,
+        "finish_abstract_graph": 0.036813,
+        "found_graph_path": 0.000875,
+        "found_overall_path": 0.000899,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 100,
+      "algorithm": "hpa",
+      "run": 4,
+      "timings": {
+        "inter_edges": 0.04022,
+        "preprocessed": 11.285398,
+        "finish_abstract_graph": 0.040721,
+        "found_graph_path": 0.000883,
+        "found_overall_path": 0.000974,
+        "max_memory": 3.6
+      }
+    },
+    {
+      "cluster_size": 100,
+      "algorithm": "hpa",
+      "run": 5,
+      "timings": {
+        "inter_edges": 0.040664,
+        "preprocessed": 9.98789,
+        "finish_abstract_graph": 0.036247,
+        "found_graph_path": 0.000825,
+        "found_overall_path": 0.000897,
+        "max_memory": 3.59
+      }
+    },
+    {
+      "cluster_size": 100,
+      "algorithm": "hpa",
+      "run": 6,
+      "timings": {
+        "inter_edges": 0.039759,
+        "preprocessed": 10.098678,
+        "finish_abstract_graph": 0.036701,
+        "found_graph_path": 0.000893,
+        "found_overall_path": 0.000896,
+        "max_memory": 3.59
+      }
+    },
+    {
+      "cluster_size": 100,
+      "algorithm": "hpa",
+      "run": 7,
+      "timings": {
+        "inter_edges": 0.040003,
+        "preprocessed": 10.097362,
+        "finish_abstract_graph": 0.035483,
+        "found_graph_path": 0.00085,
+        "found_overall_path": 0.000882,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 100,
+      "algorithm": "hpa",
+      "run": 8,
+      "timings": {
+        "inter_edges": 0.040035,
+        "preprocessed": 10.159206,
+        "finish_abstract_graph": 0.035686,
+        "found_graph_path": 0.000811,
+        "found_overall_path": 0.00089,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 100,
+      "algorithm": "hpa",
+      "run": 9,
+      "timings": {
+        "inter_edges": 0.040121,
+        "preprocessed": 10.047374,
+        "finish_abstract_graph": 0.035464,
+        "found_graph_path": 0.000795,
+        "found_overall_path": 0.000895,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 100,
+      "algorithm": "hpa",
+      "run": 10,
+      "timings": {
+        "inter_edges": 0.040461,
+        "preprocessed": 10.038305,
+        "finish_abstract_graph": 0.035659,
+        "found_graph_path": 0.000813,
+        "found_overall_path": 0.000892,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 200,
+      "algorithm": "hpa",
+      "run": 1,
+      "timings": {
+        "inter_edges": 0.040303,
+        "preprocessed": 10.098576,
+        "finish_abstract_graph": 0.035577,
+        "found_graph_path": 0.000796,
+        "found_overall_path": 0.000907,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 200,
+      "algorithm": "hpa",
+      "run": 2,
+      "timings": {
+        "inter_edges": 0.039524,
+        "preprocessed": 9.938392,
+        "finish_abstract_graph": 0.035582,
+        "found_graph_path": 0.000889,
+        "found_overall_path": 0.000918,
+        "max_memory": 3.64
+      }
+    },
+    {
+      "cluster_size": 200,
+      "algorithm": "hpa",
+      "run": 3,
+      "timings": {
+        "inter_edges": 0.040288,
+        "preprocessed": 10.151715,
+        "finish_abstract_graph": 0.035568,
+        "found_graph_path": 0.000859,
+        "found_overall_path": 0.000892,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 200,
+      "algorithm": "hpa",
+      "run": 4,
+      "timings": {
+        "inter_edges": 0.039447,
+        "preprocessed": 10.012265,
+        "finish_abstract_graph": 0.035414,
+        "found_graph_path": 0.000794,
+        "found_overall_path": 0.000884,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 200,
+      "algorithm": "hpa",
+      "run": 5,
+      "timings": {
+        "inter_edges": 0.040513,
+        "preprocessed": 9.924897,
+        "finish_abstract_graph": 0.035475,
+        "found_graph_path": 0.000781,
+        "found_overall_path": 0.000885,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 200,
+      "algorithm": "hpa",
+      "run": 6,
+      "timings": {
+        "inter_edges": 0.039573,
+        "preprocessed": 10.0432,
+        "finish_abstract_graph": 0.035549,
+        "found_graph_path": 0.000835,
+        "found_overall_path": 0.000885,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 200,
+      "algorithm": "hpa",
+      "run": 7,
+      "timings": {
+        "inter_edges": 0.040075,
+        "preprocessed": 9.986741,
+        "finish_abstract_graph": 0.035477,
+        "found_graph_path": 0.000805,
+        "found_overall_path": 0.000895,
+        "max_memory": 3.59
+      }
+    },
+    {
+      "cluster_size": 200,
+      "algorithm": "hpa",
+      "run": 8,
+      "timings": {
+        "inter_edges": 0.04025,
+        "preprocessed": 10.02495,
+        "finish_abstract_graph": 0.035591,
+        "found_graph_path": 0.00083,
+        "found_overall_path": 0.000893,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 200,
+      "algorithm": "hpa",
+      "run": 9,
+      "timings": {
+        "inter_edges": 0.039433,
+        "preprocessed": 9.939986,
+        "finish_abstract_graph": 0.035336,
+        "found_graph_path": 0.000822,
+        "found_overall_path": 0.000886,
+        "max_memory": 3.6
+      }
+    },
+    {
+      "cluster_size": 200,
+      "algorithm": "hpa",
+      "run": 10,
+      "timings": {
+        "inter_edges": 0.039861,
+        "preprocessed": 9.940228,
+        "finish_abstract_graph": 0.035529,
+        "found_graph_path": 0.000805,
+        "found_overall_path": 0.000881,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 300,
+      "algorithm": "hpa",
+      "run": 1,
+      "timings": {
+        "inter_edges": 0.0397,
+        "preprocessed": 10.207043,
+        "finish_abstract_graph": 0.035984,
+        "found_graph_path": 0.000798,
+        "found_overall_path": 0.000895,
+        "max_memory": 3.59
+      }
+    },
+    {
+      "cluster_size": 300,
+      "algorithm": "hpa",
+      "run": 2,
+      "timings": {
+        "inter_edges": 0.039517,
+        "preprocessed": 9.960373,
+        "finish_abstract_graph": 0.035801,
+        "found_graph_path": 0.000809,
+        "found_overall_path": 0.000889,
+        "max_memory": 3.6
+      }
+    },
+    {
+      "cluster_size": 300,
+      "algorithm": "hpa",
+      "run": 3,
+      "timings": {
+        "inter_edges": 0.040607,
+        "preprocessed": 10.02145,
+        "finish_abstract_graph": 0.035816,
+        "found_graph_path": 0.000881,
+        "found_overall_path": 0.000887,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 300,
+      "algorithm": "hpa",
+      "run": 4,
+      "timings": {
+        "inter_edges": 0.041262,
+        "preprocessed": 10.1343,
+        "finish_abstract_graph": 0.035481,
+        "found_graph_path": 0.00084,
+        "found_overall_path": 0.000887,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 300,
+      "algorithm": "hpa",
+      "run": 5,
+      "timings": {
+        "inter_edges": 0.039417,
+        "preprocessed": 10.002454,
+        "finish_abstract_graph": 0.035371,
+        "found_graph_path": 0.000794,
+        "found_overall_path": 0.000883,
+        "max_memory": 3.6
+      }
+    },
+    {
+      "cluster_size": 300,
+      "algorithm": "hpa",
+      "run": 6,
+      "timings": {
+        "inter_edges": 0.040752,
+        "preprocessed": 9.962565,
+        "finish_abstract_graph": 0.035782,
+        "found_graph_path": 0.000871,
+        "found_overall_path": 0.000889,
+        "max_memory": 3.63
+      }
+    },
+    {
+      "cluster_size": 300,
+      "algorithm": "hpa",
+      "run": 7,
+      "timings": {
+        "inter_edges": 0.040429,
+        "preprocessed": 9.954593,
+        "finish_abstract_graph": 0.035488,
+        "found_graph_path": 0.00081,
+        "found_overall_path": 0.000878,
+        "max_memory": 3.6
+      }
+    },
+    {
+      "cluster_size": 300,
+      "algorithm": "hpa",
+      "run": 8,
+      "timings": {
+        "inter_edges": 0.040737,
+        "preprocessed": 9.994842,
+        "finish_abstract_graph": 0.035544,
+        "found_graph_path": 0.000838,
+        "found_overall_path": 0.000886,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 300,
+      "algorithm": "hpa",
+      "run": 9,
+      "timings": {
+        "inter_edges": 0.039353,
+        "preprocessed": 9.850393,
+        "finish_abstract_graph": 0.035712,
+        "found_graph_path": 0.000842,
+        "found_overall_path": 0.000885,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 300,
+      "algorithm": "hpa",
+      "run": 10,
+      "timings": {
+        "inter_edges": 0.039376,
+        "preprocessed": 10.037335,
+        "finish_abstract_graph": 0.035668,
+        "found_graph_path": 0.000856,
+        "found_overall_path": 0.000897,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 400,
+      "algorithm": "hpa",
+      "run": 1,
+      "timings": {
+        "inter_edges": 0.040987,
+        "preprocessed": 10.065619,
+        "finish_abstract_graph": 0.035857,
+        "found_graph_path": 0.000843,
+        "found_overall_path": 0.000896,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 400,
+      "algorithm": "hpa",
+      "run": 2,
+      "timings": {
+        "inter_edges": 0.040834,
+        "preprocessed": 10.074635,
+        "finish_abstract_graph": 0.035514,
+        "found_graph_path": 0.000871,
+        "found_overall_path": 0.000889,
+        "max_memory": 3.59
+      }
+    },
+    {
+      "cluster_size": 400,
+      "algorithm": "hpa",
+      "run": 3,
+      "timings": {
+        "inter_edges": 0.039668,
+        "preprocessed": 9.947763,
+        "finish_abstract_graph": 0.03555,
+        "found_graph_path": 0.000786,
+        "found_overall_path": 0.000879,
+        "max_memory": 3.59
+      }
+    },
+    {
+      "cluster_size": 400,
+      "algorithm": "hpa",
+      "run": 4,
+      "timings": {
+        "inter_edges": 0.040511,
+        "preprocessed": 10.014795,
+        "finish_abstract_graph": 0.035516,
+        "found_graph_path": 0.000834,
+        "found_overall_path": 0.000894,
+        "max_memory": 3.64
+      }
+    },
+    {
+      "cluster_size": 400,
+      "algorithm": "hpa",
+      "run": 5,
+      "timings": {
+        "inter_edges": 0.03948,
+        "preprocessed": 9.98495,
+        "finish_abstract_graph": 0.035396,
+        "found_graph_path": 0.000806,
+        "found_overall_path": 0.0009,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 400,
+      "algorithm": "hpa",
+      "run": 6,
+      "timings": {
+        "inter_edges": 0.040131,
+        "preprocessed": 9.972864,
+        "finish_abstract_graph": 0.0355,
+        "found_graph_path": 0.000824,
+        "found_overall_path": 0.000892,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 400,
+      "algorithm": "hpa",
+      "run": 7,
+      "timings": {
+        "inter_edges": 0.039792,
+        "preprocessed": 9.990272,
+        "finish_abstract_graph": 0.035519,
+        "found_graph_path": 0.000845,
+        "found_overall_path": 0.000894,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 400,
+      "algorithm": "hpa",
+      "run": 8,
+      "timings": {
+        "inter_edges": 0.039388,
+        "preprocessed": 10.001485,
+        "finish_abstract_graph": 0.035879,
+        "found_graph_path": 0.000851,
+        "found_overall_path": 0.000891,
+        "max_memory": 3.63
+      }
+    },
+    {
+      "cluster_size": 400,
+      "algorithm": "hpa",
+      "run": 9,
+      "timings": {
+        "inter_edges": 0.040224,
+        "preprocessed": 9.905288,
+        "finish_abstract_graph": 0.035399,
+        "found_graph_path": 0.000862,
+        "found_overall_path": 0.000885,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 400,
+      "algorithm": "hpa",
+      "run": 10,
+      "timings": {
+        "inter_edges": 0.04036,
+        "preprocessed": 9.950417,
+        "finish_abstract_graph": 0.035594,
+        "found_graph_path": 0.000881,
+        "found_overall_path": 0.000881,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 500,
+      "algorithm": "hpa",
+      "run": 1,
+      "timings": {
+        "inter_edges": 0.041279,
+        "preprocessed": 9.974027,
+        "finish_abstract_graph": 0.035668,
+        "found_graph_path": 0.000822,
+        "found_overall_path": 0.000884,
+        "max_memory": 3.6
+      }
+    },
+    {
+      "cluster_size": 500,
+      "algorithm": "hpa",
+      "run": 2,
+      "timings": {
+        "inter_edges": 0.040218,
+        "preprocessed": 10.018231,
+        "finish_abstract_graph": 0.035516,
+        "found_graph_path": 0.000876,
+        "found_overall_path": 0.000887,
+        "max_memory": 3.63
+      }
+    },
+    {
+      "cluster_size": 500,
+      "algorithm": "hpa",
+      "run": 3,
+      "timings": {
+        "inter_edges": 0.040865,
+        "preprocessed": 9.933024,
+        "finish_abstract_graph": 0.035847,
+        "found_graph_path": 0.00083,
+        "found_overall_path": 0.000921,
+        "max_memory": 3.59
+      }
+    },
+    {
+      "cluster_size": 500,
+      "algorithm": "hpa",
+      "run": 4,
+      "timings": {
+        "inter_edges": 0.039923,
+        "preprocessed": 10.078886,
+        "finish_abstract_graph": 0.035477,
+        "found_graph_path": 0.000803,
+        "found_overall_path": 0.000888,
+        "max_memory": 3.64
+      }
+    },
+    {
+      "cluster_size": 500,
+      "algorithm": "hpa",
+      "run": 5,
+      "timings": {
+        "inter_edges": 0.040256,
+        "preprocessed": 10.258507,
+        "finish_abstract_graph": 0.035696,
+        "found_graph_path": 0.000802,
+        "found_overall_path": 0.00089,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 500,
+      "algorithm": "hpa",
+      "run": 6,
+      "timings": {
+        "inter_edges": 0.041053,
+        "preprocessed": 10.05959,
+        "finish_abstract_graph": 0.035515,
+        "found_graph_path": 0.000809,
+        "found_overall_path": 0.000884,
+        "max_memory": 3.59
+      }
+    },
+    {
+      "cluster_size": 500,
+      "algorithm": "hpa",
+      "run": 7,
+      "timings": {
+        "inter_edges": 0.039427,
+        "preprocessed": 10.099265,
+        "finish_abstract_graph": 0.036018,
+        "found_graph_path": 0.00079,
+        "found_overall_path": 0.000895,
+        "max_memory": 3.63
+      }
+    },
+    {
+      "cluster_size": 500,
+      "algorithm": "hpa",
+      "run": 8,
+      "timings": {
+        "inter_edges": 0.04025,
+        "preprocessed": 10.114658,
+        "finish_abstract_graph": 0.035614,
+        "found_graph_path": 0.000855,
+        "found_overall_path": 0.000889,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 500,
+      "algorithm": "hpa",
+      "run": 9,
+      "timings": {
+        "inter_edges": 0.0405,
+        "preprocessed": 9.990363,
+        "finish_abstract_graph": 0.035511,
+        "found_graph_path": 0.000857,
+        "found_overall_path": 0.000883,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 500,
+      "algorithm": "hpa",
+      "run": 10,
+      "timings": {
+        "inter_edges": 0.039645,
+        "preprocessed": 10.04078,
+        "finish_abstract_graph": 0.035536,
+        "found_graph_path": 0.000855,
+        "found_overall_path": 0.000897,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 600,
+      "algorithm": "hpa",
+      "run": 1,
+      "timings": {
+        "inter_edges": 0.042293,
+        "preprocessed": 10.127126,
+        "finish_abstract_graph": 0.035591,
+        "found_graph_path": 0.000865,
+        "found_overall_path": 0.000885,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 600,
+      "algorithm": "hpa",
+      "run": 2,
+      "timings": {
+        "inter_edges": 0.04411,
+        "preprocessed": 10.023891,
+        "finish_abstract_graph": 0.035464,
+        "found_graph_path": 0.000843,
+        "found_overall_path": 0.000888,
+        "max_memory": 3.59
+      }
+    },
+    {
+      "cluster_size": 600,
+      "algorithm": "hpa",
+      "run": 3,
+      "timings": {
+        "inter_edges": 0.039686,
+        "preprocessed": 10.139488,
+        "finish_abstract_graph": 0.036963,
+        "found_graph_path": 0.000957,
+        "found_overall_path": 0.001014,
+        "max_memory": 3.64
+      }
+    },
+    {
+      "cluster_size": 600,
+      "algorithm": "hpa",
+      "run": 4,
+      "timings": {
+        "inter_edges": 0.040725,
+        "preprocessed": 10.008169,
+        "finish_abstract_graph": 0.035504,
+        "found_graph_path": 0.000866,
+        "found_overall_path": 0.000884,
+        "max_memory": 3.63
+      }
+    },
+    {
+      "cluster_size": 600,
+      "algorithm": "hpa",
+      "run": 5,
+      "timings": {
+        "inter_edges": 0.039819,
+        "preprocessed": 9.983637,
+        "finish_abstract_graph": 0.035333,
+        "found_graph_path": 0.00085,
+        "found_overall_path": 0.000888,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 600,
+      "algorithm": "hpa",
+      "run": 6,
+      "timings": {
+        "inter_edges": 0.041598,
+        "preprocessed": 10.546021,
+        "finish_abstract_graph": 0.039025,
+        "found_graph_path": 0.000904,
+        "found_overall_path": 0.001079,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 600,
+      "algorithm": "hpa",
+      "run": 7,
+      "timings": {
+        "inter_edges": 0.039612,
+        "preprocessed": 9.960968,
+        "finish_abstract_graph": 0.035286,
+        "found_graph_path": 0.000842,
+        "found_overall_path": 0.000877,
+        "max_memory": 3.6
+      }
+    },
+    {
+      "cluster_size": 600,
+      "algorithm": "hpa",
+      "run": 8,
+      "timings": {
+        "inter_edges": 0.039682,
+        "preprocessed": 10.081425,
+        "finish_abstract_graph": 0.035533,
+        "found_graph_path": 0.000849,
+        "found_overall_path": 0.000883,
+        "max_memory": 3.64
+      }
+    },
+    {
+      "cluster_size": 600,
+      "algorithm": "hpa",
+      "run": 9,
+      "timings": {
+        "inter_edges": 0.039685,
+        "preprocessed": 10.035703,
+        "finish_abstract_graph": 0.035763,
+        "found_graph_path": 0.000827,
+        "found_overall_path": 0.000907,
+        "max_memory": 3.64
+      }
+    },
+    {
+      "cluster_size": 600,
+      "algorithm": "hpa",
+      "run": 10,
+      "timings": {
+        "inter_edges": 0.04076,
+        "preprocessed": 10.205126,
+        "finish_abstract_graph": 0.036494,
+        "found_graph_path": 0.000858,
+        "found_overall_path": 0.000886,
+        "max_memory": 3.65
+      }
+    },
+    {
+      "cluster_size": 700,
+      "algorithm": "hpa",
+      "run": 1,
+      "timings": {
+        "inter_edges": 0.039867,
+        "preprocessed": 10.007056,
+        "finish_abstract_graph": 0.035609,
+        "found_graph_path": 0.000853,
+        "found_overall_path": 0.000872,
+        "max_memory": 3.6
+      }
+    },
+    {
+      "cluster_size": 700,
+      "algorithm": "hpa",
+      "run": 2,
+      "timings": {
+        "inter_edges": 0.041697,
+        "preprocessed": 10.073715,
+        "finish_abstract_graph": 0.035624,
+        "found_graph_path": 0.000851,
+        "found_overall_path": 0.000888,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 700,
+      "algorithm": "hpa",
+      "run": 3,
+      "timings": {
+        "inter_edges": 0.039537,
+        "preprocessed": 10.045396,
+        "finish_abstract_graph": 0.03572,
+        "found_graph_path": 0.000868,
+        "found_overall_path": 0.000889,
+        "max_memory": 3.63
+      }
+    },
+    {
+      "cluster_size": 700,
+      "algorithm": "hpa",
+      "run": 4,
+      "timings": {
+        "inter_edges": 0.041969,
+        "preprocessed": 10.155781,
+        "finish_abstract_graph": 0.035996,
+        "found_graph_path": 0.000815,
+        "found_overall_path": 0.000899,
+        "max_memory": 3.6
+      }
+    },
+    {
+      "cluster_size": 700,
+      "algorithm": "hpa",
+      "run": 5,
+      "timings": {
+        "inter_edges": 0.040377,
+        "preprocessed": 10.040026,
+        "finish_abstract_graph": 0.035379,
+        "found_graph_path": 0.000808,
+        "found_overall_path": 0.000894,
+        "max_memory": 3.6
+      }
+    },
+    {
+      "cluster_size": 700,
+      "algorithm": "hpa",
+      "run": 6,
+      "timings": {
+        "inter_edges": 0.039831,
+        "preprocessed": 10.124317,
+        "finish_abstract_graph": 0.036435,
+        "found_graph_path": 0.000854,
+        "found_overall_path": 0.000901,
+        "max_memory": 3.6
+      }
+    },
+    {
+      "cluster_size": 700,
+      "algorithm": "hpa",
+      "run": 7,
+      "timings": {
+        "inter_edges": 0.040457,
+        "preprocessed": 10.091493,
+        "finish_abstract_graph": 0.035454,
+        "found_graph_path": 0.000799,
+        "found_overall_path": 0.000888,
+        "max_memory": 3.63
+      }
+    },
+    {
+      "cluster_size": 700,
+      "algorithm": "hpa",
+      "run": 8,
+      "timings": {
+        "inter_edges": 0.040448,
+        "preprocessed": 10.002666,
+        "finish_abstract_graph": 0.035619,
+        "found_graph_path": 0.000809,
+        "found_overall_path": 0.000886,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 700,
+      "algorithm": "hpa",
+      "run": 9,
+      "timings": {
+        "inter_edges": 0.040457,
+        "preprocessed": 10.026436,
+        "finish_abstract_graph": 0.035495,
+        "found_graph_path": 0.000855,
+        "found_overall_path": 0.00089,
+        "max_memory": 3.6
+      }
+    },
+    {
+      "cluster_size": 700,
+      "algorithm": "hpa",
+      "run": 10,
+      "timings": {
+        "inter_edges": 0.040542,
+        "preprocessed": 10.002534,
+        "finish_abstract_graph": 0.035364,
+        "found_graph_path": 0.000847,
+        "found_overall_path": 0.00088,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 800,
+      "algorithm": "hpa",
+      "run": 1,
+      "timings": {
+        "inter_edges": 0.041052,
+        "preprocessed": 10.202801,
+        "finish_abstract_graph": 0.035491,
+        "found_graph_path": 0.000832,
+        "found_overall_path": 0.000892,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 800,
+      "algorithm": "hpa",
+      "run": 2,
+      "timings": {
+        "inter_edges": 0.040471,
+        "preprocessed": 10.029862,
+        "finish_abstract_graph": 0.035623,
+        "found_graph_path": 0.000848,
+        "found_overall_path": 0.000886,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 800,
+      "algorithm": "hpa",
+      "run": 3,
+      "timings": {
+        "inter_edges": 0.04042,
+        "preprocessed": 10.052835,
+        "finish_abstract_graph": 0.035666,
+        "found_graph_path": 0.000842,
+        "found_overall_path": 0.000887,
+        "max_memory": 3.6
+      }
+    },
+    {
+      "cluster_size": 800,
+      "algorithm": "hpa",
+      "run": 4,
+      "timings": {
+        "inter_edges": 0.040759,
+        "preprocessed": 9.921635,
+        "finish_abstract_graph": 0.035495,
+        "found_graph_path": 0.000856,
+        "found_overall_path": 0.000902,
+        "max_memory": 3.59
+      }
+    },
+    {
+      "cluster_size": 800,
+      "algorithm": "hpa",
+      "run": 5,
+      "timings": {
+        "inter_edges": 0.04106,
+        "preprocessed": 9.905553,
+        "finish_abstract_graph": 0.035423,
+        "found_graph_path": 0.000843,
+        "found_overall_path": 0.000894,
+        "max_memory": 3.58
+      }
+    },
+    {
+      "cluster_size": 800,
+      "algorithm": "hpa",
+      "run": 6,
+      "timings": {
+        "inter_edges": 0.039362,
+        "preprocessed": 9.994632,
+        "finish_abstract_graph": 0.035711,
+        "found_graph_path": 0.000833,
+        "found_overall_path": 0.000887,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 800,
+      "algorithm": "hpa",
+      "run": 7,
+      "timings": {
+        "inter_edges": 0.040631,
+        "preprocessed": 9.94532,
+        "finish_abstract_graph": 0.035409,
+        "found_graph_path": 0.000779,
+        "found_overall_path": 0.000882,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 800,
+      "algorithm": "hpa",
+      "run": 8,
+      "timings": {
+        "inter_edges": 0.040072,
+        "preprocessed": 9.984917,
+        "finish_abstract_graph": 0.035353,
+        "found_graph_path": 0.000852,
+        "found_overall_path": 0.000886,
+        "max_memory": 3.64
+      }
+    },
+    {
+      "cluster_size": 800,
+      "algorithm": "hpa",
+      "run": 9,
+      "timings": {
+        "inter_edges": 0.042183,
+        "preprocessed": 10.162651,
+        "finish_abstract_graph": 0.035991,
+        "found_graph_path": 0.000781,
+        "found_overall_path": 0.00089,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 800,
+      "algorithm": "hpa",
+      "run": 10,
+      "timings": {
+        "inter_edges": 0.041065,
+        "preprocessed": 9.973253,
+        "finish_abstract_graph": 0.035431,
+        "found_graph_path": 0.000804,
+        "found_overall_path": 0.000889,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 900,
+      "algorithm": "hpa",
+      "run": 1,
+      "timings": {
+        "inter_edges": 0.040132,
+        "preprocessed": 9.947886,
+        "finish_abstract_graph": 0.0357,
+        "found_graph_path": 0.000841,
+        "found_overall_path": 0.000893,
+        "max_memory": 3.6
+      }
+    },
+    {
+      "cluster_size": 900,
+      "algorithm": "hpa",
+      "run": 2,
+      "timings": {
+        "inter_edges": 0.040749,
+        "preprocessed": 10.133879,
+        "finish_abstract_graph": 0.037701,
+        "found_graph_path": 0.000863,
+        "found_overall_path": 0.000887,
+        "max_memory": 3.59
+      }
+    },
+    {
+      "cluster_size": 900,
+      "algorithm": "hpa",
+      "run": 3,
+      "timings": {
+        "inter_edges": 0.039884,
+        "preprocessed": 9.956925,
+        "finish_abstract_graph": 0.035411,
+        "found_graph_path": 0.000809,
+        "found_overall_path": 0.000893,
+        "max_memory": 3.63
+      }
+    },
+    {
+      "cluster_size": 900,
+      "algorithm": "hpa",
+      "run": 4,
+      "timings": {
+        "inter_edges": 0.039456,
+        "preprocessed": 9.996997,
+        "finish_abstract_graph": 0.036417,
+        "found_graph_path": 0.000872,
+        "found_overall_path": 0.000885,
+        "max_memory": 3.6
+      }
+    },
+    {
+      "cluster_size": 900,
+      "algorithm": "hpa",
+      "run": 5,
+      "timings": {
+        "inter_edges": 0.040267,
+        "preprocessed": 10.087956,
+        "finish_abstract_graph": 0.035692,
+        "found_graph_path": 0.000803,
+        "found_overall_path": 0.000891,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 900,
+      "algorithm": "hpa",
+      "run": 6,
+      "timings": {
+        "inter_edges": 0.040131,
+        "preprocessed": 9.958079,
+        "finish_abstract_graph": 0.036109,
+        "found_graph_path": 0.000773,
+        "found_overall_path": 0.000887,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 900,
+      "algorithm": "hpa",
+      "run": 7,
+      "timings": {
+        "inter_edges": 0.03961,
+        "preprocessed": 10.503493,
+        "finish_abstract_graph": 0.037581,
+        "found_graph_path": 0.000852,
+        "found_overall_path": 0.000947,
+        "max_memory": 3.6
+      }
+    },
+    {
+      "cluster_size": 900,
+      "algorithm": "hpa",
+      "run": 8,
+      "timings": {
+        "inter_edges": 0.039531,
+        "preprocessed": 9.990562,
+        "finish_abstract_graph": 0.03584,
+        "found_graph_path": 0.000869,
+        "found_overall_path": 0.0009,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 900,
+      "algorithm": "hpa",
+      "run": 9,
+      "timings": {
+        "inter_edges": 0.039897,
+        "preprocessed": 10.14208,
+        "finish_abstract_graph": 0.035556,
+        "found_graph_path": 0.000855,
+        "found_overall_path": 0.000899,
+        "max_memory": 3.59
+      }
+    },
+    {
+      "cluster_size": 900,
+      "algorithm": "hpa",
+      "run": 10,
+      "timings": {
+        "inter_edges": 0.04411,
+        "preprocessed": 10.18763,
+        "finish_abstract_graph": 0.035422,
+        "found_graph_path": 0.000774,
+        "found_overall_path": 0.00089,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 1000,
+      "algorithm": "hpa",
+      "run": 1,
+      "timings": {
+        "inter_edges": 0.040765,
+        "preprocessed": 9.972612,
+        "finish_abstract_graph": 0.035479,
+        "found_graph_path": 0.000843,
+        "found_overall_path": 0.000878,
+        "max_memory": 3.59
+      }
+    },
+    {
+      "cluster_size": 1000,
+      "algorithm": "hpa",
+      "run": 2,
+      "timings": {
+        "inter_edges": 0.039375,
+        "preprocessed": 9.962625,
+        "finish_abstract_graph": 0.03551,
+        "found_graph_path": 0.000868,
+        "found_overall_path": 0.000903,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 1000,
+      "algorithm": "hpa",
+      "run": 3,
+      "timings": {
+        "inter_edges": 0.039877,
+        "preprocessed": 10.058375,
+        "finish_abstract_graph": 0.0358,
+        "found_graph_path": 0.000847,
+        "found_overall_path": 0.000893,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 1000,
+      "algorithm": "hpa",
+      "run": 4,
+      "timings": {
+        "inter_edges": 0.039384,
+        "preprocessed": 10.224519,
+        "finish_abstract_graph": 0.035519,
+        "found_graph_path": 0.000853,
+        "found_overall_path": 0.000885,
+        "max_memory": 3.59
+      }
+    },
+    {
+      "cluster_size": 1000,
+      "algorithm": "hpa",
+      "run": 5,
+      "timings": {
+        "inter_edges": 0.039808,
+        "preprocessed": 10.025529,
+        "finish_abstract_graph": 0.035597,
+        "found_graph_path": 0.000869,
+        "found_overall_path": 0.000898,
+        "max_memory": 3.64
+      }
+    },
+    {
+      "cluster_size": 1000,
+      "algorithm": "hpa",
+      "run": 6,
+      "timings": {
+        "inter_edges": 0.039642,
+        "preprocessed": 10.07992,
+        "finish_abstract_graph": 0.036119,
+        "found_graph_path": 0.000848,
+        "found_overall_path": 0.000907,
+        "max_memory": 3.61
+      }
+    },
+    {
+      "cluster_size": 1000,
+      "algorithm": "hpa",
+      "run": 7,
+      "timings": {
+        "inter_edges": 0.040653,
+        "preprocessed": 9.966977,
+        "finish_abstract_graph": 0.035588,
+        "found_graph_path": 0.000845,
+        "found_overall_path": 0.000888,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 1000,
+      "algorithm": "hpa",
+      "run": 8,
+      "timings": {
+        "inter_edges": 0.039659,
+        "preprocessed": 9.975568,
+        "finish_abstract_graph": 0.035404,
+        "found_graph_path": 0.000833,
+        "found_overall_path": 0.000878,
+        "max_memory": 3.65
+      }
+    },
+    {
+      "cluster_size": 1000,
+      "algorithm": "hpa",
+      "run": 9,
+      "timings": {
+        "inter_edges": 0.039617,
+        "preprocessed": 10.037596,
+        "finish_abstract_graph": 0.035584,
+        "found_graph_path": 0.000833,
+        "found_overall_path": 0.000878,
+        "max_memory": 3.62
+      }
+    },
+    {
+      "cluster_size": 1000,
+      "algorithm": "hpa",
+      "run": 10,
+      "timings": {
+        "inter_edges": 0.039961,
+        "preprocessed": 10.062629,
+        "finish_abstract_graph": 0.03551,
+        "found_graph_path": 0.000809,
+        "found_overall_path": 0.000882,
+        "max_memory": 3.62
+      }
+    }
+  ]
+}
