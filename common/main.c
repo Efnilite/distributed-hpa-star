@@ -28,14 +28,14 @@ int main(void)
     // const Map map = parse_map("../../data/sparse/scene_test_small");
     // const Result result = ALGORITHM(&map, (Vec2){1, 1}, (Vec2){18, 18});
 #else
-    // const Map map = parse_map("../../data/sparse/scene_test_small");
-    // const Result result = ALGORITHM(&map, (Vec2){1, 1}, (Vec2){18, 18});
+    const Map map = parse_map("../data/sparse/scene_test_small");
+    const Result result = ALGORITHM(&map, (Vec2){1, 1}, (Vec2){18, 18});
     // const Map map = parse_map("../data/sparse/scene_mp_2p_01");
     // const Result result = ALGORITHM(&map, (Vec2){260, 180}, (Vec2){1565, 1745});
     // const Map map = parse_map("../../data/sparse/scene_mp_2p_04");
     // const Result result = ALGORITHM(&map, (Vec2){170, 170}, (Vec2){2000, 2600});
-    const Map map = parse_map("../data/dense/maze");
-    const Result result = ALGORITHM(&map, (Vec2){1, 1}, (Vec2){999, 999});
+    // const Map map = parse_map("../data/dense/maze");
+    // const Result result = ALGORITHM(&map, (Vec2){1, 1}, (Vec2){999, 999});
 #endif
 
     if (!result.success)

@@ -13,6 +13,7 @@ add_executable(hpa
         ../common/vec2.c
         ../common/mheap.c
         ../common/result.c
+        ../common/util.c
         ../common/vbitset.c
         ../common/graph.c)
 

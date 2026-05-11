@@ -15,8 +15,8 @@
 #include "../../common/vec2.h"
 
 // #define EUCLIDEAN
-#define OCTILE
-// #define MANHATTAN
+// #define OCTILE
+#define MANHATTAN
 
 #ifdef EUCLIDEAN
 #define DISTANCE_FUNCTION vec2_distance_euclidean

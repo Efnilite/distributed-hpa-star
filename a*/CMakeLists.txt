@@ -12,6 +12,7 @@ add_executable(a
         ../common/vec2.c
         ../common/mheap.c
         ../common/result.c
+        ../common/util.c
         ../common/vbitset.c)
 
 target_link_libraries(a m)
