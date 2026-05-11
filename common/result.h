@@ -26,6 +26,7 @@ typedef struct result_t
     Vec2* path;
     bool success;
     double cpu_secs;
+    long max_memory_bytes;
     Graph* graph;
 } Result;
 

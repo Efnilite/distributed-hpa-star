@@ -6,8 +6,8 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/time.h>
+#include <unistd.h>
 
 void result_visualize(const Map* map, const Result* result)
 {
@@ -100,6 +100,7 @@ void result_visualize(const Map* map, const Result* result)
     }
 
     fprintf(file, "Path Length: %ld\n", arrlen(result->path));
+    fprintf(file, "Max Memory: %.2f MB\n", result->max_memory_bytes / (1024.0 * 1024.0));
     fprintf(file, "Path Cost: %f\n", cost);
     if (result->visited != NULL)
     {

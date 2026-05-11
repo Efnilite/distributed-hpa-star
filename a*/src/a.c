@@ -75,6 +75,11 @@ Result a(const Map* map, const Vec2 start, const Vec2 goal)
     assert(goal.x > 0 && goal.x < map->w && goal.y > 0 && goal.y < map->h);
 
     const clock_t begin = clock();
+    long max_memory = 0;
+    long current_memory = util_get_memory_usage();
+    if (current_memory > 0)
+        max_memory = current_memory;
+
     const size_t size = map->w * map->h;
 
     heap frontier;
@@ -93,6 +98,10 @@ Result a(const Map* map, const Vec2 start, const Vec2 goal)
     uint16_t* scores = malloc(sizeof(uint16_t) * size);
     memset(scores, UINT16_MAX, sizeof(uint16_t) * size);
     scores[XY_TO_IDX(start.x, start.y)] = 0;
+
+    current_memory = util_get_memory_usage();
+    if (current_memory > max_memory)
+        max_memory = current_memory;
 
     while (heap_size(&frontier) > 0)
     {
@@ -131,7 +140,11 @@ Result a(const Map* map, const Vec2 start, const Vec2 goal)
             vbitset_free(came_from);
             vbitset_free(closed);
 
-            return (Result){NULL, path, true, (double)(clock() - begin) / CLOCKS_PER_SEC};
+            current_memory = util_get_memory_usage();
+            if (current_memory > max_memory)
+                max_memory = current_memory;
+
+            return (Result){NULL, path, true, (double)(clock() - begin) / CLOCKS_PER_SEC, max_memory};
         }
 
         vbitset_set(closed, pos_idx, true);
@@ -183,11 +196,15 @@ Result a(const Map* map, const Vec2 start, const Vec2 goal)
         free(n);
     }
 
+    current_memory = util_get_memory_usage();
+    if (current_memory > max_memory)
+        max_memory = current_memory;
+
     heap_foreach(&frontier, heap_free_elements);
     heap_destroy(&frontier);
     vbitset_free(closed);
     free(scores);
     vbitset_free(came_from);
 
-    return (Result){NULL, NULL, false, (double)(clock() - begin) / CLOCKS_PER_SEC};
+    return (Result){NULL, NULL, false, (double)(clock() - begin) / CLOCKS_PER_SEC, max_memory};
 }
