@@ -326,6 +326,7 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
 
     printf("Found overall path - %fs\n", (double)(clock() - calc_begin) / CLOCKS_PER_SEC);
     printf("Max memory: %.2f MB\n", max_memory / (1024.0 * 1024.0));
+    printf("Path length: %d\n", arrlen(final_path));
     return (Result){NULL,
                     final_path,
                     final_path != NULL && arrlen(final_path) > 0,

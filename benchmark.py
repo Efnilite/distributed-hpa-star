@@ -14,8 +14,8 @@ from datetime import datetime
 import time
 
 # Configuration
-CLUSTER_SIZES = [1, *(range(100, 1001, 100))]  # 1 to 300 with steps of 10
-RUNS_PER_SIZE = 10
+CLUSTER_SIZES = [*(range(10, 201, 10))]  # 1 to 300 with steps of 10
+RUNS_PER_SIZE = 5
 ALGORITHMS = ["hpa"]  # "phpa" can be added if needed
 BASE_DIR = Path(__file__).parent.resolve()
 CONSTANTS_FILE = BASE_DIR / "common" / "constants.h"
@@ -29,6 +29,7 @@ TIMING_PATTERNS = {
     "found_graph_path": r"Found graph path - ([\d.]+)s",
     "found_overall_path": r"Found overall path - ([\d.]+)s",
     "max_memory": r"Max memory: ([\d.]+) MB",
+    "path_length": r"Path length: ([\d.]+)",
 }
 
 def modify_cluster_size(size: int) -> None:
