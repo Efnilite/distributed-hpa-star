@@ -20,11 +20,11 @@
 
 #ifdef EUCLIDEAN
 #define DISTANCE_FUNCTION vec2_distance_euclidean
-#define NEIGHBOUR_COST ((i < 4) ? 5 : 7)
+#define NEIGHBOUR_COST 1
 #endif
 #ifdef OCTILE
 #define DISTANCE_FUNCTION vec2_distance_chebyshev
-#define NEIGHBOUR_COST ((i < 4) ? 5 : 7)
+#define NEIGHBOUR_COST 1
 #endif
 #ifdef MANHATTAN
 #define DISTANCE_FUNCTION vec2_distance_manhattan

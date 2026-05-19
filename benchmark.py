@@ -14,8 +14,8 @@ from datetime import datetime
 import time
 
 # Configuration
-CLUSTER_SIZES = [*(range(10, 201, 10))]  # 1 to 300 with steps of 10
-RUNS_PER_SIZE = 5
+CLUSTER_SIZES = [100]  # 1 to 300 with steps of 10
+RUNS_PER_SIZE = 50
 ALGORITHMS = ["hpa"]  # "phpa" can be added if needed
 BASE_DIR = Path(__file__).parent.resolve()
 CONSTANTS_FILE = BASE_DIR / "common" / "constants.h"

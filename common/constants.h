@@ -9,6 +9,6 @@
 _Static_assert(CLUSTER_SIZE >= 3, "Cluster size must be at least 3");
 _Static_assert(INTER_EDGES_PER_CLUSTER >= 1, "Inter edges per cluster must be at least 1");
 
-#define WORKERS_SIZE 4
+#define WORKERS_SIZE 2
 
 #endif

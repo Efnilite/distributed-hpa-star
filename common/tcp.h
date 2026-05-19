@@ -45,6 +45,16 @@ typedef struct
 } TaskResponse;
 
 /**
+ * Cluster assignment structure sent by master to worker
+ * Contains list of cluster positions assigned to this worker
+ */
+typedef struct
+{
+    uint32_t count; // Number of clusters assigned
+    int16_t* positions; // Dynamically allocated array of (x,y) pairs (total 2*count elements)
+} ClusterAssignment;
+
+/**
  * Generic message header
  */
 typedef struct
@@ -138,6 +148,13 @@ int tcp_send_task_request(int socket_fd, const TaskRequest* task);
 int tcp_recv_task_request(int socket_fd, TaskRequest** out_task);
 
 /**
+ * Receive a cluster assignment (worker side)
+ * Allocates CA structure; caller must free it
+ * Returns: 0 on success, -1 on error
+ */
+int tcp_recv_cluster_assignment(int socket_fd, ClusterAssignment** out_ca);
+
+/**
  * Send a task response from worker to master
  * Returns: 0 on success, -1 on error
  */
@@ -165,5 +182,10 @@ void tcp_taskresponse_free(TaskResponse** response);
  * Free a TaskRequest structure
  */
 void tcp_taskrequest_free(TaskRequest** task);
+
+/**
+ * Free a ClusterAssignment structure
+ */
+void tcp_clusterassignment_free(ClusterAssignment** ca);
 
 #endif // TCP_H

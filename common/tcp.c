@@ -414,6 +414,82 @@ int tcp_recv_task_request(int socket_fd, TaskRequest** out_task)
     return 0;
 }
 
+int tcp_recv_cluster_assignment(int socket_fd, ClusterAssignment** out_ca)
+{
+    if (!out_ca)
+        return -1;
+
+    MessageHeader header;
+    void* payload = NULL;
+
+    if (tcp_recv_message(socket_fd, &header, &payload) < 0)
+    {
+        return -1;
+    }
+
+    if (header.message_type != MSG_CLUSTER_ASSIGNMENT)
+    {
+        fprintf(stderr, "Expected MSG_CLUSTER_ASSIGNMENT, got %u\n", header.message_type);
+        free(payload);
+        return -1;
+    }
+
+    // Payload structure: uint32_t count + (count * 2 * int16_t positions)
+    if (header.payload_size < sizeof(uint32_t))
+    {
+        fprintf(stderr, "Invalid cluster assignment payload size: %u\n", header.payload_size);
+        free(payload);
+        return -1;
+    }
+
+    // Allocate ClusterAssignment structure
+    ClusterAssignment* ca = (ClusterAssignment*)malloc(sizeof(ClusterAssignment));
+    if (!ca)
+    {
+        perror("malloc");
+        free(payload);
+        return -1;
+    }
+
+    // Extract cluster count
+    uint32_t* count_ptr = (uint32_t*)payload;
+    ca->count = *count_ptr;
+
+    // Verify payload size matches expected size
+    uint32_t expected_size = sizeof(uint32_t) + (ca->count * sizeof(int16_t) * 2);
+    if (header.payload_size != expected_size)
+    {
+        fprintf(stderr, "Invalid cluster assignment payload size: %u (expected %u for %u clusters)\n",
+                header.payload_size, expected_size, ca->count);
+        free(ca);
+        free(payload);
+        return -1;
+    }
+
+    // Allocate and copy positions array
+    if (ca->count > 0)
+    {
+        uint32_t positions_size = ca->count * sizeof(int16_t) * 2;
+        ca->positions = (int16_t*)malloc(positions_size);
+        if (!ca->positions)
+        {
+            perror("malloc");
+            free(ca);
+            free(payload);
+            return -1;
+        }
+        memcpy(ca->positions, (int16_t*)(payload + sizeof(uint32_t)), positions_size);
+    }
+    else
+    {
+        ca->positions = NULL;
+    }
+
+    free(payload);
+    *out_ca = ca;
+    return 0;
+}
+
 int tcp_send_task_response(int socket_fd, const TaskResponse* response)
 {
     if (!response)
@@ -543,4 +619,17 @@ void tcp_taskrequest_free(TaskRequest** task)
         return;
     free(*task);
     *task = NULL;
+}
+
+void tcp_clusterassignment_free(ClusterAssignment** ca)
+{
+    if (!ca || !*ca)
+        return;
+    if ((*ca)->positions)
+    {
+        free((*ca)->positions);
+        (*ca)->positions = NULL;
+    }
+    free(*ca);
+    *ca = NULL;
 }

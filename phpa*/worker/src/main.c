@@ -45,11 +45,28 @@ int main(int argc, char const* argv[])
 
     printf("Worker process connected to master at %s:%u\n", master_host, master_port);
 
+
     // Worker main loop - receive tasks and send responses
     while (running && tcp_client_is_connected(client))
     {
+        ClusterAssignment* ca = NULL;
         TaskRequest* task = NULL;
         int socket_fd = tcp_client_get_socket_fd(client);
+
+        // Wait for task from master
+        if (tcp_recv_cluster_assignment(socket_fd, &ca) < 0)
+        {
+            fprintf(stderr, "Waiting to receive cluster assignment\n");
+            if (running)
+            {
+                sleep(1);
+                continue;
+            }
+            else
+            {
+                break;
+            }
+        }
 
         // Wait for task from master
         if (tcp_recv_task_request(socket_fd, &task) < 0)
