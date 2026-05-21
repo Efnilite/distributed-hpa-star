@@ -5,6 +5,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "preprocess.h"
 #include "../../../common/parser.h"
 #include "../../../common/stb_ds.h"
 #include "../../common/cluster_a.h"
@@ -152,18 +153,16 @@ static void populate_edges(const Map* map, Cluster* clusters, Graph* graph)
     }
 }
 
-void preprocess(Graph* graph, Cluster* clusters, const Vec2 start, const Vec2 goal)
+void preprocess(const Map* map, Graph* graph, Cluster* clusters, const Vec2 start, const Vec2 goal)
 {
-    const Map map = parse_map("../data/sparse/scene_mp_2p_01");
-
     const clock_t begin = clock();
 
     // 1. preprocess
     // create graph
     graph = graph_create();
 
-    const size_t cluster_w = (size_t)ceil(map.w / (float)CLUSTER_SIZE);
-    const size_t cluster_h = (size_t)ceil(map.h / (float)CLUSTER_SIZE);
+    const size_t cluster_w = (size_t)ceil(map->w / (float)CLUSTER_SIZE);
+    const size_t cluster_h = (size_t)ceil(map->h / (float)CLUSTER_SIZE);
     const size_t cluster_size = cluster_w * cluster_h;
 
     clusters = malloc(sizeof(Cluster) * cluster_size);
@@ -177,7 +176,7 @@ void preprocess(Graph* graph, Cluster* clusters, const Vec2 start, const Vec2 go
         }
     }
 
-    populate_edges(&map, clusters, graph);
+    populate_edges(map, clusters, graph);
     printf("Populated edges - %fs\n", (double)(clock() - begin) / CLOCKS_PER_SEC);
     printf("Graph nodes after populate_edges: %zu\n", graph->node_count);
 
@@ -190,7 +189,7 @@ void preprocess(Graph* graph, Cluster* clusters, const Vec2 start, const Vec2 go
         {
             for (size_t b_idx = a_idx + 1; b_idx < cluster->inter_edges_count; ++b_idx)
             {
-                Vec2* path = cluster_a(&map, cluster, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx]);
+                Vec2* path = cluster_a(map, cluster, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx]);
                 if (path == NULL)
                 {
                     continue;
@@ -214,7 +213,7 @@ void preprocess(Graph* graph, Cluster* clusters, const Vec2 start, const Vec2 go
     const Cluster* start_cluster = &clusters[VEC_TO_CLUSTER(start)];
     for (size_t i = 0; i < start_cluster->inter_edges_count; ++i)
     {
-        Vec2* path = cluster_a(&map, start_cluster, start, start_cluster->inter_edges[i]);
+        Vec2* path = cluster_a(map, start_cluster, start, start_cluster->inter_edges[i]);
         if (path == NULL)
         {
             continue;
@@ -227,7 +226,7 @@ void preprocess(Graph* graph, Cluster* clusters, const Vec2 start, const Vec2 go
     const Cluster* goal_cluster = &clusters[VEC_TO_CLUSTER(goal)];
     for (size_t i = 0; i < goal_cluster->inter_edges_count; ++i)
     {
-        Vec2* path = cluster_a(&map, goal_cluster, goal, goal_cluster->inter_edges[i]);
+        Vec2* path = cluster_a(map, goal_cluster, goal, goal_cluster->inter_edges[i]);
         if (path == NULL)
         {
             continue;
@@ -241,15 +240,4 @@ void preprocess(Graph* graph, Cluster* clusters, const Vec2 start, const Vec2 go
     printf("Graph nodes after connecting start/goal: %zu\n", graph->node_count);
     printf("Start: (%d, %d) in cluster (%d, %d)\n", start.x, start.y, start_cluster->pos.x, start_cluster->pos.y);
     printf("Goal: (%d, %d) in cluster (%d, %d)\n", goal.x, goal.y, goal_cluster->pos.x, goal_cluster->pos.y);
-
-    // if start and goal cluster are the same, just run A*
-    if (start_cluster == goal_cluster)
-    {
-        Vec2* final_path = cluster_a(&map, start_cluster, start, goal);
-        printf("Found overall path due to start and goal cluster being the same\n");
-        return (Result){NULL, final_path, final_path != NULL && arrlen(final_path) > 0,
-                        (double)(clock() - calc_begin) / CLOCKS_PER_SEC, graph};
-    }
-
-    map_free(&map);
 }

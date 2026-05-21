@@ -12,13 +12,11 @@
 #include "../../../common/vec2.h"
 #include "../../common/hpa.h"
 #include "../../common/graph_a.h"
+#include "preprocess.h"
 
 #define STB_DS_IMPLEMENTATION
 // ReSharper disable once CppUnusedIncludeDirective
 #include "../../../common/stb_ds.h"
-
-// Forward declaration
-void preprocess(Graph* graph, Cluster* clusters, const Vec2 start, const Vec2 goal);
 
 static volatile bool running = true;
 
@@ -28,12 +26,10 @@ void signal_handler(int sig)
     printf("\nShutdown signal received\n");
 }
 
-void divide_clusters(int* clusters_per_worker, int connections_count)
+void divide_clusters(const Map* map, int* clusters_per_worker, int connections_count)
 {
-    const Map map = parse_map("../data/sparse/scene_mp_2p_01");
-
-    const size_t cluster_w = (size_t)ceil(map.w / (float)CLUSTER_SIZE);
-    const size_t cluster_h = (size_t)ceil(map.h / (float)CLUSTER_SIZE);
+    const size_t cluster_w = (size_t)ceil(map->w / (float)CLUSTER_SIZE);
+    const size_t cluster_h = (size_t)ceil(map->h / (float)CLUSTER_SIZE);
     const size_t cluster_size = cluster_w * cluster_h;
     const size_t clusters_per_worker_base = (size_t)ceil(cluster_size / (float)connections_count);
 
@@ -58,11 +54,10 @@ void divide_clusters(int* clusters_per_worker, int connections_count)
     }
 }
 
-void send_cluster_assignments(int* worker_fds, int workers_count, int* clusters_per_worker)
+void send_cluster_assignments(const Map* map, int* worker_fds, int workers_count, int* clusters_per_worker)
 {
-    const Map map = parse_map("../data/sparse/scene_mp_2p_01");
-    const size_t cluster_w = (size_t)ceil(map.w / (float)CLUSTER_SIZE);
-    const size_t cluster_h = (size_t)ceil(map.h / (float)CLUSTER_SIZE);
+    const size_t cluster_w = (size_t)ceil(map->w / (float)CLUSTER_SIZE);
+    const size_t cluster_h = (size_t)ceil(map->h / (float)CLUSTER_SIZE);
     const size_t cluster_size = cluster_w * cluster_h;
 
     // Track which cluster index we're at for each worker
@@ -243,6 +238,7 @@ int main(int argc, char const* argv[])
 
     // Store worker connections
     int* worker_fds = NULL;
+    const Map map = parse_map("../data/sparse/scene_mp_2p_01");
 
     // Accept worker connections until we reach WORKERS_SIZE
     while (running && arrlen(worker_fds) < WORKERS_SIZE)
@@ -267,10 +263,10 @@ int main(int argc, char const* argv[])
 
             // Calculate cluster distribution
             int clusters_per_worker[WORKERS_SIZE];
-            divide_clusters(clusters_per_worker, WORKERS_SIZE);
+            divide_clusters(&map, clusters_per_worker, WORKERS_SIZE);
 
             // Send cluster assignments to all workers
-            send_cluster_assignments(worker_fds, WORKERS_SIZE, clusters_per_worker);
+            send_cluster_assignments(&map, worker_fds, WORKERS_SIZE, clusters_per_worker);
             break;
         }
     }
@@ -283,7 +279,7 @@ int main(int argc, char const* argv[])
     Vec2 start = (Vec2){260, 180};
     Vec2 goal = (Vec2){1565, 1745};
     
-    preprocess(graph, clusters, start, goal);
+    preprocess(&map, graph, clusters, start, goal);
 
     // Close server from accepting more connections
     tcp_server_destroy(&server);
@@ -298,10 +294,7 @@ int main(int argc, char const* argv[])
         printf("Computing graph-level path from (%d, %d) to (%d, %d)\n", 
                start.x, start.y, goal.x, goal.y);
 
-        // Load map for graph_a
-        const Map map = parse_map("../data/sparse/scene_mp_2p_01");
-
-        // Call graph_a to find cluster-level path
+        // Call graph_a to find graph path
         Vec2* graph_path = graph_a(&map, graph, start, goal);
         
         if (graph_path != NULL)

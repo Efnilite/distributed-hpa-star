@@ -38,8 +38,10 @@ static void heap_free_elements(void* key, void* value) { free(key); }
 Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 goal)
 {
     heap frontier;
+    printf("0\n");
     heap_create(&frontier, graph->node_count / 2, frontier_compare);
 
+    printf("1\n");
     const GraphNode* start_node = graph_find_node(graph, start);
     const GraphNode* goal_node = graph_find_node(graph, goal);
     if (start_node == NULL || goal_node == NULL)
@@ -49,6 +51,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
         return NULL;
     }
 
+    printf("2\n");
     FrontierNode* startn = malloc(sizeof(FrontierNode));
     *startn = (FrontierNode){
         .pos = start,
@@ -80,6 +83,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
 
     while (heap_size(&frontier) > 0)
     {
+    printf("3\n");
         FrontierNode* n = NULL;
         uint16_t* _n_score = NULL;
 
