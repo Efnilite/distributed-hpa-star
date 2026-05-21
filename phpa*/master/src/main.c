@@ -11,10 +11,14 @@
 #include "../../../common/tcp.h"
 #include "../../../common/vec2.h"
 #include "../../common/hpa.h"
+#include "../../common/graph_a.h"
 
 #define STB_DS_IMPLEMENTATION
 // ReSharper disable once CppUnusedIncludeDirective
 #include "../../../common/stb_ds.h"
+
+// Forward declaration
+void preprocess(Graph* graph, Cluster* clusters, const Vec2 start, const Vec2 goal);
 
 static volatile bool running = true;
 
@@ -49,7 +53,7 @@ void divide_clusters(int* clusters_per_worker, int connections_count)
 
             remaining_clusters--;
         }
-        printf("Worker %d is getting %d clusters: %d-%d\n", worker, clusters_per_worker[worker], remaining_clusters,
+        printf("Worker %ld is getting %d clusters: %d-%d\n", worker, clusters_per_worker[worker], remaining_clusters,
                old);
     }
 }
@@ -117,6 +121,111 @@ void send_cluster_assignments(int* worker_fds, int workers_count, int* clusters_
     }
 }
 
+/**
+ * Extract unique clusters from a graph_a path
+ * @param path The Vec2* path returned by graph_a
+ * @param path_length The number of waypoints in the path
+ * @return Vec2* array of unique cluster positions (x, y coordinates), caller must free with arrfree
+ */
+Vec2* extract_clusters_from_path(const Vec2* path, size_t path_length)
+{
+    Vec2* clusters = NULL;
+    
+    if (!path || path_length == 0)
+    {
+        return NULL;
+    }
+
+    for (size_t i = 0; i < path_length; i++)
+    {
+        int16_t cluster_x = (int16_t)(path[i].x / CLUSTER_SIZE);
+        int16_t cluster_y = (int16_t)(path[i].y / CLUSTER_SIZE);
+        Vec2 cluster_pos = (Vec2){cluster_x, cluster_y};
+
+        // Check if this cluster is already in our list
+        int found = 0;
+        for (size_t j = 0; j < arrlen(clusters); j++)
+        {
+            if (vec2_equal(clusters[j], cluster_pos))
+            {
+                found = 1;
+                break;
+            }
+        }
+
+        // Add if not found
+        if (!found)
+        {
+            arrput(clusters, cluster_pos);
+        }
+    }
+
+    return clusters;
+}
+
+/**
+ * Send pathfinding packets for clusters found in a graph_a path to all workers
+ * @param worker_fds Array of worker file descriptors
+ * @param workers_count Number of workers
+ * @param graph_path The path returned by graph_a
+ * @param path_length Number of waypoints in the path
+ * @param start Starting position for pathfinding
+ * @param goal Goal position for pathfinding
+ */
+void send_cluster_pathfinding_packets(int* worker_fds, int workers_count, const Vec2* graph_path, 
+                                      size_t path_length, Vec2 start, Vec2 goal)
+{
+    if (!graph_path || path_length == 0)
+    {
+        printf("No path found, skipping cluster pathfinding packets\n");
+        return;
+    }
+
+    // Extract unique clusters from the path
+    Vec2* clusters = extract_clusters_from_path(graph_path, path_length);
+    
+    if (!clusters || arrlen(clusters) == 0)
+    {
+        printf("No clusters extracted from path\n");
+        if (clusters)
+            arrfree(clusters);
+        return;
+    }
+
+    printf("Extracted %ld clusters from graph_a path\n", arrlen(clusters));
+    printf("Sending cluster pathfinding packets to %d workers...\n", workers_count);
+
+    // Send a task request to each worker for each cluster
+    uint32_t task_id = 1;
+    for (int worker = 0; worker < workers_count && worker < arrlen(worker_fds); worker++)
+    {
+        for (size_t i = 0; i < arrlen(clusters); i++)
+        {
+            TaskRequest task = {
+                .task_id = task_id++,
+                .start_x = (float)start.x,
+                .start_y = (float)start.y,
+                .goal_x = (float)goal.x,
+                .goal_y = (float)goal.y,
+                .max_iterations = 10000
+            };
+
+            if (tcp_send_task_request(worker_fds[worker], &task) < 0)
+            {
+                fprintf(stderr, "Failed to send pathfinding packet to worker %d for cluster (%d, %d)\n", 
+                       worker, clusters[i].x, clusters[i].y);
+                continue;
+            }
+
+            printf("  Sent task %u to worker %d for cluster (%d, %d)\n", 
+                   task.task_id, worker, clusters[i].x, clusters[i].y);
+        }
+    }
+
+    printf("Sent %u total pathfinding packets\n", task_id - 1);
+    arrfree(clusters);
+}
+
 int main(int argc, char const* argv[])
 {
     signal(SIGINT, signal_handler);
@@ -167,9 +276,14 @@ int main(int argc, char const* argv[])
     }
 
 
-    Graph* graph;
-    Cluster* clusters;
-    preprocess(graph, clusters);
+    Graph* graph = NULL;
+    Cluster* clusters = NULL;
+    
+    // start/end goal
+    Vec2 start = (Vec2){260, 180};
+    Vec2 goal = (Vec2){1565, 1745};
+    
+    preprocess(graph, clusters, start, goal);
 
     // Close server from accepting more connections
     tcp_server_destroy(&server);
@@ -179,60 +293,71 @@ int main(int argc, char const* argv[])
 
     while (running && arrlen(worker_fds) > 0)
     {
-        printf("Sending example tasks to workers...\n");
+        printf("\nStarting pathfinding with graph_a...\n");
 
-        // Example: Send tasks to all connected workers
-        for (int i = 0; i < arrlen(worker_fds); i++)
+        printf("Computing graph-level path from (%d, %d) to (%d, %d)\n", 
+               start.x, start.y, goal.x, goal.y);
+
+        // Load map for graph_a
+        const Map map = parse_map("../data/sparse/scene_mp_2p_01");
+
+        // Call graph_a to find cluster-level path
+        Vec2* graph_path = graph_a(&map, graph, start, goal);
+        
+        if (graph_path != NULL)
         {
-            TaskRequest task = {.task_id = i + 1,
-                                .start_x = (float)(i * 5),
-                                .start_y = 0.0f,
-                                .goal_x = (float)(i * 5 + 10),
-                                .goal_y = 10.0f,
-                                .max_iterations = 10000};
-
-            if (tcp_send_task_request(worker_fds[i], &task) < 0)
+            printf("Graph_a found path with %ld waypoints\n", arrlen(graph_path));
+            for (size_t i = 0; i < arrlen(graph_path) && i < 5; i++)
             {
-                fprintf(stderr, "Failed to send task request to worker %d\n", i);
-                close(worker_fds[i]);
-                arrdel(worker_fds, i);
-                i--;
-                continue;
+                printf("  Waypoint %ld: (%d, %d)\n", i, graph_path[i].x, graph_path[i].y);
             }
+            if (arrlen(graph_path) > 5)
+                printf("  ... and %ld more waypoints\n", arrlen(graph_path) - 5);
 
-            printf("Sent task request to worker %d (id=%u)\n", i, task.task_id);
+            // Send pathfinding packets for all clusters found by graph_a to all workers
+            send_cluster_pathfinding_packets(worker_fds, WORKERS_SIZE, graph_path, arrlen(graph_path), start, goal);
 
-            // Receive response from worker
-            TaskResponse* response = NULL;
-            if (tcp_recv_task_response(worker_fds[i], &response) < 0)
+            // Receive responses from workers
+            printf("\nWaiting for responses from workers...\n");
+            for (int i = 0; i < arrlen(worker_fds); i++)
             {
-                fprintf(stderr, "Failed to receive task response from worker %d\n", i);
-                close(worker_fds[i]);
-                arrdel(worker_fds, i);
-                i--;
-                continue;
-            }
-
-            printf("Received task response from worker %d (id=%u, path_length=%u, status=%d)\n", i, response->task_id,
-                   response->path_length, response->status_code);
-
-            if (response->path_length > 0 && response->path)
-            {
-                printf("  Path waypoints: ");
-                for (uint32_t j = 0; j < response->path_length && j < 5; j++)
+                TaskResponse* response = NULL;
+                if (tcp_recv_task_response(worker_fds[i], &response) < 0)
                 {
-                    printf("(%.2f, %.2f) ", response->path[j * 2], response->path[j * 2 + 1]);
+                    fprintf(stderr, "Failed to receive task response from worker %d\n", i);
+                    close(worker_fds[i]);
+                    arrdel(worker_fds, i);
+                    i--;
+                    continue;
                 }
-                if (response->path_length > 5)
-                    printf("...");
-                printf("\n");
+
+                printf("Received task response from worker %d (id=%u, path_length=%u, status=%d)\n", i, response->task_id,
+                       response->path_length, response->status_code);
+
+                if (response->path_length > 0 && response->path)
+                {
+                    printf("  Path waypoints: ");
+                    for (uint32_t j = 0; j < response->path_length && j < 5; j++)
+                    {
+                        printf("(%.2f, %.2f) ", response->path[j * 2], response->path[j * 2 + 1]);
+                    }
+                    if (response->path_length > 5)
+                        printf("...");
+                    printf("\n");
+                }
+
+                // Cleanup
+                tcp_taskresponse_free(&response);
             }
 
-            // Cleanup
-            tcp_taskresponse_free(&response);
+            arrfree(graph_path);
+        }
+        else
+        {
+            printf("graph_a returned no path\n");
         }
 
-        // Exit after one round of tasks for demo purposes
+        // Exit after one round for demo purposes
         break;
     }
 

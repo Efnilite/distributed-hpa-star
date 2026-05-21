@@ -122,7 +122,7 @@ int main(int argc, char const* argv[])
     signal(SIGINT, signal_handler);
 
     // Load map once at startup
-    const Map map = parse_map("../data/sparse/scene_mp_2p_01");
+    Map map = parse_map("../data/sparse/scene_mp_2p_01");
     printf("Loaded map: %u x %u\n", map.w, map.h);
 
     // Worker clusters storage
@@ -202,6 +202,7 @@ int main(int argc, char const* argv[])
 
             tcp_clusterassignment_free(&ca);
             clusters_initialized = 1;
+            map_free(&map);
         }
 
         // Wait for task from master
