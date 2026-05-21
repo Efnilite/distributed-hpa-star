@@ -6,6 +6,6 @@
 #include "../../../common/graph.h"
 #include "../../common/hpa.h"
 
-void preprocess(const Map* map, Graph* graph, Cluster* clusters, const Vec2 start, const Vec2 goal);
+void preprocess(const Map* map, Graph** graph, Cluster* clusters, const Vec2 start, const Vec2 goal);
 
 #endif 

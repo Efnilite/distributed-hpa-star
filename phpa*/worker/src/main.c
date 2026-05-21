@@ -233,7 +233,7 @@ int main(int argc, char const* argv[])
         {
             fprintf(stderr, "ERROR: Cluster (%d, %d) not assigned to this worker\n", (int16_t)cluster_pos.x, (int16_t)cluster_pos.y);
             TaskResponse response = {
-                .task_id = task->task_id, .path_length = 0, .path = NULL, .iterations_used = 0, .status_code = 2}; // status_code=2 for cluster not found
+                .task_id = task->task_id, .path_length = 0, .path = NULL, .status_code = 2}; // status_code=2 for cluster not found
             if (tcp_send_task_response(socket_fd, &response) < 0)
             {
                 fprintf(stderr, "Failed to send error response\n");
@@ -246,7 +246,7 @@ int main(int argc, char const* argv[])
         if (result == NULL)
         {
             TaskResponse response = {
-                .task_id = task->task_id, .path_length = 0, .path = NULL, .iterations_used = 0, .status_code = 1};
+                .task_id = task->task_id, .path_length = 0, .path = NULL, .status_code = 1};
             if (tcp_send_task_response(socket_fd, &response) < 0)
             {
                 fprintf(stderr, "Failed to send failed task response\n");
@@ -262,7 +262,6 @@ int main(int argc, char const* argv[])
         TaskResponse response = {.task_id = task->task_id,
                                  .path_length = arrlen(result),
                                  .path = (float*)result,
-                                 .iterations_used = 0,
                                  .status_code = 0};
 
         // Send response back to master

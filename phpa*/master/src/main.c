@@ -117,20 +117,32 @@ void send_cluster_assignments(const Map* map, int* worker_fds, int workers_count
 }
 
 /**
- * Extract unique clusters from a graph_a path
+ * Cluster path segment with start and goal within cluster
+ */
+typedef struct {
+    Vec2 cluster_pos;      // cluster grid position
+    Vec2 start_in_cluster; // start coordinates within this cluster
+    Vec2 goal_in_cluster;  // goal coordinates within this cluster
+} ClusterPathSegment;
+
+/**
+ * Extract clusters from a graph_a path with per-cluster start/goal coordinates
  * @param path The Vec2* path returned by graph_a
  * @param path_length The number of waypoints in the path
- * @return Vec2* array of unique cluster positions (x, y coordinates), caller must free with arrfree
+ * @param global_start The global start position
+ * @param global_goal The global goal position
+ * @return ClusterPathSegment* array with cluster info and per-cluster start/goal, caller must free with arrfree
  */
-Vec2* extract_clusters_from_path(const Vec2* path, size_t path_length)
+ClusterPathSegment* extract_clusters_from_path(const Vec2* path, size_t path_length, Vec2 global_start, Vec2 global_goal)
 {
-    Vec2* clusters = NULL;
+    ClusterPathSegment* segments = NULL;
     
     if (!path || path_length == 0)
     {
         return NULL;
     }
 
+    // Group waypoints by cluster
     for (size_t i = 0; i < path_length; i++)
     {
         int16_t cluster_x = (int16_t)(path[i].x / CLUSTER_SIZE);
@@ -138,24 +150,53 @@ Vec2* extract_clusters_from_path(const Vec2* path, size_t path_length)
         Vec2 cluster_pos = (Vec2){cluster_x, cluster_y};
 
         // Check if this cluster is already in our list
-        int found = 0;
-        for (size_t j = 0; j < arrlen(clusters); j++)
+        int found = -1;
+        for (size_t j = 0; j < arrlen(segments); j++)
         {
-            if (vec2_equal(clusters[j], cluster_pos))
+            if (vec2_equal(segments[j].cluster_pos, cluster_pos))
             {
-                found = 1;
+                found = (int)j;
                 break;
             }
         }
 
-        // Add if not found
-        if (!found)
+        if (found == -1)
         {
-            arrput(clusters, cluster_pos);
+            // New cluster - initialize segment
+            ClusterPathSegment seg = {
+                .cluster_pos = cluster_pos,
+                .start_in_cluster = path[i],
+                .goal_in_cluster = path[i]
+            };
+            arrput(segments, seg);
+        }
+        else
+        {
+            // Update goal for existing cluster
+            segments[found].goal_in_cluster = path[i];
         }
     }
 
-    return clusters;
+    // Adjust start/goal to use global start/goal where appropriate
+    if (arrlen(segments) > 0)
+    {
+        // First cluster uses global start if it's in that cluster
+        if ((int16_t)(global_start.x / CLUSTER_SIZE) == segments[0].cluster_pos.x &&
+            (int16_t)(global_start.y / CLUSTER_SIZE) == segments[0].cluster_pos.y)
+        {
+            segments[0].start_in_cluster = global_start;
+        }
+
+        // Last cluster uses global goal if it's in that cluster
+        size_t last = arrlen(segments) - 1;
+        if ((int16_t)(global_goal.x / CLUSTER_SIZE) == segments[last].cluster_pos.x &&
+            (int16_t)(global_goal.y / CLUSTER_SIZE) == segments[last].cluster_pos.y)
+        {
+            segments[last].goal_in_cluster = global_goal;
+        }
+    }
+
+    return segments;
 }
 
 /**
@@ -164,11 +205,11 @@ Vec2* extract_clusters_from_path(const Vec2* path, size_t path_length)
  * @param workers_count Number of workers
  * @param graph_path The path returned by graph_a
  * @param path_length Number of waypoints in the path
- * @param start Starting position for pathfinding
- * @param goal Goal position for pathfinding
+ * @param global_start The global start position
+ * @param global_goal The global goal position
  */
 void send_cluster_pathfinding_packets(int* worker_fds, int workers_count, const Vec2* graph_path, 
-                                      size_t path_length, Vec2 start, Vec2 goal)
+                                      size_t path_length, Vec2 global_start, Vec2 global_goal)
 {
     if (!graph_path || path_length == 0)
     {
@@ -176,49 +217,49 @@ void send_cluster_pathfinding_packets(int* worker_fds, int workers_count, const 
         return;
     }
 
-    // Extract unique clusters from the path
-    Vec2* clusters = extract_clusters_from_path(graph_path, path_length);
+    // Extract unique clusters from the path with per-cluster start/goal
+    ClusterPathSegment* segments = extract_clusters_from_path(graph_path, path_length, global_start, global_goal);
     
-    if (!clusters || arrlen(clusters) == 0)
+    if (!segments || arrlen(segments) == 0)
     {
         printf("No clusters extracted from path\n");
-        if (clusters)
-            arrfree(clusters);
+        if (segments)
+            arrfree(segments);
         return;
     }
 
-    printf("Extracted %ld clusters from graph_a path\n", arrlen(clusters));
+    printf("Extracted %ld clusters from graph_a path\n", arrlen(segments));
     printf("Sending cluster pathfinding packets to %d workers...\n", workers_count);
 
     // Send a task request to each worker for each cluster
     uint32_t task_id = 1;
     for (int worker = 0; worker < workers_count && worker < arrlen(worker_fds); worker++)
     {
-        for (size_t i = 0; i < arrlen(clusters); i++)
+        for (size_t i = 0; i < arrlen(segments); i++)
         {
             TaskRequest task = {
                 .task_id = task_id++,
-                .start_x = (float)start.x,
-                .start_y = (float)start.y,
-                .goal_x = (float)goal.x,
-                .goal_y = (float)goal.y,
-                .max_iterations = 10000
+                .start_x = (float)segments[i].start_in_cluster.x,
+                .start_y = (float)segments[i].start_in_cluster.y,
+                .goal_x = (float)segments[i].goal_in_cluster.x,
+                .goal_y = (float)segments[i].goal_in_cluster.y,
             };
 
             if (tcp_send_task_request(worker_fds[worker], &task) < 0)
             {
                 fprintf(stderr, "Failed to send pathfinding packet to worker %d for cluster (%d, %d)\n", 
-                       worker, clusters[i].x, clusters[i].y);
+                       worker, segments[i].cluster_pos.x, segments[i].cluster_pos.y);
                 continue;
             }
 
-            printf("  Sent task %u to worker %d for cluster (%d, %d)\n", 
-                   task.task_id, worker, clusters[i].x, clusters[i].y);
+            printf("  Sent task %u to worker %d for cluster (%d, %d) start=(%.0f,%.0f) goal=(%.0f,%.0f)\n", 
+                   task.task_id, worker, segments[i].cluster_pos.x, segments[i].cluster_pos.y,
+                   task.start_x, task.start_y, task.goal_x, task.goal_y);
         }
     }
 
     printf("Sent %u total pathfinding packets\n", task_id - 1);
-    arrfree(clusters);
+    arrfree(segments);
 }
 
 int main(int argc, char const* argv[])
@@ -279,7 +320,7 @@ int main(int argc, char const* argv[])
     Vec2 start = (Vec2){260, 180};
     Vec2 goal = (Vec2){1565, 1745};
     
-    preprocess(&map, graph, clusters, start, goal);
+    preprocess(&map, &graph, clusters, start, goal);
 
     // Close server from accepting more connections
     tcp_server_destroy(&server);

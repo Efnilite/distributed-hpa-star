@@ -15,7 +15,7 @@
 
 // returns the inter edges from one side of a cluster
 static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cluster_b, const Vec2 local_start,
-                                 const Vec2 direction, const Vec2 to_other_cluster, Graph* graph)
+                                 const Vec2 direction, const Vec2 to_other_cluster, Graph** graph)
 {
     assert(direction.x == 1 || direction.y == 1);
     assert(direction.x + direction.y == 1);
@@ -108,9 +108,9 @@ static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cl
 
     for (size_t i = 0; i < res_size; ++i)
     {
-        graph_add_node(graph, res_a[i]);
-        graph_add_node(graph, res_b[i]);
-        graph_add_edge(graph, res_a[i], res_b[i], 1.f);
+        graph_add_node(*graph, res_a[i]);
+        graph_add_node(*graph, res_b[i]);
+        graph_add_edge(*graph, res_a[i], res_b[i], 1.f);
 
         if (cluster_a->inter_edges_count < 4 * INTER_EDGES_PER_CLUSTER)
         {
@@ -123,7 +123,7 @@ static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cl
     }
 }
 
-static void populate_edges(const Map* map, Cluster* clusters, Graph* graph)
+static void populate_edges(const Map* map, Cluster* clusters, Graph** graph)
 {
     const size_t cluster_w = (size_t)ceil(map->w / (float)CLUSTER_SIZE);
     const size_t cluster_h = (size_t)ceil(map->h / (float)CLUSTER_SIZE);
@@ -153,13 +153,13 @@ static void populate_edges(const Map* map, Cluster* clusters, Graph* graph)
     }
 }
 
-void preprocess(const Map* map, Graph* graph, Cluster* clusters, const Vec2 start, const Vec2 goal)
+void preprocess(const Map* map, Graph** graph, Cluster* clusters, const Vec2 start, const Vec2 goal)
 {
     const clock_t begin = clock();
 
     // 1. preprocess
     // create graph
-    graph = graph_create();
+    *graph = graph_create();
 
     const size_t cluster_w = (size_t)ceil(map->w / (float)CLUSTER_SIZE);
     const size_t cluster_h = (size_t)ceil(map->h / (float)CLUSTER_SIZE);
@@ -178,7 +178,7 @@ void preprocess(const Map* map, Graph* graph, Cluster* clusters, const Vec2 star
 
     populate_edges(map, clusters, graph);
     printf("Populated edges - %fs\n", (double)(clock() - begin) / CLOCKS_PER_SEC);
-    printf("Graph nodes after populate_edges: %zu\n", graph->node_count);
+    printf("Graph nodes after populate_edges: %zu\n", (*graph)->node_count);
 
     // find paths in cluster
     for (size_t i = 0; i < cluster_size; i++)
@@ -195,7 +195,7 @@ void preprocess(const Map* map, Graph* graph, Cluster* clusters, const Vec2 star
                     continue;
                 }
 
-                graph_add_edge(graph, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx], arrlen(path) - 1);
+                graph_add_edge(*graph, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx], arrlen(path) - 1);
 
                 arrfree(path);
             }
@@ -207,8 +207,8 @@ void preprocess(const Map* map, Graph* graph, Cluster* clusters, const Vec2 star
     const clock_t calc_begin = clock();
     // 2. calculate
     // find paths from start and goal to their cluster's inter edges
-    graph_add_node(graph, start);
-    graph_add_node(graph, goal);
+    graph_add_node(*graph, start);
+    graph_add_node(*graph, goal);
 
     const Cluster* start_cluster = &clusters[VEC_TO_CLUSTER(start)];
     for (size_t i = 0; i < start_cluster->inter_edges_count; ++i)
@@ -219,7 +219,7 @@ void preprocess(const Map* map, Graph* graph, Cluster* clusters, const Vec2 star
             continue;
         }
 
-        graph_add_edge(graph, start, start_cluster->inter_edges[i], arrlen(path) - 1);
+        graph_add_edge(*graph, start, start_cluster->inter_edges[i], arrlen(path) - 1);
         arrfree(path);
     }
 
@@ -232,12 +232,12 @@ void preprocess(const Map* map, Graph* graph, Cluster* clusters, const Vec2 star
             continue;
         }
 
-        graph_add_edge(graph, goal_cluster->inter_edges[i], goal, arrlen(path) - 1);
+        graph_add_edge(*graph, goal_cluster->inter_edges[i], goal, arrlen(path) - 1);
         arrfree(path);
     }
 
     printf("Finalized extremity cluster finding - %fs\n", (double)(clock() - calc_begin) / CLOCKS_PER_SEC);
-    printf("Graph nodes after connecting start/goal: %zu\n", graph->node_count);
+    printf("Graph nodes after connecting start/goal: %zu\n", (*graph)->node_count);
     printf("Start: (%d, %d) in cluster (%d, %d)\n", start.x, start.y, start_cluster->pos.x, start_cluster->pos.y);
     printf("Goal: (%d, %d) in cluster (%d, %d)\n", goal.x, goal.y, goal_cluster->pos.x, goal_cluster->pos.y);
 }
