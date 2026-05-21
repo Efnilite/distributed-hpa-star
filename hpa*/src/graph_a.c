@@ -35,7 +35,7 @@ static int frontier_compare(void* a, void* b)
 
 static void heap_free_elements(void* key, void* value) { free(key); }
 
-Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 goal)
+Vec2* graph_a(const Map* map, Graph* graph, const Vec2 start, const Vec2 goal)
 {
     heap frontier;
     heap_create(&frontier, graph->node_count / 2, frontier_compare);
