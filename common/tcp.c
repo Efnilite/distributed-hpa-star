@@ -498,7 +498,7 @@ int tcp_send_task_response(int socket_fd, const TaskResponse* response)
     // Send header with response metadata
     uint32_t path_bytes = response->path_length * sizeof(float) * 2;
     uint32_t response_header_size =
-        sizeof(uint32_t) * 3 + sizeof(int32_t); // task_id, path_length, iterations_used, status_code
+        sizeof(uint32_t) * 2 + sizeof(int32_t); // task_id, path_length, status_code
     uint32_t total_payload = response_header_size + path_bytes;
 
     // Pack response data
@@ -513,8 +513,6 @@ int tcp_send_task_response(int socket_fd, const TaskResponse* response)
     *(uint32_t*)ptr = response->task_id;
     ptr += sizeof(uint32_t);
     *(uint32_t*)ptr = response->path_length;
-    ptr += sizeof(uint32_t);
-    *(uint32_t*)ptr = response->iterations_used;
     ptr += sizeof(uint32_t);
     *(int32_t*)ptr = response->status_code;
     ptr += sizeof(int32_t);
@@ -563,8 +561,6 @@ int tcp_recv_task_response(int socket_fd, TaskResponse** out_response)
     response->task_id = *(uint32_t*)ptr;
     ptr += sizeof(uint32_t);
     response->path_length = *(uint32_t*)ptr;
-    ptr += sizeof(uint32_t);
-    response->iterations_used = *(uint32_t*)ptr;
     ptr += sizeof(uint32_t);
     response->status_code = *(int32_t*)ptr;
     ptr += sizeof(int32_t);
