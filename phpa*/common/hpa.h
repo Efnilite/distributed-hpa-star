@@ -12,6 +12,4 @@ typedef struct cluster_t
     uint8_t inter_edges_count;
 } Cluster;
 
-Result hpa(const Map* map, Vec2 start, Vec2 goal);
-
 #endif
