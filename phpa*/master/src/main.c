@@ -200,15 +200,47 @@ ClusterPathSegment* extract_clusters_from_path(const Vec2* path, size_t path_len
 }
 
 /**
- * Send pathfinding packets for clusters found in a graph_a path to all workers
+ * Determine which worker owns a given cluster based on cluster grid position
+ * @param cluster_pos The cluster grid position
+ * @param map The map to calculate total clusters
+ * @param clusters_per_worker Array of cluster counts per worker
+ * @param workers_count Number of workers
+ * @return The worker index that owns this cluster, or -1 if not found
+ */
+int get_worker_for_cluster(Vec2 cluster_pos, const Map* map, int* clusters_per_worker, int workers_count)
+{
+    const size_t cluster_w = (size_t)ceil(map->w / (float)CLUSTER_SIZE);
+    
+    // Convert cluster grid position to linear index
+    size_t cluster_idx = (size_t)cluster_pos.y * cluster_w + (size_t)cluster_pos.x;
+    
+    // Find which worker owns this cluster
+    size_t offset = 0;
+    for (int worker = 0; worker < workers_count; worker++)
+    {
+        if (cluster_idx < offset + clusters_per_worker[worker])
+        {
+            return worker;
+        }
+        offset += clusters_per_worker[worker];
+    }
+    
+    return -1; // Cluster not assigned to any worker
+}
+
+/**
+ * Send pathfinding packets for clusters found in a graph_a path to the correct workers
  * @param worker_fds Array of worker file descriptors
  * @param workers_count Number of workers
+ * @param map The map for cluster calculations
+ * @param clusters_per_worker Array of cluster counts per worker
  * @param graph_path The path returned by graph_a
  * @param path_length Number of waypoints in the path
  * @param global_start The global start position
  * @param global_goal The global goal position
  */
-void send_cluster_pathfinding_packets(int* worker_fds, int workers_count, const Vec2* graph_path, 
+void send_cluster_pathfinding_packets(int* worker_fds, int workers_count, const Map* map, 
+                                      int* clusters_per_worker, const Vec2* graph_path, 
                                       size_t path_length, Vec2 global_start, Vec2 global_goal)
 {
     if (!graph_path || path_length == 0)
@@ -229,33 +261,39 @@ void send_cluster_pathfinding_packets(int* worker_fds, int workers_count, const 
     }
 
     printf("Extracted %ld clusters from graph_a path\n", arrlen(segments));
-    printf("Sending cluster pathfinding packets to %d workers...\n", workers_count);
+    printf("Sending cluster pathfinding packets to correct workers...\n");
 
-    // Send a task request to each worker for each cluster
+    // Send a task request to the correct worker for each cluster
     uint32_t task_id = 1;
-    for (int worker = 0; worker < workers_count && worker < arrlen(worker_fds); worker++)
+    for (size_t i = 0; i < arrlen(segments); i++)
     {
-        for (size_t i = 0; i < arrlen(segments); i++)
+        int worker = get_worker_for_cluster(segments[i].cluster_pos, map, clusters_per_worker, workers_count);
+        
+        if (worker < 0 || worker >= workers_count)
         {
-            TaskRequest task = {
-                .task_id = task_id++,
-                .start_x = (float)segments[i].start_in_cluster.x,
-                .start_y = (float)segments[i].start_in_cluster.y,
-                .goal_x = (float)segments[i].goal_in_cluster.x,
-                .goal_y = (float)segments[i].goal_in_cluster.y,
-            };
-
-            if (tcp_send_task_request(worker_fds[worker], &task) < 0)
-            {
-                fprintf(stderr, "Failed to send pathfinding packet to worker %d for cluster (%d, %d)\n", 
-                       worker, segments[i].cluster_pos.x, segments[i].cluster_pos.y);
-                continue;
-            }
-
-            printf("  Sent task %u to worker %d for cluster (%d, %d) start=(%.0f,%.0f) goal=(%.0f,%.0f)\n", 
-                   task.task_id, worker, segments[i].cluster_pos.x, segments[i].cluster_pos.y,
-                   task.start_x, task.start_y, task.goal_x, task.goal_y);
+            fprintf(stderr, "ERROR: No worker assigned to cluster (%d, %d)\n", 
+                   segments[i].cluster_pos.x, segments[i].cluster_pos.y);
+            continue;
         }
+
+        TaskRequest task = {
+            .task_id = task_id++,
+            .start_x = (float)segments[i].start_in_cluster.x,
+            .start_y = (float)segments[i].start_in_cluster.y,
+            .goal_x = (float)segments[i].goal_in_cluster.x,
+            .goal_y = (float)segments[i].goal_in_cluster.y,
+        };
+
+        if (tcp_send_task_request(worker_fds[worker], &task) < 0)
+        {
+            fprintf(stderr, "Failed to send pathfinding packet to worker %d for cluster (%d, %d)\n", 
+                   worker, segments[i].cluster_pos.x, segments[i].cluster_pos.y);
+            continue;
+        }
+
+        printf("  Sent task %u to worker %d for cluster (%d, %d) start=(%.0f,%.0f) goal=(%.0f,%.0f)\n", 
+               task.task_id, worker, segments[i].cluster_pos.x, segments[i].cluster_pos.y,
+               task.start_x, task.start_y, task.goal_x, task.goal_y);
     }
 
     printf("Sent %u total pathfinding packets\n", task_id - 1);
@@ -279,7 +317,8 @@ int main(int argc, char const* argv[])
 
     // Store worker connections
     int* worker_fds = NULL;
-    const Map map = parse_map("../data/sparse/scene_mp_2p_01");
+    Map map = parse_map("../data/sparse/scene_mp_2p_01");
+    int clusters_per_worker[WORKERS_SIZE] = {0};
 
     // Accept worker connections until we reach WORKERS_SIZE
     while (running && arrlen(worker_fds) < WORKERS_SIZE)
@@ -303,7 +342,6 @@ int main(int argc, char const* argv[])
             printf("All %d workers connected. Running divide_clusters...\n", WORKERS_SIZE);
 
             // Calculate cluster distribution
-            int clusters_per_worker[WORKERS_SIZE];
             divide_clusters(&map, clusters_per_worker, WORKERS_SIZE);
 
             // Send cluster assignments to all workers
@@ -348,8 +386,8 @@ int main(int argc, char const* argv[])
             if (arrlen(graph_path) > 5)
                 printf("  ... and %ld more waypoints\n", arrlen(graph_path) - 5);
 
-            // Send pathfinding packets for all clusters found by graph_a to all workers
-            send_cluster_pathfinding_packets(worker_fds, WORKERS_SIZE, graph_path, arrlen(graph_path), start, goal);
+            // Send pathfinding packets for all clusters found by graph_a to the correct workers
+            send_cluster_pathfinding_packets(worker_fds, WORKERS_SIZE, &map, clusters_per_worker, graph_path, arrlen(graph_path), start, goal);
 
             // Receive responses from workers
             printf("\nWaiting for responses from workers...\n");
