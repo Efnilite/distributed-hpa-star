@@ -11,7 +11,7 @@
 typedef struct worker_cluster_t
 {
     Vec2 pos;
-    VBitSet* bits;
+    VBitSet* coordinates;
 } WorkerCluster;
 
 static inline uint32_t xy_to_idx_cluster_a(uint16_t x, uint16_t y)

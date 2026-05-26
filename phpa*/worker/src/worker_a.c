@@ -152,8 +152,7 @@ Vec2* worker_a(const WorkerCluster* cluster, const Vec2 global_start, const Vec2
             const uint32_t successor_idx = xy_to_idx_cluster_a(successor.x, successor.y);
 
             {
-                const Vec2 global_successor = local_vec_to_global_vec(cluster, successor);
-                if (vbitset_get(cluster->bits, xy_to_idx_cluster_a(global_successor.x, global_successor.y)))
+                if (vbitset_get(cluster->coordinates, xy_to_idx_cluster_a(successor.x, successor.y)))
                 {
                     continue;
                 }
