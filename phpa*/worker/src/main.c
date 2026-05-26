@@ -6,6 +6,7 @@
 #include "../../../common/map.h"
 #include "../../../common/parser.h"
 #include "../../../common/tcp.h"
+#include "../../../common/result.h"
 #include "../../common/hpa.h"
 #include "worker_a.h"
 
@@ -23,10 +24,10 @@ void signal_handler(int sig)
 
 void cluster_free(WorkerCluster* cluster)
 {
-    if (cluster && cluster->bits)
+    if (cluster && cluster->coordinates)
     {
-        vbitset_free(cluster->bits);
-        cluster->bits = NULL;
+        vbitset_free(cluster->coordinates);
+        cluster->coordinates = NULL;
     }
 }
 
@@ -47,8 +48,8 @@ WorkerCluster* worker_cluster_create(const Map* map, int16_t cluster_x, int16_t 
 
     // Create a bitset for this cluster's obstacle map
     size_t cluster_area = CLUSTER_SIZE * CLUSTER_SIZE;
-    cluster->bits = vbitset_create(cluster_area, 1); // 1 bit per cell (0=free, 1=wall)
-    if (!cluster->bits)
+    cluster->coordinates = vbitset_create(cluster_area, 1); // 1 bit per cell (0=free, 1=wall)
+    if (!cluster->coordinates)
     {
         fprintf(stderr, "Failed to create bitset for cluster (%d, %d)\n", cluster_x, cluster_y);
         free(cluster);
@@ -73,14 +74,14 @@ WorkerCluster* worker_cluster_create(const Map* map, int16_t cluster_x, int16_t 
                 if (map_is_wall(map, global_x, global_y))
                 {
                     size_t idx = xy_to_idx_cluster_a(local_x, local_y);
-                    vbitset_set(cluster->bits, idx, 1);
+                    vbitset_set(cluster->coordinates, idx, 1);
                 }
             }
             else
             {
                 // Out of bounds cells are treated as walls
                 size_t idx = xy_to_idx_cluster_a(local_x, local_y);
-                vbitset_set(cluster->bits, idx, 1);
+                vbitset_set(cluster->coordinates, idx, 1);
             }
         }
     }
@@ -226,7 +227,7 @@ int main(int argc, char const* argv[])
         Vec2 start = (Vec2){task->start_x, task->start_y};
         Vec2 goal = (Vec2){task->goal_x, task->goal_y};
         Vec2 cluster_pos = global_vec_to_cluster_pos(start);
-        
+
         // Find the correct cluster for this task
         WorkerCluster* cluster = find_cluster_by_position(clusters, cluster_count, (int16_t)cluster_pos.x, (int16_t)cluster_pos.y);
         if (!cluster)
@@ -241,6 +242,8 @@ int main(int argc, char const* argv[])
             tcp_taskrequest_free(&task);
             continue;
         }
+
+        cluster_visualize(cluster->coordinates);
 
         Vec2* result = worker_a(cluster, start, goal);
         if (result == NULL)
