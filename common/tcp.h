@@ -1,6 +1,8 @@
 #ifndef TCP_H
 #define TCP_H
 
+#include "vec2.h"
+
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
@@ -27,8 +29,8 @@ typedef enum
 typedef struct
 {
     uint32_t task_id; // Unique task identifier
-    float start_x, start_y; // Start coordinates
-    float goal_x, goal_y; // Goal coordinates
+    uint16_t start_x, start_y; // Start coordinates
+    uint16_t goal_x, goal_y; // Goal coordinates
 } TaskRequest;
 
 /**
@@ -38,7 +40,7 @@ typedef struct
 {
     uint32_t task_id; // Corresponding task_id
     uint32_t path_length; // Number of waypoints in path
-    float* path; // Dynamically allocated path (pairs of x,y)
+    Vec2* path; // Dynamically allocated path (pairs of x,y)
     int32_t status_code; // 0 = success, negative = error
 } TaskResponse;
 

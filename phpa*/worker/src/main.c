@@ -221,7 +221,7 @@ int main(int argc, char const* argv[])
             }
         }
 
-        printf("Received task (id=%u): start=(%.2f, %.2f) goal=(%.2f, %.2f)\n", task->task_id, task->start_x,
+        printf("Received task (id=%u): start=(%d, %d) goal=(%d, %d)\n", task->task_id, task->start_x,
                task->start_y, task->goal_x, task->goal_y);
 
         Vec2 start = (Vec2){task->start_x, task->start_y};
@@ -243,8 +243,6 @@ int main(int argc, char const* argv[])
             continue;
         }
 
-        cluster_visualize(cluster->coordinates);
-
         Vec2* result = worker_a(cluster, start, goal);
         if (result == NULL)
         {
@@ -262,9 +260,12 @@ int main(int argc, char const* argv[])
             continue;
         }
 
+        // printf("Visualizing result\n");
+        // cluster_visualize(cluster->coordinates, cluster->pos, result);
+
         TaskResponse response = {.task_id = task->task_id,
                                  .path_length = arrlen(result),
-                                 .path = (float*)result,
+                                 .path = result,
                                  .status_code = 0};
 
         // Send response back to master
@@ -278,11 +279,11 @@ int main(int argc, char const* argv[])
         }
 
         // Cleanup
-        if (response.path)
+        if (result)
         {
-            free(response.path);
+            free(result);
         }
-        tcp_taskrequest_free(&task);
+        // tcp_taskrequest_free(task);
     }
 
     // Cleanup

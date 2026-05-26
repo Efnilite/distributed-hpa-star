@@ -568,8 +568,8 @@ int tcp_recv_task_response(int socket_fd, TaskResponse** out_response)
     // Allocate and copy path
     if (response->path_length > 0)
     {
-        uint32_t path_bytes = response->path_length * sizeof(float) * 2;
-        response->path = (float*)malloc(path_bytes);
+        uint32_t path_bytes = response->path_length * sizeof(Vec2);
+        response->path = (Vec2*)malloc(path_bytes);
         if (!response->path)
         {
             perror("malloc");

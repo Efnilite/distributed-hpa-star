@@ -42,6 +42,6 @@ void result_visualize(const Map* map, const Result* result);
  * @param coordinates The cluster data.
  * @param path The path.
  */
-void cluster_visualize(const VBitSet* coordinates, const Vec2* path);
+void cluster_visualize(const VBitSet* coordinates, const Vec2 cluster_pos, const Vec2* path);
 
 #endif

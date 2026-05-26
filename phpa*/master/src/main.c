@@ -291,7 +291,7 @@ void send_cluster_pathfinding_packets(int* worker_fds, int workers_count, const 
             continue;
         }
 
-        printf("  Sent task %u to worker %d for cluster (%d, %d) start=(%.0f,%.0f) goal=(%.0f,%.0f)\n", 
+        printf("  Sent task %u to worker %d for cluster (%d, %d) start=(%d, %d) goal=(%d, %d)\n", 
                task.task_id, worker, segments[i].cluster_pos.x, segments[i].cluster_pos.y,
                task.start_x, task.start_y, task.goal_x, task.goal_y);
     }
@@ -411,7 +411,7 @@ int main(int argc, char const* argv[])
                     printf("  Path waypoints: ");
                     for (uint32_t j = 0; j < response->path_length && j < 5; j++)
                     {
-                        printf("(%.2f, %.2f) ", response->path[j * 2], response->path[j * 2 + 1]);
+                        printf("(%d, %d) ", response->path[j].x, response->path[j].y);
                     }
                     if (response->path_length > 5)
                         printf("...");

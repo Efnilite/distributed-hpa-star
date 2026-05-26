@@ -1,8 +1,8 @@
 #include "result.h"
+#include "constants.h"
 #include "graph.h"
 #include "stb_ds.h"
 #include "util.h"
-#include "constants.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -59,7 +59,7 @@ void result_visualize(const Map* map, const Result* result)
     }
 
     float cost = 0.0f;
-    if (result->path != NULL)
+    if (result->path != NULL && arrlen(result->path) > 0)
     {
         Vec2 previous = result->path[0];
         for (int i = 0; i < arrlen(result->path); ++i)
@@ -128,7 +128,14 @@ void result_visualize(const Map* map, const Result* result)
     free(text);
 }
 
-void cluster_visualize(const VBitSet* coordinates, const Vec2* path)
+#define XY_TO_IDX_C(x, y) ((x) + (y) * CLUSTER_SIZE)
+
+static inline Vec2 global_vec_to_local_vec(Vec2 cluster_pos, Vec2 vec)
+{
+    return (Vec2){vec.x - cluster_pos.x * CLUSTER_SIZE, vec.y - cluster_pos.y * CLUSTER_SIZE};
+}
+
+void cluster_visualize(const VBitSet* coordinates, const Vec2 cluster_pos, const Vec2* path)
 {
     const size_t size = coordinates->capacity;
     char* text = malloc(size);
@@ -138,7 +145,7 @@ void cluster_visualize(const VBitSet* coordinates, const Vec2* path)
         exit(EXIT_FAILURE);
     }
 
-    for (uint16_t idx = 0; idx < size; ++idx)
+    for (size_t idx = 0; idx < size; ++idx)
     {
         text[idx] = vbitset_get(coordinates, idx) ? '@' : ' ';
     }
@@ -149,13 +156,13 @@ void cluster_visualize(const VBitSet* coordinates, const Vec2* path)
         Vec2 previous = path[0];
         for (int i = 0; i < arrlen(path); ++i)
         {
-            const Vec2 pos = path[i];
-            if (text[XY_TO_IDX(pos.x, pos.y)] == '@')
+            const Vec2 pos = global_vec_to_local_vec(cluster_pos, path[i]);
+            if (text[XY_TO_IDX_C(pos.x, pos.y)] == '@')
             {
                 fprintf(stderr, "Pathfinding replaced wall at %d,%d", pos.x, pos.y);
             }
 
-            text[XY_TO_IDX(pos.x, pos.y)] = '*';
+            text[XY_TO_IDX_C(pos.x, pos.y)] = '*';
             if (previous.x != pos.x && previous.y != pos.y)
             {
                 cost += M_SQRT2;
@@ -185,8 +192,14 @@ void cluster_visualize(const VBitSet* coordinates, const Vec2* path)
         exit(EXIT_FAILURE);
     }
 
-
-    fprintf(file, "Path Length: %ld\n", arrlen(path));
+    if (path)
+    {
+        fprintf(file, "Path Length: %ld\n", arrlen(path));
+    }
+    else
+    {
+        fprintf(file, "Path Length: 0\n");
+    }
     fprintf(file, "Path Cost: %f\n", cost);
     for (int y = 0; y < CLUSTER_SIZE; ++y)
     {
