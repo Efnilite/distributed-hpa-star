@@ -281,9 +281,9 @@ int main(int argc, char const* argv[])
         // Cleanup
         if (result)
         {
-            free(result);
+            arrfree(result);
         }
-        // tcp_taskrequest_free(task);
+        tcp_taskrequest_free(&task);
     }
 
     // Cleanup
