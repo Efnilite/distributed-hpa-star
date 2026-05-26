@@ -37,4 +37,11 @@ typedef struct result_t
  */
 void result_visualize(const Map* map, const Result* result);
 
+/**
+ * Visualizes the result of the pathfinding attempt in a cluster to a result file.
+ * @param coordinates The cluster data.
+ * @param path The path.
+ */
+void cluster_visualize(const VBitSet* coordinates, const Vec2* path);
+
 #endif

@@ -2,6 +2,7 @@
 #include "graph.h"
 #include "stb_ds.h"
 #include "util.h"
+#include "constants.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -119,6 +120,77 @@ void result_visualize(const Map* map, const Result* result)
     for (int y = 0; y < map->h; ++y)
     {
         fwrite(text + (size_t)y * map->w, 1, map->w, file);
+        fputc('\n', file);
+    }
+
+    fflush(file);
+    fclose(file);
+    free(text);
+}
+
+void cluster_visualize(const VBitSet* coordinates, const Vec2* path)
+{
+    const size_t size = coordinates->capacity;
+    char* text = malloc(size);
+    if (text == NULL)
+    {
+        perror("Failed to allocate visualization buffer");
+        exit(EXIT_FAILURE);
+    }
+
+    for (uint16_t idx = 0; idx < size; ++idx)
+    {
+        text[idx] = vbitset_get(coordinates, idx) ? '@' : ' ';
+    }
+
+    float cost = 0.0f;
+    if (path != NULL)
+    {
+        Vec2 previous = path[0];
+        for (int i = 0; i < arrlen(path); ++i)
+        {
+            const Vec2 pos = path[i];
+            if (text[XY_TO_IDX(pos.x, pos.y)] == '@')
+            {
+                fprintf(stderr, "Pathfinding replaced wall at %d,%d", pos.x, pos.y);
+            }
+
+            text[XY_TO_IDX(pos.x, pos.y)] = '*';
+            if (previous.x != pos.x && previous.y != pos.y)
+            {
+                cost += M_SQRT2;
+            }
+            else
+            {
+                cost += 1.0f;
+            }
+
+            previous = pos;
+        }
+    }
+
+    struct timeval time;
+    gettimeofday(&time, NULL);
+    char filename[50];
+    if (snprintf(filename, 50, "result-%ld%d", time.tv_sec, getpid()) < 0)
+    {
+        perror("Failed to create filename");
+        exit(EXIT_FAILURE);
+    }
+
+    FILE* file = fopen(filename, "w");
+    if (file == NULL)
+    {
+        perror("Failed to open file");
+        exit(EXIT_FAILURE);
+    }
+
+
+    fprintf(file, "Path Length: %ld\n", arrlen(path));
+    fprintf(file, "Path Cost: %f\n", cost);
+    for (int y = 0; y < CLUSTER_SIZE; ++y)
+    {
+        fwrite(text + (size_t)y * CLUSTER_SIZE, 1, CLUSTER_SIZE, file);
         fputc('\n', file);
     }
 
