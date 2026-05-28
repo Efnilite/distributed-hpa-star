@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/select.h>
 #include <unistd.h>
 #include "../../../common/constants.h"
 #include "../../../common/map.h"
@@ -237,14 +238,15 @@ int get_worker_for_cluster(Vec2 cluster_pos, const Map* map, int* clusters_per_w
  * @param path_length Number of waypoints in the path
  * @param global_start The global start position
  * @param global_goal The global goal position
+ * @return Number of packets successfully sent
  */
-void send_cluster_pathfinding_packets(int* worker_fds, int workers_count, const Map* map, int* clusters_per_worker,
-                                      const Vec2* graph_path, size_t path_length, Vec2 global_start, Vec2 global_goal)
+uint32_t send_cluster_pathfinding_packets(int* worker_fds, int workers_count, const Map* map, int* clusters_per_worker,
+                                          const Vec2* graph_path, size_t path_length, Vec2 global_start, Vec2 global_goal)
 {
     if (!graph_path || path_length == 0)
     {
         printf("No path found, skipping cluster pathfinding packets\n");
-        return;
+        return 0;
     }
 
     // Extract unique clusters from the path with per-cluster start/goal
@@ -255,7 +257,7 @@ void send_cluster_pathfinding_packets(int* worker_fds, int workers_count, const 
         printf("No clusters extracted from path\n");
         if (segments)
             arrfree(segments);
-        return;
+        return 0;
     }
 
     printf("Extracted %ld clusters from graph_a path\n", arrlen(segments));
@@ -294,8 +296,11 @@ void send_cluster_pathfinding_packets(int* worker_fds, int workers_count, const 
                task.goal_y);
     }
 
-    printf("Sent %u total pathfinding packets\n", task_id - 1);
+    uint32_t packets_sent = task_id - 1;
+    printf("Sent %u total pathfinding packets\n", packets_sent);
     arrfree(segments);
+    
+    return packets_sent;
 }
 
 int main(int argc, char const* argv[])
@@ -382,44 +387,100 @@ int main(int argc, char const* argv[])
             printf("  ... and %ld more waypoints\n", arrlen(graph_path) - 5);
 
         // Send pathfinding packets for all clusters found by graph_a to the correct workers
-        send_cluster_pathfinding_packets(worker_fds, WORKERS_SIZE, &map, clusters_per_worker, graph_path,
+        uint32_t packets_sent = send_cluster_pathfinding_packets(worker_fds, WORKERS_SIZE, &map, clusters_per_worker, graph_path,
                                          arrlen(graph_path), start, goal);
 
-        // Receive responses from workers
-        printf("\nWaiting for responses from workers...\n");
+        arrfree(graph_path);
 
+        // Receive responses from all workers using select()
+        printf("\nWaiting for responses from all workers...\n");
+        printf("Expecting %u responses\n", packets_sent);
+
+        uint32_t responses_received = 0;
+        fd_set read_fds;
+        int max_fd = -1;
+
+        // Find max fd for select
         for (int i = 0; i < arrlen(worker_fds); i++)
         {
-            TaskResponse* response = NULL;
-            if (tcp_recv_task_response(worker_fds[i], &response) < 0)
-            {
-                fprintf(stderr, "Failed to receive task response from worker %d\n", i);
-                close(worker_fds[i]);
-                arrdel(worker_fds, i);
-                i--;
-                continue;
-            }
-
-            printf("Received task response from worker %d (id=%u, path_length=%u, status=%d)\n", i, response->task_id,
-                   response->path_length, response->status_code);
-
-            if (response->path_length > 0 && response->path)
-            {
-                printf("  Path waypoints: ");
-                for (uint32_t j = 0; j < response->path_length && j < 5; j++)
-                {
-                    printf("(%d, %d) ", response->path[j].x, response->path[j].y);
-                }
-                if (response->path_length > 5)
-                    printf("...");
-                printf("\n");
-            }
-
-            // Cleanup
-            tcp_taskresponse_free(&response);
+            if (worker_fds[i] > max_fd)
+                max_fd = worker_fds[i];
         }
 
-        arrfree(graph_path);
+        Vec2* result = NULL;
+
+        // Keep receiving until we get all responses
+        while (responses_received < packets_sent)
+        {
+            FD_ZERO(&read_fds);
+            for (int i = 0; i < arrlen(worker_fds); i++)
+            {
+                if (worker_fds[i] >= 0)
+                    FD_SET(worker_fds[i], &read_fds);
+            }
+
+            struct timeval tv = {.tv_sec = 5, .tv_usec = 0}; // 5 second timeout
+            int select_result = select(max_fd + 1, &read_fds, NULL, NULL, &tv);
+
+            if (select_result < 0)
+            {
+                perror("select");
+                break;
+            }
+            else if (select_result == 0)
+            {
+                printf("Timeout waiting for responses. Received %u/%u responses.\n", responses_received, packets_sent);
+                break;
+            }
+
+            // Check which sockets have data ready
+            for (int i = 0; i < arrlen(worker_fds); i++)
+            {
+                if (worker_fds[i] >= 0 && FD_ISSET(worker_fds[i], &read_fds))
+                {
+                    TaskResponse* response = NULL;
+                    if (tcp_recv_task_response(worker_fds[i], &response) < 0)
+                    {
+                        fprintf(stderr, "Failed to receive task response from worker %d or connection closed\n", i);
+                        close(worker_fds[i]);
+                        worker_fds[i] = -1;
+                        continue;
+                    }
+
+                    responses_received++;
+                    printf("Received response %u/%u from worker %d (task_id=%u, path_length=%u, status=%d)\n", 
+                           responses_received, packets_sent, i, response->task_id,
+                           response->path_length, response->status_code);
+
+                    if (response->path_length > 0 && response->path)
+                    {
+                        printf("  Path waypoints: ");
+                        for (uint32_t j = 0; j < response->path_length && j < 5; j++)
+                        {
+                            // printf("(%d, %d) ", response->path[j].x, response->path[j].y);
+                            arrpush(result, response->path[j]);
+                        }
+                        if (response->path_length > 5)
+                            printf("...");
+                        printf("\n");
+                    }
+
+                    // Cleanup
+                    tcp_taskresponse_free(&response);
+                }
+            }
+        }
+
+        printf("Finished receiving responses. Total: %u/%u\n", responses_received, packets_sent);
+
+        printf("Final path:\n");
+        for (int i = 0; i < arrlen(result); i++)
+        {
+            printf("(%d, %d) ", result[i].x, result[i].y);
+        }
+        printf("\n");
+
+        arrfree(result);
     }
     else
     {
