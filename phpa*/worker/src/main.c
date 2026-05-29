@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
 #include "../../../common/map.h"
 #include "../../../common/parser.h"
 #include "../../../common/tcp.h"
@@ -212,8 +213,13 @@ int main(int argc, char const* argv[])
         }
 
         // Wait for task from master
-        if (tcp_recv_task_request(socket_fd, &task) < 0)
+        int recv = tcp_recv_task_request(socket_fd, &task); 
+        if (recv < 0)
         {
+            if (recv == -2) {
+                running = false;
+                break;
+            }
             fprintf(stderr, "Waiting to receive task request\n");
             if (running)
             {
@@ -225,6 +231,8 @@ int main(int argc, char const* argv[])
                 break;
             }
         }
+
+        clock_t time = clock();
 
         max_memory = get_memory_usage(max_memory);
         printf("Received task (id=%u): start=(%d, %d) goal=(%d, %d)\n", task->task_id, task->start_x,
@@ -275,7 +283,8 @@ int main(int argc, char const* argv[])
                                  .path_length = arrlen(result),
                                  .path = result,
                                  .status_code = 0,
-                                .max_memory_bytes = max_memory};
+                                .max_memory_bytes = max_memory,
+                            .cpu_time = (double)(clock() - time) / CLOCKS_PER_SEC};
 
         // Send response back to master
         if (tcp_send_task_response(socket_fd, &response) < 0)
@@ -302,7 +311,6 @@ int main(int argc, char const* argv[])
         clusters_free(clusters, cluster_count);
     }
     tcp_client_destroy(&client);
-    map_free(&map);
     printf("Worker shutdown complete\n");
     return 0;
 }

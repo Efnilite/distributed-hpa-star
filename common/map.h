@@ -18,6 +18,19 @@ typedef struct map_t
 } Map;
 
 /**
+ * The dimensions for a map.
+ */
+typedef struct map_dimensions_t
+{
+    uint16_t w;
+    uint16_t h;
+
+    uint16_t clusters_w;
+    uint16_t clusters_h;
+    uint16_t clusters_size;
+} MapDimensions;
+
+/**
  * Checks whether a coordinate is a wall.
  * @param map The map.
  * @param x

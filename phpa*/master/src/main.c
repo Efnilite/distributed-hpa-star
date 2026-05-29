@@ -29,14 +29,11 @@ void signal_handler(int sig)
     printf("\nShutdown signal received\n");
 }
 
-void divide_clusters(const Map* map, int* clusters_per_worker, int connections_count)
+void divide_clusters(const MapDimensions map, int* clusters_per_worker, int connections_count)
 {
-    const size_t cluster_w = (size_t)ceil(map->w / (float)CLUSTER_SIZE);
-    const size_t cluster_h = (size_t)ceil(map->h / (float)CLUSTER_SIZE);
-    const size_t cluster_size = cluster_w * cluster_h;
-    const size_t clusters_per_worker_base = (size_t)ceil(cluster_size / (float)connections_count);
+    const size_t clusters_per_worker_base = (size_t)ceil(map.clusters_size / (float)connections_count);
 
-    int remaining_clusters = cluster_size;
+    int remaining_clusters = map.clusters_size;
     for (size_t worker = 0; worker < connections_count; worker++)
     {
         int old = remaining_clusters;
@@ -57,12 +54,8 @@ void divide_clusters(const Map* map, int* clusters_per_worker, int connections_c
     }
 }
 
-void send_cluster_assignments(const Map* map, int* worker_fds, int workers_count, int* clusters_per_worker)
+void send_cluster_assignments(const MapDimensions map, int* worker_fds, int workers_count, int* clusters_per_worker)
 {
-    const size_t cluster_w = (size_t)ceil(map->w / (float)CLUSTER_SIZE);
-    const size_t cluster_h = (size_t)ceil(map->h / (float)CLUSTER_SIZE);
-    const size_t cluster_size = cluster_w * cluster_h;
-
     // Track which cluster index we're at for each worker
     int cluster_offset = 0;
 
@@ -90,8 +83,8 @@ void send_cluster_assignments(const Map* map, int* worker_fds, int workers_count
         for (int i = 0; i < num_clusters; i++)
         {
             size_t cluster_idx = cluster_offset + i;
-            int16_t cluster_x = (int16_t)(cluster_idx % cluster_w);
-            int16_t cluster_y = (int16_t)(cluster_idx / cluster_w);
+            int16_t cluster_x = (int16_t)(cluster_idx % map.clusters_w);
+            int16_t cluster_y = (int16_t)(cluster_idx / map.clusters_w);
 
             positions[i * 2] = cluster_x;
             positions[i * 2 + 1] = cluster_y;
@@ -209,9 +202,9 @@ ClusterPathSegment* extract_clusters_from_path(const Vec2* path, size_t path_len
  * @param workers_count Number of workers
  * @return The worker index that owns this cluster, or -1 if not found
  */
-int get_worker_for_cluster(Vec2 cluster_pos, const Map* map, int* clusters_per_worker, int workers_count)
+int get_worker_for_cluster(Vec2 cluster_pos, const MapDimensions map, int* clusters_per_worker, int workers_count)
 {
-    const size_t cluster_w = (size_t)ceil(map->w / (float)CLUSTER_SIZE);
+    const size_t cluster_w = (size_t)ceil(map.w / (float)CLUSTER_SIZE);
 
     // Convert cluster grid position to linear index
     size_t cluster_idx = (size_t)cluster_pos.y * cluster_w + (size_t)cluster_pos.x;
@@ -242,7 +235,7 @@ int get_worker_for_cluster(Vec2 cluster_pos, const Map* map, int* clusters_per_w
  * @param global_goal The global goal position
  * @return Number of packets successfully sent
  */
-uint32_t send_cluster_pathfinding_packets(int* worker_fds, int workers_count, const Map* map, int* clusters_per_worker,
+uint32_t send_cluster_pathfinding_packets(int* worker_fds, int workers_count, const MapDimensions map, int* clusters_per_worker,
                                           const Vec2* graph_path, size_t path_length, Vec2 global_start, Vec2 global_goal)
 {
     if (!graph_path || path_length == 0)
@@ -323,6 +316,23 @@ int main(int argc, char const* argv[])
     // Store worker connections
     int* worker_fds = NULL;
     Map map = parse_map(DATA_MAP);
+
+    Graph* graph = NULL;
+    Cluster* clusters = NULL;
+
+    // start/end goal
+    Vec2 start = (Vec2){260, 180};
+    Vec2 goal = (Vec2){1565, 1745};
+
+    preprocess(&map, &graph, clusters, start, goal);
+
+    MapDimensions dimensions = (MapDimensions) {
+        .w = map.w,
+        .h = map.h,
+        .clusters_w = (size_t)ceil(map.w / (float)CLUSTER_SIZE),
+        .clusters_h = (size_t)ceil(map.h / (float)CLUSTER_SIZE),
+        .clusters_size = (size_t)ceil(map.w / (float)CLUSTER_SIZE) * (size_t)ceil(map.h / (float)CLUSTER_SIZE)
+    };
     int clusters_per_worker[WORKERS_SIZE] = {0};
 
     long max_memory = 0;
@@ -350,31 +360,20 @@ int main(int argc, char const* argv[])
             printf("All %d workers connected. Running divide_clusters...\n", WORKERS_SIZE);
 
             // Calculate cluster distribution
-            divide_clusters(&map, clusters_per_worker, WORKERS_SIZE);
+            divide_clusters(dimensions, clusters_per_worker, WORKERS_SIZE);
 
             // Send cluster assignments to all workers
-            send_cluster_assignments(&map, worker_fds, WORKERS_SIZE, clusters_per_worker);
+            send_cluster_assignments(dimensions, worker_fds, WORKERS_SIZE, clusters_per_worker);
             break;
         }
     }
 
     max_memory = get_memory_usage(max_memory);
 
-    Graph* graph = NULL;
-    Cluster* clusters = NULL;
-
-    // start/end goal
-    Vec2 start = (Vec2){260, 180};
-    Vec2 goal = (Vec2){1565, 1745};
-
-    preprocess(&map, &graph, clusters, start, goal);
-
-    clock_t time = clock();
-    max_memory = get_memory_usage(max_memory);
-
     // Close server from accepting more connections
     tcp_server_destroy(&server);
     max_memory = get_memory_usage(max_memory);
+    clock_t time = clock();
 
     // Main worker communication loop
     printf("Master entering main communication loop with %d workers\n", (int)arrlen(worker_fds));
@@ -397,7 +396,7 @@ int main(int argc, char const* argv[])
             printf("  ... and %ld more waypoints\n", arrlen(graph_path) - 5);
 
         // Send pathfinding packets for all clusters found by graph_a to the correct workers
-        uint32_t packets_sent = send_cluster_pathfinding_packets(worker_fds, WORKERS_SIZE, &map, clusters_per_worker, graph_path,
+        uint32_t packets_sent = send_cluster_pathfinding_packets(worker_fds, WORKERS_SIZE, dimensions, clusters_per_worker, graph_path,
                                          arrlen(graph_path), start, goal);
         max_memory = get_memory_usage(max_memory);
 
@@ -541,6 +540,7 @@ int main(int argc, char const* argv[])
     // Cleanup: close all worker connections
     for (int i = 0; i < arrlen(worker_fds); i++)
     {
+        tcp_send_shutdown(worker_fds[i]);
         close(worker_fds[i]);
     }
     arrfree(worker_fds);
