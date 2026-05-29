@@ -11,4 +11,6 @@
  */
 long util_get_memory_usage(void);
 
+long get_memory_usage(long exisiting);
+
 #endif

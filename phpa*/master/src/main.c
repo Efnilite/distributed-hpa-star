@@ -5,12 +5,14 @@
 #include <string.h>
 #include <sys/select.h>
 #include <unistd.h>
+#include <time.h>
 #include "../../../common/constants.h"
 #include "../../../common/map.h"
 #include "../../../common/parser.h"
 #include "../../../common/result.h"
 #include "../../../common/tcp.h"
 #include "../../../common/vec2.h"
+#include "../../../common/util.h"
 #include "../../common/graph_a.h"
 #include "../../common/hpa.h"
 #include "preprocess.h"
@@ -323,6 +325,9 @@ int main(int argc, char const* argv[])
     Map map = parse_map("../data/sparse/scene_mp_2p_01");
     int clusters_per_worker[WORKERS_SIZE] = {0};
 
+    long max_memory = 0;
+    max_memory = get_memory_usage(max_memory);
+
     // Accept worker connections until we reach WORKERS_SIZE
     while (running && arrlen(worker_fds) < WORKERS_SIZE)
     {
@@ -353,6 +358,7 @@ int main(int argc, char const* argv[])
         }
     }
 
+    max_memory = get_memory_usage(max_memory);
 
     Graph* graph = NULL;
     Cluster* clusters = NULL;
@@ -363,8 +369,12 @@ int main(int argc, char const* argv[])
 
     preprocess(&map, &graph, clusters, start, goal);
 
+    clock_t time = clock();
+    max_memory = get_memory_usage(max_memory);
+
     // Close server from accepting more connections
     tcp_server_destroy(&server);
+    max_memory = get_memory_usage(max_memory);
 
     // Main worker communication loop
     printf("Master entering main communication loop with %d workers\n", (int)arrlen(worker_fds));
@@ -389,6 +399,7 @@ int main(int argc, char const* argv[])
         // Send pathfinding packets for all clusters found by graph_a to the correct workers
         uint32_t packets_sent = send_cluster_pathfinding_packets(worker_fds, WORKERS_SIZE, &map, clusters_per_worker, graph_path,
                                          arrlen(graph_path), start, goal);
+        max_memory = get_memory_usage(max_memory);
 
         arrfree(graph_path);
 
@@ -407,7 +418,14 @@ int main(int argc, char const* argv[])
                 max_fd = worker_fds[i];
         }
 
-        Vec2* result = NULL;
+        // Use a map to store responses by task_id to handle out-of-order packets
+        // Key: task_id, Value: TaskResponse*
+        typedef struct {
+            uint32_t task_id;
+            TaskResponse* response;
+        } TaskResponseEntry;
+
+        TaskResponseEntry* responses_map = NULL;
 
         // Keep receiving until we get all responses
         while (responses_received < packets_sent)
@@ -457,29 +475,58 @@ int main(int argc, char const* argv[])
                         printf("  Path waypoints: ");
                         for (uint32_t j = 0; j < response->path_length && j < 5; j++)
                         {
-                            // printf("(%d, %d) ", response->path[j].x, response->path[j].y);
-                            arrpush(result, response->path[j]);
+                            printf("(%d, %d) ", response->path[j].x, response->path[j].y);
                         }
                         if (response->path_length > 5)
-                            printf("...");
+                            printf("... and %u more", response->path_length - 5);
                         printf("\n");
                     }
 
-                    // Cleanup
-                    tcp_taskresponse_free(&response);
+                    // Store response by task_id for later ordering
+                    TaskResponseEntry entry = {.task_id = response->task_id, .response = response};
+                    arrput(responses_map, entry);
+                    max_memory = get_memory_usage(max_memory);
                 }
             }
         }
 
         printf("Finished receiving responses. Total: %u/%u\n", responses_received, packets_sent);
 
-        printf("Final path:\n");
-        for (int i = 0; i < arrlen(result); i++)
+        // Compile final path by processing responses in task_id order
+        Vec2* result = NULL;
+        
+        // Sort responses by task_id if not already in order
+        for (uint32_t task_id = 1; task_id <= packets_sent; task_id++)
         {
-            printf("(%d, %d) ", result[i].x, result[i].y);
+            for (size_t i = 0; i < arrlen(responses_map); i++)
+            {
+                if (responses_map[i].task_id == task_id)
+                {
+                    TaskResponse* resp = responses_map[i].response;
+                    if (resp->path_length > 0 && resp->path)
+                    {
+                        // Skip the first waypoint if it's not the first task (to avoid duplicate waypoints)
+                        uint32_t start_idx = (task_id > 1) ? 1 : 0;
+                        for (uint32_t j = start_idx; j < resp->path_length; j++)
+                        {
+                            arrpush(result, resp->path[j]);
+                        }
+                        printf("Added %u waypoints from task_id %u\n", resp->path_length - start_idx, task_id);
+                    }
+                    break;
+                }
+            }
         }
-        printf("\n");
+        max_memory = get_memory_usage(max_memory);
 
+        result_visualize(&map, &(Result){.success = true, .graph = graph, .path = result, .max_memory_bytes = max_memory, .cpu_secs = (double)(clock() - time) / CLOCKS_PER_SEC, .visited = NULL});
+
+        // Cleanup responses
+        for (size_t i = 0; i < arrlen(responses_map); i++)
+        {
+            tcp_taskresponse_free(&responses_map[i].response);
+        }
+        arrfree(responses_map);
         arrfree(result);
     }
     else

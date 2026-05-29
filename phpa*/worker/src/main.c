@@ -145,6 +145,9 @@ int main(int argc, char const* argv[])
         return 1;
     }
 
+    long max_memory = 0;
+    max_memory = get_memory_usage(max_memory);
+
     printf("Worker process connected to master at %s:%u\n", master_host, master_port);
 
     // Worker main loop - receive tasks and send responses
@@ -201,6 +204,7 @@ int main(int argc, char const* argv[])
                 printf("Initialized cluster %u: pos=(%d, %d)\n", i, cluster_x, cluster_y);
             }
 
+            max_memory = get_memory_usage(max_memory);
             tcp_clusterassignment_free(&ca);
             clusters_initialized = 1;
             map_free(&map);
@@ -221,6 +225,7 @@ int main(int argc, char const* argv[])
             }
         }
 
+        max_memory = get_memory_usage(max_memory);
         printf("Received task (id=%u): start=(%d, %d) goal=(%d, %d)\n", task->task_id, task->start_x,
                task->start_y, task->goal_x, task->goal_y);
 
@@ -242,6 +247,7 @@ int main(int argc, char const* argv[])
             tcp_taskrequest_free(&task);
             continue;
         }
+        max_memory = get_memory_usage(max_memory);
 
         Vec2* result = worker_a(cluster, start, goal);
         if (result == NULL)
@@ -259,6 +265,7 @@ int main(int argc, char const* argv[])
             tcp_taskrequest_free(&task);
             continue;
         }
+        max_memory = get_memory_usage(max_memory);
 
         // printf("Visualizing result\n");
         // cluster_visualize(cluster->coordinates, cluster->pos, result);
@@ -277,6 +284,7 @@ int main(int argc, char const* argv[])
         {
             printf("Sent task response (id=%u, path_length=%u)\n", response.task_id, response.path_length);
         }
+        max_memory = get_memory_usage(max_memory);
 
         // Cleanup
         if (result)

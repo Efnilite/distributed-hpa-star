@@ -33,3 +33,10 @@ long util_get_memory_usage(void)
     fclose(file);
     return -1;
 }
+
+long get_memory_usage(long existing) {
+    long current_memory = util_get_memory_usage();
+    if (current_memory > existing)
+        return current_memory;
+    return existing;
+}   

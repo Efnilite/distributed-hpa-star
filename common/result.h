@@ -28,6 +28,7 @@ typedef struct result_t
     double cpu_secs;
     long max_memory_bytes;
     Graph* graph;
+    long worker_max_memory_bytes;
 } Result;
 
 /**

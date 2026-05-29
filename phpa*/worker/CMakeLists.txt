@@ -12,6 +12,7 @@ add_executable(wphpa
         ../../common/mheap.c
         ../../common/result.c
         ../../common/vbitset.c
+        ../../common/util.c
         ../../common/graph.c
         ../../common/tcp.c)
 
