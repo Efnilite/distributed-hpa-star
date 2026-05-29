@@ -8,7 +8,7 @@
 #include "../../../common/tcp.h"
 #include "../../../common/result.h"
 #include "../../../common/util.h"
-#include "../../common/hpa.h"
+#include "../../../common/constants.h"
 #include "worker_a.h"
 
 #define STB_DS_IMPLEMENTATION
@@ -124,7 +124,7 @@ int main(int argc, char const* argv[])
     signal(SIGINT, signal_handler);
 
     // Load map once at startup
-    Map map = parse_map("../data/sparse/scene_mp_2p_01");
+    Map map = parse_map(DATA_MAP);
     printf("Loaded map: %u x %u\n", map.w, map.h);
 
     // Worker clusters storage

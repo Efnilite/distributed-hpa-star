@@ -322,7 +322,7 @@ int main(int argc, char const* argv[])
 
     // Store worker connections
     int* worker_fds = NULL;
-    Map map = parse_map("../data/sparse/scene_mp_2p_01");
+    Map map = parse_map(DATA_MAP);
     int clusters_per_worker[WORKERS_SIZE] = {0};
 
     long max_memory = 0;
@@ -510,13 +510,11 @@ int main(int argc, char const* argv[])
                     }
                     if (resp->path_length > 0 && resp->path)
                     {
-                        // Skip the first waypoint if it's not the first task (to avoid duplicate waypoints)
-                        uint32_t start_idx = (task_id > 1) ? 1 : 0;
-                        for (uint32_t j = start_idx; j < resp->path_length; j++)
+                        for (uint32_t j = 0; j < resp->path_length; j++)
                         {
                             arrpush(result, resp->path[j]);
                         }
-                        printf("Added %u points from task_id %u\n", resp->path_length - start_idx, task_id);
+                        printf("Added %u points from task_id %u\n", resp->path_length, task_id);
                     }
                     break;
                 }

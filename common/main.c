@@ -43,7 +43,7 @@ int main(void)
         printf("Failed to find path\n");
     }
 
-    // result_visualize(&map, &result);
+    result_visualize(&map, &result);
 
     map_free(&map);
 

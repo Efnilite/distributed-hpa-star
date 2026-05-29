@@ -146,7 +146,7 @@ Vec2* cluster_a(const Map* map, const Cluster* cluster, const Vec2 global_start,
 
         const Vec2 successors[] = SUCCESSORS(pos.x, pos.y);
         const uint16_t score = scores[pos_idx];
-        for (uint8_t i = 0; i < 8; ++i)
+        for (uint8_t i = 0; i < 4; ++i)
         {
             const Vec2 successor = successors[i];
 
