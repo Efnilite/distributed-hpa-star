@@ -7,6 +7,7 @@
 #include "../../../common/parser.h"
 #include "../../../common/tcp.h"
 #include "../../../common/result.h"
+#include "../../../common/util.h"
 #include "../../common/hpa.h"
 #include "worker_a.h"
 
@@ -273,7 +274,8 @@ int main(int argc, char const* argv[])
         TaskResponse response = {.task_id = task->task_id,
                                  .path_length = arrlen(result),
                                  .path = result,
-                                 .status_code = 0};
+                                 .status_code = 0,
+                                .max_memory_bytes = max_memory};
 
         // Send response back to master
         if (tcp_send_task_response(socket_fd, &response) < 0)

@@ -494,6 +494,8 @@ int main(int argc, char const* argv[])
 
         // Compile final path by processing responses in task_id order
         Vec2* result = NULL;
+        max_memory = get_memory_usage(max_memory);
+        long worker_max_memory = 0;
         
         // Sort responses by task_id if not already in order
         for (uint32_t task_id = 1; task_id <= packets_sent; task_id++)
@@ -503,6 +505,9 @@ int main(int argc, char const* argv[])
                 if (responses_map[i].task_id == task_id)
                 {
                     TaskResponse* resp = responses_map[i].response;
+                    if (resp->max_memory_bytes > worker_max_memory) {
+                        worker_max_memory = resp->max_memory_bytes;
+                    }
                     if (resp->path_length > 0 && resp->path)
                     {
                         // Skip the first waypoint if it's not the first task (to avoid duplicate waypoints)
@@ -511,7 +516,7 @@ int main(int argc, char const* argv[])
                         {
                             arrpush(result, resp->path[j]);
                         }
-                        printf("Added %u waypoints from task_id %u\n", resp->path_length - start_idx, task_id);
+                        printf("Added %u points from task_id %u\n", resp->path_length - start_idx, task_id);
                     }
                     break;
                 }
@@ -519,7 +524,7 @@ int main(int argc, char const* argv[])
         }
         max_memory = get_memory_usage(max_memory);
 
-        result_visualize(&map, &(Result){.success = true, .graph = graph, .path = result, .max_memory_bytes = max_memory, .cpu_secs = (double)(clock() - time) / CLOCKS_PER_SEC, .visited = NULL});
+        result_visualize(&map, &(Result){.success = true, .graph = graph, .path = result, .max_memory_bytes = max_memory, .cpu_secs = (double)(clock() - time) / CLOCKS_PER_SEC, .visited = NULL,.worker_max_memory_bytes=worker_max_memory});
 
         // Cleanup responses
         for (size_t i = 0; i < arrlen(responses_map); i++)

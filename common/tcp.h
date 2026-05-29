@@ -42,6 +42,7 @@ typedef struct
     uint32_t path_length; // Number of waypoints in path
     Vec2* path; // Dynamically allocated path (pairs of x,y)
     int32_t status_code; // 0 = success, negative = error
+    long max_memory_bytes;
 } TaskResponse;
 
 /**
