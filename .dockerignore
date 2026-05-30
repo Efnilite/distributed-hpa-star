@@ -1,0 +1,14 @@
+.git/
+.github/
+.idea/
+.vscode/
+*.ipynb
+build/
+cmake-build-*/
+CMakeFiles/
+.gitignore
+.clang-format
+results/
+benchmark_results.json
+*.o
+*.a

@@ -12,4 +12,9 @@
  */
 Map parse_map(const char* file_name);
 
+/**
+ * Parses a map file with automatic data directory selection.
+ */
+Map parse_map_auto(const char* base_filename);
+
 #endif

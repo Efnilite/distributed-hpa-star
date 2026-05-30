@@ -54,11 +54,11 @@ def build_algorithm(algo: str) -> bool:
     algo_dir = None
     
     if algo == "a":
-        algo_dir = BASE_DIR / "a*"
+        algo_dir = BASE_DIR / "a"
     elif algo == "hpa":
-        algo_dir = BASE_DIR / "hpa*"
+        algo_dir = BASE_DIR / "hpa"
     elif algo == "phpa":
-        algo_dir = BASE_DIR / "phpa*"
+        algo_dir = BASE_DIR / "phpa"
     
     if not algo_dir or not algo_dir.exists():
         print(f"  ✗ {algo} directory not found")

@@ -7,6 +7,16 @@
 
 #include "vbitset.h"
 
+/**
+ * Helper function to try opening a map file from a given directory
+ */
+static FILE* try_open_map(const char* dir, const char* filename)
+{
+    char full_path[512];
+    snprintf(full_path, sizeof(full_path), "%s/%s", dir, filename);
+    return fopen(full_path, "r");
+}
+
 Map parse_map(const char* file_name)
 {
     FILE* file = fopen(file_name, "r");
@@ -62,5 +72,81 @@ Map parse_map(const char* file_name)
 
     return (Map){
         .w = w, .h = h, .size = w * h, .coordinates = map
+    };
+}
+
+/**
+ * Internal helper to parse map from already-opened FILE*
+ */
+static Map parse_map_from_file(FILE* file, const char* filename)
+{
+    (void)filename;  // For potential debug logging
+    
+    char buff[LINE_LENGTH];
+    // skip type
+    (void)fgets(buff, LINE_LENGTH, file);
+
+    // height
+    (void)fgets(buff, LINE_LENGTH, file);
+    const uint16_t h = atoi(buff + 7);
+
+    // width
+    (void)fgets(buff, LINE_LENGTH, file);
+    const uint16_t w = atoi(buff + 6);
+
+    // skip map
+    (void)fgets(buff, LINE_LENGTH, file);
+
+    VBitSet* map = vbitset_create(w * h, 1);
+    if (map == NULL)
+    {
+        perror("Failed to malloc map");
+        exit(EXIT_FAILURE);
+    }
+
+    (void)fgets(buff, LINE_LENGTH, file);
+    uint32_t char_idx = 0;
+    uint32_t line_idx = 0;
+    while (!feof(file))
+    {
+        if (buff[line_idx] == '\n')
+        {
+            (void)fgets(buff, LINE_LENGTH, file);
+            line_idx = 0;
+        }
+
+        if (buff[line_idx] != '.')
+        {
+            vbitset_set(map, char_idx, 1);
+        }
+
+        line_idx++;
+        char_idx++;
+    }
+
+    return (Map){
+        .w = w, .h = h, .size = w * h, .coordinates = map
+    };
+}
+
+Map parse_map_auto(const char* base_filename)
+{
+    FILE* file = NULL;
+
+    const char* data_dir = getenv("DATA_DIR");
+    if (data_dir)
+    {
+        file = try_open_map(data_dir, base_filename);
+        if (file)
+        {
+            fprintf(stderr, "Found map at: %s/%s\n", data_dir, base_filename);
+            Map map = parse_map_from_file(file, base_filename);
+            fclose(file);
+            return map;
+        }
+    }
+
+    return (Map){
+        .w = 0, .h = 0, .size = 0, .coordinates = NULL
     };
 }

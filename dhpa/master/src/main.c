@@ -4,15 +4,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/select.h>
-#include <unistd.h>
 #include <time.h>
+#include <unistd.h>
 #include "../../../common/constants.h"
 #include "../../../common/map.h"
 #include "../../../common/parser.h"
 #include "../../../common/result.h"
 #include "../../../common/tcp.h"
-#include "../../../common/vec2.h"
 #include "../../../common/util.h"
+#include "../../../common/vec2.h"
 #include "../../common/graph_a.h"
 #include "../../common/hpa.h"
 #include "preprocess.h"
@@ -235,8 +235,9 @@ int get_worker_for_cluster(Vec2 cluster_pos, const MapDimensions map, int* clust
  * @param global_goal The global goal position
  * @return Number of packets successfully sent
  */
-uint32_t send_cluster_pathfinding_packets(int* worker_fds, int workers_count, const MapDimensions map, int* clusters_per_worker,
-                                          const Vec2* graph_path, size_t path_length, Vec2 global_start, Vec2 global_goal)
+uint32_t send_cluster_pathfinding_packets(int* worker_fds, int workers_count, const MapDimensions map,
+                                          int* clusters_per_worker, const Vec2* graph_path, size_t path_length,
+                                          Vec2 global_start, Vec2 global_goal)
 {
     if (!graph_path || path_length == 0)
     {
@@ -294,7 +295,7 @@ uint32_t send_cluster_pathfinding_packets(int* worker_fds, int workers_count, co
     uint32_t packets_sent = task_id - 1;
     printf("Sent %u total pathfinding packets\n", packets_sent);
     arrfree(segments);
-    
+
     return packets_sent;
 }
 
@@ -302,8 +303,22 @@ int main(int argc, char const* argv[])
 {
     signal(SIGINT, signal_handler);
 
+    const char* host = getenv("MASTER_HOST");
+    if (!host)
+    {
+        host = "127.0.0.1"; 
+    }
+    if (strcmp(host, "0.0.0.0") == 0) {
+        fprintf(stderr, "Cannot have 0.0.0.0 as host\n");
+        return 1;
+    }
+
+    const char* port_str = getenv("MASTER_PORT");
     uint16_t port = 9090;
-    const char* host = "127.0.0.1";
+    if (port_str)
+    {
+        port = (uint16_t)atoi(port_str);
+    }
 
     // Create TCP server
     tcp_server* server = tcp_server_create(host, port, 10);
@@ -315,7 +330,7 @@ int main(int argc, char const* argv[])
 
     // Store worker connections
     int* worker_fds = NULL;
-    Map map = parse_map(DATA_MAP);
+    Map map = parse_map_auto("sparse/scene_mp_2p_01");
 
     Graph* graph = NULL;
     Cluster* clusters = NULL;
@@ -326,13 +341,12 @@ int main(int argc, char const* argv[])
 
     preprocess(&map, &graph, clusters, start, goal);
 
-    MapDimensions dimensions = (MapDimensions) {
-        .w = map.w,
-        .h = map.h,
-        .clusters_w = (size_t)ceil(map.w / (float)CLUSTER_SIZE),
-        .clusters_h = (size_t)ceil(map.h / (float)CLUSTER_SIZE),
-        .clusters_size = (size_t)ceil(map.w / (float)CLUSTER_SIZE) * (size_t)ceil(map.h / (float)CLUSTER_SIZE)
-    };
+    MapDimensions dimensions = (MapDimensions){.w = map.w,
+                                               .h = map.h,
+                                               .clusters_w = (size_t)ceil(map.w / (float)CLUSTER_SIZE),
+                                               .clusters_h = (size_t)ceil(map.h / (float)CLUSTER_SIZE),
+                                               .clusters_size = (size_t)ceil(map.w / (float)CLUSTER_SIZE) *
+                                                   (size_t)ceil(map.h / (float)CLUSTER_SIZE)};
     int clusters_per_worker[WORKERS_SIZE] = {0};
 
     long max_memory = 0;
@@ -396,8 +410,8 @@ int main(int argc, char const* argv[])
             printf("  ... and %ld more waypoints\n", arrlen(graph_path) - 5);
 
         // Send pathfinding packets for all clusters found by graph_a to the correct workers
-        uint32_t packets_sent = send_cluster_pathfinding_packets(worker_fds, WORKERS_SIZE, dimensions, clusters_per_worker, graph_path,
-                                         arrlen(graph_path), start, goal);
+        uint32_t packets_sent = send_cluster_pathfinding_packets(
+            worker_fds, WORKERS_SIZE, dimensions, clusters_per_worker, graph_path, arrlen(graph_path), start, goal);
         max_memory = get_memory_usage(max_memory);
 
         arrfree(graph_path);
@@ -419,7 +433,8 @@ int main(int argc, char const* argv[])
 
         // Use a map to store responses by task_id to handle out-of-order packets
         // Key: task_id, Value: TaskResponse*
-        typedef struct {
+        typedef struct
+        {
             uint32_t task_id;
             TaskResponse* response;
         } TaskResponseEntry;
@@ -465,9 +480,9 @@ int main(int argc, char const* argv[])
                     }
 
                     responses_received++;
-                    printf("Received response %u/%u from worker %d (task_id=%u, path_length=%u, status=%d)\n", 
-                           responses_received, packets_sent, i, response->task_id,
-                           response->path_length, response->status_code);
+                    printf("Received response %u/%u from worker %d (task_id=%u, path_length=%u, status=%d)\n",
+                           responses_received, packets_sent, i, response->task_id, response->path_length,
+                           response->status_code);
 
                     if (response->path_length > 0 && response->path)
                     {
@@ -495,7 +510,7 @@ int main(int argc, char const* argv[])
         Vec2* result = NULL;
         max_memory = get_memory_usage(max_memory);
         long worker_max_memory = 0;
-        
+
         // Sort responses by task_id if not already in order
         for (uint32_t task_id = 1; task_id <= packets_sent; task_id++)
         {
@@ -504,7 +519,8 @@ int main(int argc, char const* argv[])
                 if (responses_map[i].task_id == task_id)
                 {
                     TaskResponse* resp = responses_map[i].response;
-                    if (resp->max_memory_bytes > worker_max_memory) {
+                    if (resp->max_memory_bytes > worker_max_memory)
+                    {
                         worker_max_memory = resp->max_memory_bytes;
                     }
                     if (resp->path_length > 0 && resp->path)
@@ -521,7 +537,14 @@ int main(int argc, char const* argv[])
         }
         max_memory = get_memory_usage(max_memory);
 
-        result_visualize(&map, &(Result){.success = true, .graph = graph, .path = result, .max_memory_bytes = max_memory, .cpu_secs = (double)(clock() - time) / CLOCKS_PER_SEC, .visited = NULL,.worker_max_memory_bytes=worker_max_memory});
+        result_visualize(&map,
+                         &(Result){.success = true,
+                                   .graph = graph,
+                                   .path = result,
+                                   .max_memory_bytes = max_memory,
+                                   .cpu_secs = (double)(clock() - time) / CLOCKS_PER_SEC,
+                                   .visited = NULL,
+                                   .worker_max_memory_bytes = worker_max_memory});
 
         // Cleanup responses
         for (size_t i = 0; i < arrlen(responses_map); i++)

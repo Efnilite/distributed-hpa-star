@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <time.h>
+#include <unistd.h>
+#include "../../../common/constants.h"
 #include "../../../common/map.h"
 #include "../../../common/parser.h"
-#include "../../../common/tcp.h"
 #include "../../../common/result.h"
+#include "../../../common/tcp.h"
 #include "../../../common/util.h"
-#include "../../../common/constants.h"
 #include "worker_a.h"
 
 #define STB_DS_IMPLEMENTATION
@@ -94,7 +94,8 @@ WorkerCluster* worker_cluster_create(const Map* map, int16_t cluster_x, int16_t 
 /**
  * Find a cluster by position from the assigned cluster list
  */
-WorkerCluster* find_cluster_by_position(WorkerCluster* clusters, uint32_t cluster_count, int16_t cluster_x, int16_t cluster_y)
+WorkerCluster* find_cluster_by_position(WorkerCluster* clusters, uint32_t cluster_count, int16_t cluster_x,
+                                        int16_t cluster_y)
 {
     for (uint32_t i = 0; i < cluster_count; i++)
     {
@@ -124,19 +125,29 @@ int main(int argc, char const* argv[])
 {
     signal(SIGINT, signal_handler);
 
-    // Load map once at startup
-    Map map = parse_map(DATA_MAP);
+    Map map = parse_map_auto("sparse/scene_mp_2p_01");
     printf("Loaded map: %u x %u\n", map.w, map.h);
 
-    // Worker clusters storage
     WorkerCluster* clusters = NULL;
     uint32_t cluster_count = 0;
     int clusters_initialized = 0;
 
-    // connection
+    const char* master_host = getenv("MASTER_HOST");
+    if (!master_host)
+    {
+        master_host = "127.0.0.1";
+    }
+    if (strcmp(master_host, "0.0.0.0") == 0) {
+        fprintf(stderr, "Cannot have 0.0.0.0 as master_host\n");
+        return 1;
+    }
 
-    const char* master_host = "127.0.0.1";
+    const char* master_port_str = getenv("MASTER_PORT");
     uint16_t master_port = 9090;
+    if (master_port_str)
+    {
+        master_port = (uint16_t)atoi(master_port_str);
+    }
 
     // Connect to master server
     tcp_client* client = tcp_client_create(master_host, master_port);
@@ -213,10 +224,11 @@ int main(int argc, char const* argv[])
         }
 
         // Wait for task from master
-        int recv = tcp_recv_task_request(socket_fd, &task); 
+        int recv = tcp_recv_task_request(socket_fd, &task);
         if (recv < 0)
         {
-            if (recv == -2) {
+            if (recv == -2)
+            {
                 running = false;
                 break;
             }
@@ -235,20 +247,24 @@ int main(int argc, char const* argv[])
         clock_t time = clock();
 
         max_memory = get_memory_usage(max_memory);
-        printf("Received task (id=%u): start=(%d, %d) goal=(%d, %d)\n", task->task_id, task->start_x,
-               task->start_y, task->goal_x, task->goal_y);
+        printf("Received task (id=%u): start=(%d, %d) goal=(%d, %d)\n", task->task_id, task->start_x, task->start_y,
+               task->goal_x, task->goal_y);
 
         Vec2 start = (Vec2){task->start_x, task->start_y};
         Vec2 goal = (Vec2){task->goal_x, task->goal_y};
         Vec2 cluster_pos = global_vec_to_cluster_pos(start);
 
         // Find the correct cluster for this task
-        WorkerCluster* cluster = find_cluster_by_position(clusters, cluster_count, (int16_t)cluster_pos.x, (int16_t)cluster_pos.y);
+        WorkerCluster* cluster =
+            find_cluster_by_position(clusters, cluster_count, (int16_t)cluster_pos.x, (int16_t)cluster_pos.y);
         if (!cluster)
         {
-            fprintf(stderr, "ERROR: Cluster (%d, %d) not assigned to this worker\n", (int16_t)cluster_pos.x, (int16_t)cluster_pos.y);
-            TaskResponse response = {
-                .task_id = task->task_id, .path_length = 0, .path = NULL, .status_code = 2}; // status_code=2 for cluster not found
+            fprintf(stderr, "ERROR: Cluster (%d, %d) not assigned to this worker\n", (int16_t)cluster_pos.x,
+                    (int16_t)cluster_pos.y);
+            TaskResponse response = {.task_id = task->task_id,
+                                     .path_length = 0,
+                                     .path = NULL,
+                                     .status_code = 2}; // status_code=2 for cluster not found
             if (tcp_send_task_response(socket_fd, &response) < 0)
             {
                 fprintf(stderr, "Failed to send error response\n");
@@ -261,8 +277,7 @@ int main(int argc, char const* argv[])
         Vec2* result = worker_a(cluster, start, goal);
         if (result == NULL)
         {
-            TaskResponse response = {
-                .task_id = task->task_id, .path_length = 0, .path = NULL, .status_code = 1};
+            TaskResponse response = {.task_id = task->task_id, .path_length = 0, .path = NULL, .status_code = 1};
             if (tcp_send_task_response(socket_fd, &response) < 0)
             {
                 fprintf(stderr, "Failed to send failed task response\n");
@@ -283,8 +298,8 @@ int main(int argc, char const* argv[])
                                  .path_length = arrlen(result),
                                  .path = result,
                                  .status_code = 0,
-                                .max_memory_bytes = max_memory,
-                            .cpu_time = (double)(clock() - time) / CLOCKS_PER_SEC};
+                                 .max_memory_bytes = max_memory,
+                                 .cpu_time = (double)(clock() - time) / CLOCKS_PER_SEC};
 
         // Send response back to master
         if (tcp_send_task_response(socket_fd, &response) < 0)

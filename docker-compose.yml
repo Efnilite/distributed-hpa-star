@@ -1,0 +1,73 @@
+services:
+  master:
+    build: .
+    container_name: master
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./data:/app/data:ro
+      - ./results:/app/results
+    environment:
+      - MASTER_PORT=9090
+      - MASTER_HOST=127.0.0.1
+      - DATA_DIR=/app/data
+    command: ./master/mphpa
+    networks:
+      - dhpa-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9090"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  worker-1:
+    build: .
+    container_name: worker-1
+    depends_on:
+      master:
+        condition: service_healthy
+    environment:
+      - MASTER_HOST=master
+      - MASTER_PORT=9090
+      - DATA_DIR=/app/data
+    volumes:
+      - ./data:/app/data:ro
+    command: ./worker/wphpa
+    networks:
+      - dhpa-network
+
+  worker-2:
+    build: .
+    container_name: worker-2
+    depends_on:
+      master:
+        condition: service_healthy
+    environment:
+      - MASTER_HOST=master
+      - MASTER_PORT=9090
+      - DATA_DIR=/app/data
+    volumes:
+      - ./data:/app/data:ro
+    command: ./worker/wphpa
+    networks:
+      - dhpa-network
+
+  worker-3:
+    build: .
+    container_name: worker-3
+    depends_on:
+      master:
+        condition: service_healthy
+    environment:
+      - MASTER_HOST=master
+      - MASTER_PORT=9090
+      - DATA_DIR=/app/data
+    volumes:
+      - ./data:/app/data:ro
+    command: ./worker/wphpa
+    networks:
+      - dhpa-network
+
+networks:
+  dhpa-network:
+    driver: bridge
