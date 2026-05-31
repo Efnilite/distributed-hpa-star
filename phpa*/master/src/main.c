@@ -495,6 +495,7 @@ int main(int argc, char const* argv[])
         Vec2* result = NULL;
         max_memory = get_memory_usage(max_memory);
         long worker_max_memory = 0;
+        WorkerResult workers[WORKERS_SIZE];
         
         // Sort responses by task_id if not already in order
         for (uint32_t task_id = 1; task_id <= packets_sent; task_id++)
@@ -504,9 +505,7 @@ int main(int argc, char const* argv[])
                 if (responses_map[i].task_id == task_id)
                 {
                     TaskResponse* resp = responses_map[i].response;
-                    if (resp->max_memory_bytes > worker_max_memory) {
-                        worker_max_memory = resp->max_memory_bytes;
-                    }
+
                     if (resp->path_length > 0 && resp->path)
                     {
                         for (uint32_t j = 0; j < resp->path_length; j++)
@@ -519,6 +518,7 @@ int main(int argc, char const* argv[])
                 }
             }
         }
+
         max_memory = get_memory_usage(max_memory);
 
         result_visualize(&map, &(Result){.success = true, .graph = graph, .path = result, .max_memory_bytes = max_memory, .cpu_secs = (double)(clock() - time) / CLOCKS_PER_SEC, .visited = NULL,.worker_max_memory_bytes=worker_max_memory});
