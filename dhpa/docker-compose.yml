@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  master:
+    build:
+      context: ..
+      dockerfile: dhpa/Dockerfile
+    container_name: dhpa-master
+    command: /app/master
+    networks:
+      - dhpa-network
+    environment:
+      - SERVICE_NAME=master
+      - MASTER_HOST=0.0.0.0
+      - MASTER_PORT=9090
+    ports:
+      - "9090:9090"
+    stdin_open: true
+    tty: true
+
+  worker:
+    build:
+      context: ..
+      dockerfile: dhpa/Dockerfile
+    container_name: dhpa-worker
+    command: /app/worker
+    networks:
+      - dhpa-network
+    environment:
+      - SERVICE_NAME=worker
+      - MASTER_HOST=dhpa-master
+      - MASTER_PORT=9090
+    stdin_open: true
+    tty: true
+
+networks:
+  dhpa-network:
+    driver: bridge

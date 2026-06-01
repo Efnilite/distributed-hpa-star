@@ -306,12 +306,13 @@ int main(int argc, char const* argv[])
     const char* host = getenv("MASTER_HOST");
     if (!host)
     {
-        host = "127.0.0.1"; 
+        host = "127.0.0.1";
     }
-    if (strcmp(host, "0.0.0.0") == 0) {
-        fprintf(stderr, "Cannot have 0.0.0.0 as host\n");
-        return 1;
-    }
+    // if (strcmp(host, "0.0.0.0") == 0)
+    // {
+    //     fprintf(stderr, "Cannot have 0.0.0.0 as host\n");
+    //     return 1;
+    // }
 
     const char* port_str = getenv("MASTER_PORT");
     uint16_t port = 9090;
@@ -330,7 +331,7 @@ int main(int argc, char const* argv[])
 
     // Store worker connections
     int* worker_fds = NULL;
-    Map map = parse_map("/app/data/sparse/scene_mp_2p_01");
+    Map map = parse_map("data/sparse/scene_mp_2p_01");
 
     Graph* graph = NULL;
     Cluster* clusters = NULL;
@@ -509,9 +510,8 @@ int main(int argc, char const* argv[])
         // Compile final path by processing responses in task_id order
         Vec2* result = NULL;
         max_memory = get_memory_usage(max_memory);
-        long worker_max_memory = 0;
         WorkerResult workers[WORKERS_SIZE];
-        
+
         // Sort responses by task_id if not already in order
         for (uint32_t task_id = 1; task_id <= packets_sent; task_id++)
         {
@@ -520,7 +520,7 @@ int main(int argc, char const* argv[])
                 if (responses_map[i].task_id == task_id)
                 {
                     TaskResponse* resp = responses_map[i].response;
-
+    
                     if (resp->path_length > 0 && resp->path)
                     {
                         for (uint32_t j = 0; j < resp->path_length; j++)
@@ -543,7 +543,7 @@ int main(int argc, char const* argv[])
                                    .max_memory_bytes = max_memory,
                                    .cpu_secs = (double)(clock() - time) / CLOCKS_PER_SEC,
                                    .visited = NULL,
-                                   .worker_max_memory_bytes = worker_max_memory});
+                                   .workers = workers});
 
         // Cleanup responses
         for (size_t i = 0; i < arrlen(responses_map); i++)

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
 
 #include "vbitset.h"
 
@@ -19,6 +20,24 @@ static FILE* try_open_map(const char* dir, const char* filename)
 
 Map parse_map(const char* file_name)
 {
+    {
+        printf("Current directory contents:\n");
+        struct dirent* de; 
+        DIR* dr = opendir(".");
+
+        if (dr == NULL)
+        {
+            printf("Could not open current directory");
+            return (Map){.w = 0, .h = 0, .size = 0, .coordinates = NULL};
+        }
+
+        while ((de = readdir(dr)) != NULL)
+            printf("%s\n", de->d_name);
+
+        closedir(dr);
+        printf("\n");
+    }
+
     FILE* file = fopen(file_name, "r");
     if (file == NULL)
     {
@@ -70,7 +89,5 @@ Map parse_map(const char* file_name)
 
     fclose(file);
 
-    return (Map){
-        .w = w, .h = h, .size = w * h, .coordinates = map
-    };
+    return (Map){.w = w, .h = h, .size = w * h, .coordinates = map};
 }

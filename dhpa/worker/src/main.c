@@ -137,10 +137,10 @@ int main(int argc, char const* argv[])
     {
         master_host = "127.0.0.1";
     }
-    if (strcmp(master_host, "0.0.0.0") == 0) {
-        fprintf(stderr, "Cannot have 0.0.0.0 as master_host\n");
-        return 1;
-    }
+    // if (strcmp(master_host, "0.0.0.0") == 0) {
+    //     fprintf(stderr, "Cannot have 0.0.0.0 as master_host\n");
+    //     return 1;
+    // }
 
     const char* master_port_str = getenv("MASTER_PORT");
     uint16_t master_port = 9090;
