@@ -160,14 +160,14 @@ int main(int argc, char const* argv[])
         
         if (attempt < 29)
         {
-            fprintf(stderr, "Connection attempt %d failed, retrying in %d seconds...\n", attempt + 1, retry_delay);
+            fprintf(stderr, "Connection attempt %d failed, retrying...\n", attempt + 1);
             sleep(1);
         }
     }
     
     if (!client)
     {
-        fprintf(stderr, "Failed to connect to master at %s:%u after %d attempts\n", master_host, master_port, max_retries);
+        fprintf(stderr, "Failed to connect to master at %s:%u after 30 attempts\n", master_host, master_port);
         map_free(&map);
         return 1;
     }

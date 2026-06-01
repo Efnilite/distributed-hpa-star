@@ -138,7 +138,6 @@ void result_visualize(const Map* map, const Result* result)
     fflush(file);
     fclose(file);
     free(text);
-    free(result->workers);
 }
 
 #define XY_TO_IDX_C(x, y) ((x) + (y) * CLUSTER_SIZE)
