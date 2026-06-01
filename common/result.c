@@ -102,8 +102,6 @@ void result_visualize(const Map* map, const Result* result)
 
     fprintf(file, "Path Length: %ld\n", arrlen(result->path));
     fprintf(file, "Max Memory: %.2f MB\n", result->max_memory_bytes / (1024.0 * 1024.0));
-    fprintf(file, "Workers: %d\n", WORKERS_SIZE);
-    fprintf(file, "Worker Max Memory: %.2f MB\n", result->worker_max_memory_bytes / (1024.0 * 1024.0));
     fprintf(file, "Path Cost: %f\n", cost);
     if (result->visited != NULL)
     {
@@ -125,9 +123,22 @@ void result_visualize(const Map* map, const Result* result)
         fputc('\n', file);
     }
 
+    fprintf(file, "Workers: %d\n", WORKERS_SIZE);
+    long max_worker_memory = 0;
+    for (size_t i = 0; i < WORKERS_SIZE; i++)
+    {
+        if (result->workers[i]->max_memory_bytes > max_worker_memory) {
+            max_worker_memory = result->workers[i]->max_memory_bytes;
+        }
+        fprintf(file, "Worker %d CPU Time: %d\n", i, result->workers[i]->cpu_time);   
+    }
+
+    fprintf(file, "Worker Max Memory: %.2f MB\n", max_worker_memory / (1024.0 * 1024.0));
+
     fflush(file);
     fclose(file);
     free(text);
+    free(result->workers);
 }
 
 #define XY_TO_IDX_C(x, y) ((x) + (y) * CLUSTER_SIZE)

@@ -3,8 +3,10 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <time.h>
 
 #include "graph.h"
+#include "constants.h"
 #include "map.h"
 #include "vec2.h"
 
@@ -17,6 +19,15 @@ typedef struct closed_node_t
     bool is_closed;
 } ClosedNode;
 
+
+/**
+ * A struct containing information about a worker.
+ */
+typedef struct worker_result_t {
+    long max_memory_bytes;
+    clock_t cpu_time;
+} WorkerResult;
+
 /**
  * A struct containing information about a pathfinding result.
  */
@@ -28,7 +39,7 @@ typedef struct result_t
     double cpu_secs;
     long max_memory_bytes;
     Graph* graph;
-    long worker_max_memory_bytes;
+    WorkerResult* workers[WORKERS_SIZE];
 } Result;
 
 /**
