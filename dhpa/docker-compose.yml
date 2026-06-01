@@ -8,7 +8,9 @@ services:
     container_name: dhpa-master
     command: /app/master
     networks:
-      - dhpa-network
+      dhpa-network:
+        aliases:
+          - master
     environment:
       - SERVICE_NAME=master
       - MASTER_HOST=0.0.0.0
@@ -25,11 +27,15 @@ services:
     container_name: dhpa-worker
     command: /app/worker
     networks:
-      - dhpa-network
+      dhpa-network:
+        aliases:
+          - worker
     environment:
       - SERVICE_NAME=worker
-      - MASTER_HOST=dhpa-master
+      - MASTER_HOST=master
       - MASTER_PORT=9090
+    depends_on:
+      - master
     stdin_open: true
     tty: true
 
