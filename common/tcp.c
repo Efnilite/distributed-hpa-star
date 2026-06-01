@@ -248,37 +248,56 @@ tcp_client* tcp_client_create(const char* host, uint16_t port)
         return NULL;
     }
 
-    client->socket_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (client->socket_fd < 0)
+    char port_str[6];
+    snprintf(port_str, sizeof(port_str), "%u", port);
+
+    struct addrinfo hints, *res, *res_orig;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+
+    int gai_result = getaddrinfo(host, port_str, &hints, &res);
+    if (gai_result != 0)
     {
-        perror("socket");
+        fprintf(stderr, "getaddrinfo failed for host %s: %s\n", host, gai_strerror(gai_result));
         free(client);
         return NULL;
     }
 
-    // Disable Nagle's algorithm
-    if (set_tcp_nodelay(client->socket_fd) < 0)
-    {
-        fprintf(stderr, "Failed to set TCP_NODELAY\n");
-    }
+    res_orig = res;
+    int connected = 0;
 
-    struct sockaddr_in server_addr;
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(port);
-
-    if (inet_pton(AF_INET, host, &server_addr.sin_addr) <= 0)
+    // Try each address until we successfully connect
+    while (res)
     {
-        fprintf(stderr, "Invalid host: %s\n", host);
+        client->socket_fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+        if (client->socket_fd < 0)
+        {
+            res = res->ai_next;
+            continue;
+        }
+
+        // Disable Nagle's algorithm
+        if (set_tcp_nodelay(client->socket_fd) < 0)
+        {
+            fprintf(stderr, "Failed to set TCP_NODELAY\n");
+        }
+
+        if (connect(client->socket_fd, res->ai_addr, res->ai_addrlen) >= 0)
+        {
+            connected = 1;
+            break;
+        }
+
         close(client->socket_fd);
-        free(client);
-        return NULL;
+        res = res->ai_next;
     }
 
-    if (connect(client->socket_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
+    freeaddrinfo(res_orig);
+
+    if (!connected)
     {
         perror("connect");
-        close(client->socket_fd);
         free(client);
         return NULL;
     }

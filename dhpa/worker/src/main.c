@@ -149,11 +149,25 @@ int main(int argc, char const* argv[])
         master_port = (uint16_t)atoi(master_port_str);
     }
 
-    // Connect to master server
-    tcp_client* client = tcp_client_create(master_host, master_port);
+    tcp_client* client = NULL;
+    for (int attempt = 0; attempt < 30; attempt++)
+    {
+        client = tcp_client_create(master_host, master_port);
+        if (client)
+        {
+            break;
+        }
+        
+        if (attempt < 29)
+        {
+            fprintf(stderr, "Connection attempt %d failed, retrying in %d seconds...\n", attempt + 1, retry_delay);
+            sleep(1);
+        }
+    }
+    
     if (!client)
     {
-        fprintf(stderr, "Failed to connect to master at %s:%u\n", master_host, master_port);
+        fprintf(stderr, "Failed to connect to master at %s:%u after %d attempts\n", master_host, master_port, max_retries);
         map_free(&map);
         return 1;
     }
