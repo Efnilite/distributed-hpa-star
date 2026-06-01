@@ -536,14 +536,14 @@ int main(int argc, char const* argv[])
 
         max_memory = get_memory_usage(max_memory);
 
-        result_visualize(&map,
-                         &(Result){.success = true,
-                                   .graph = graph,
-                                   .path = result,
-                                   .max_memory_bytes = max_memory,
-                                   .cpu_secs = (double)(clock() - time) / CLOCKS_PER_SEC,
-                                   .visited = NULL,
-                                   .workers = workers});
+        // result_visualize(&map,
+        //                  &(Result){.success = true,
+        //                            .graph = graph,
+        //                            .path = result,
+        //                            .max_memory_bytes = max_memory,
+        //                            .cpu_secs = (double)(clock() - time) / CLOCKS_PER_SEC,
+        //                            .visited = NULL,
+        //                            .workers = workers});
 
         // Cleanup responses
         for (size_t i = 0; i < arrlen(responses_map); i++)

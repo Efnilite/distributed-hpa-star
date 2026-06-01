@@ -130,7 +130,7 @@ void result_visualize(const Map* map, const Result* result)
         if (result->workers[i]->max_memory_bytes > max_worker_memory) {
             max_worker_memory = result->workers[i]->max_memory_bytes;
         }
-        fprintf(file, "Worker %ld CPU Time: %d\n", i, result->workers[i]->cpu_time);   
+        fprintf(file, "Worker %ld CPU Time: %ld\n", i, result->workers[i]->cpu_time);   
     }
 
     fprintf(file, "Worker Max Memory: %.2f MB\n", max_worker_memory / (1024.0 * 1024.0));

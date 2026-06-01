@@ -53,7 +53,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
     *startn = (FrontierNode){
         .pos = start,
         .node = start_node,
-        .estimated_score = (uint16_t)vec2_distance_chebyshev(start, goal),
+        .estimated_score = (uint16_t)vec2_distance_manhattan(start, goal),
     };
     heap_insert(&frontier, startn, &startn->estimated_score);
 
@@ -123,7 +123,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
             const size_t successor_idx = XY_TO_IDX(successor->pos.x, successor->pos.y);
 
             const uint16_t gn = score + to_successor->weight;
-            const uint16_t hn = (uint16_t)vec2_distance_chebyshev(successor->pos, goal);
+            const uint16_t hn = (uint16_t)vec2_distance_manhattan(successor->pos, goal);
             const uint16_t fn = gn + hn;
 
             if (hmget(closed, successor_idx))
