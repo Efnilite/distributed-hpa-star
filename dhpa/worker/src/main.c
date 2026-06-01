@@ -125,7 +125,7 @@ int main(int argc, char const* argv[])
 {
     signal(SIGINT, signal_handler);
 
-    Map map = parse_map_auto("sparse/scene_mp_2p_01");
+    Map map = parse_map("/app/data/sparse/scene_mp_2p_01");
     printf("Loaded map: %u x %u\n", map.w, map.h);
 
     WorkerCluster* clusters = NULL;

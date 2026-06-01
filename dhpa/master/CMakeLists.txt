@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.22.1)
-project(mphpa C)
+project(master C)
 
 set(CMAKE_C_STANDARD 17)
 
-add_executable(mphpa
+add_executable(master
         src/main.c
         src/preprocess.c
         ../common/graph_a.c
@@ -18,4 +18,4 @@ add_executable(mphpa
         ../../common/graph.c
         ../../common/tcp.c)
 
-target_link_libraries(mphpa m)
+target_link_libraries(master m)

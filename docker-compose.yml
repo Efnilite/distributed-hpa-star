@@ -1,5 +1,7 @@
 services:
   master:
+    cap_add:
+      - NET_ADMIN
     build: .
     container_name: master
     ports:
@@ -11,7 +13,7 @@ services:
       - MASTER_PORT=9090
       - MASTER_HOST=127.0.0.1
       - DATA_DIR=/app/data
-    command: ./master/mphpa
+    command: ./app/master
     networks:
       - dhpa-network
     healthcheck:
@@ -32,7 +34,7 @@ services:
       - DATA_DIR=/app/data
     volumes:
       - ./data:/app/data:ro
-    command: ./worker/wphpa
+    command: ./app/worker
     networks:
       - dhpa-network
 
@@ -48,7 +50,7 @@ services:
       - DATA_DIR=/app/data
     volumes:
       - ./data:/app/data:ro
-    command: ./worker/wphpa
+    command: ./app/worker
     networks:
       - dhpa-network
 
@@ -64,7 +66,7 @@ services:
       - DATA_DIR=/app/data
     volumes:
       - ./data:/app/data:ro
-    command: ./worker/wphpa
+    command: ./app/worker
     networks:
       - dhpa-network
 

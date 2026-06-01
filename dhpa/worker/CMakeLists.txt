@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.22.1)
-project(wphpa C)
+project(worker C)
 
 set(CMAKE_C_STANDARD 17)
 
-add_executable(wphpa
+add_executable(worker
         src/main.c
         src/worker_a.c
         ../../common/parser.c
@@ -16,4 +16,4 @@ add_executable(wphpa
         ../../common/graph.c
         ../../common/tcp.c)
 
-target_link_libraries(wphpa m)
+target_link_libraries(worker m)

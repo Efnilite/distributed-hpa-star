@@ -330,7 +330,7 @@ int main(int argc, char const* argv[])
 
     // Store worker connections
     int* worker_fds = NULL;
-    Map map = parse_map_auto("sparse/scene_mp_2p_01");
+    Map map = parse_map("/app/data/sparse/scene_mp_2p_01");
 
     Graph* graph = NULL;
     Cluster* clusters = NULL;
