@@ -334,13 +334,12 @@ int main(int argc, char const* argv[])
     Map map = parse_map("data/sparse/scene_mp_2p_01");
 
     Graph* graph = NULL;
-    Cluster* clusters = NULL;
 
     // start/end goal
     Vec2 start = (Vec2){260, 180};
     Vec2 goal = (Vec2){1565, 1745};
 
-    preprocess(&map, &graph, clusters, start, goal);
+    preprocess(&map, &graph, start, goal);
 
     MapDimensions dimensions = (MapDimensions){.w = map.w,
                                                .h = map.h,
@@ -536,14 +535,14 @@ int main(int argc, char const* argv[])
 
         max_memory = get_memory_usage(max_memory);
 
-        // result_visualize(&map,
-        //                  &(Result){.success = true,
-        //                            .graph = graph,
-        //                            .path = result,
-        //                            .max_memory_bytes = max_memory,
-        //                            .cpu_secs = (double)(clock() - time) / CLOCKS_PER_SEC,
-        //                            .visited = NULL,
-        //                            .workers = workers});
+        result_visualize(&map,
+                         &(Result){.success = true,
+                                   .graph = graph,
+                                   .path = result,
+                                   .max_memory_bytes = max_memory,
+                                   .cpu_secs = (double)(clock() - time) / CLOCKS_PER_SEC,
+                                   .visited = NULL,
+                                   .workers = workers});
 
         // Cleanup responses
         for (size_t i = 0; i < arrlen(responses_map); i++)

@@ -153,7 +153,7 @@ static void populate_edges(const Map* map, Cluster* clusters, Graph** graph)
     }
 }
 
-void preprocess(const Map* map, Graph** graph, Cluster* clusters, const Vec2 start, const Vec2 goal)
+void preprocess(const Map* map, Graph** graph, const Vec2 start, const Vec2 goal)
 {
     const clock_t begin = clock();
 
@@ -165,7 +165,7 @@ void preprocess(const Map* map, Graph** graph, Cluster* clusters, const Vec2 sta
     const size_t cluster_h = (size_t)ceil(map->h / (float)CLUSTER_SIZE);
     const size_t cluster_size = cluster_w * cluster_h;
 
-    clusters = malloc(sizeof(Cluster) * cluster_size);
+    Cluster* clusters = malloc(sizeof(Cluster) * cluster_size);
 
     for (int cy = 0; cy < cluster_h; ++cy)
     {
@@ -240,4 +240,6 @@ void preprocess(const Map* map, Graph** graph, Cluster* clusters, const Vec2 sta
     printf("Graph nodes after connecting start/goal: %zu\n", (*graph)->node_count);
     printf("Start: (%d, %d) in cluster (%d, %d)\n", start.x, start.y, start_cluster->pos.x, start_cluster->pos.y);
     printf("Goal: (%d, %d) in cluster (%d, %d)\n", goal.x, goal.y, goal_cluster->pos.x, goal_cluster->pos.y);
+
+    free(clusters);
 }
