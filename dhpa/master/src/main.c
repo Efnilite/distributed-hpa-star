@@ -9,6 +9,7 @@
 #include "../../../common/constants.h"
 #include "../../../common/map.h"
 #include "../../../common/parser.h"
+void divide_clusters(const MapDimensions map, int**
 #include "../../../common/result.h"
 #include "../../../common/tcp.h"
 #include "../../../common/util.h"
@@ -29,41 +30,61 @@ void signal_handler(int sig)
     printf("\nShutdown signal received\n");
 }
 
-void divide_clusters(const MapDimensions map, int* clusters_per_worker, int connections_count)
+void divide_clusters(const MapDimensions map, int* clusters_per_worker)
 {
-    const size_t clusters_per_worker_base = (size_t)ceil(map.clusters_size / (float)connections_count);
-
-    int remaining_clusters = map.clusters_size;
-    for (size_t worker = 0; worker < connections_count; worker++)
+    // Initialize all workers to 0 clusters
+    for (size_t worker = 0; worker < WORKERS_SIZE; worker++)
     {
-        int old = remaining_clusters;
         clusters_per_worker[worker] = 0;
-        for (size_t i = 0; i < clusters_per_worker_base; i++)
-        {
-            if (remaining_clusters <= 0)
-            {
-                break;
-            }
+    }
 
-            clusters_per_worker[worker] = clusters_per_worker[worker] + 1;
+    // Assign clusters in round-robin fashion
+    for (size_t cluster_idx = 0; cluster_idx < map.clusters_size; cluster_idx++)
+    {
+        size_t worker = cluster_idx % WORKERS_SIZE;
+        clusters_per_worker[worker]++;
+    }
 
-            remaining_clusters--;
-        }
-        printf("Worker %ld is getting %d clusters: %d-%d\n", worker, clusters_per_worker[worker], remaining_clusters,
-               old);
+    // Print assignment summary
+    for (size_t worker = 0; worker < WORKERS_SIZE; worker++)
+    {
+        printf("Worker %ld is getting %d clusters (round-robin distribution)\n", worker, clusters_per_worker[worker]);
     }
 }
 
-void send_cluster_assignments(const MapDimensions map, int* worker_fds, int workers_count, int* clusters_per_worker)
+void send_cluster_assignments(const MapDimensions map, int* worker_fds, int* clusters_per_worker)
 {
-    // Track which cluster index we're at for each worker
-    int cluster_offset = 0;
+    // For round-robin distribution, collect clusters for each worker
+    typedef struct
+    {
+        int16_t* positions;
+        int count;
+    } WorkerClusters;
 
-    for (int worker = 0; worker < workers_count; worker++)
+    WorkerClusters* worker_clusters = (WorkerClusters*)malloc(WORKERS_SIZE * sizeof(WorkerClusters));
+    for (int i = 0; i < WORKERS_SIZE; i++)
+    {
+        worker_clusters[i].positions = (int16_t*)malloc(clusters_per_worker[i] * 2 * sizeof(int16_t));
+        worker_clusters[i].count = 0;
+    }
+
+    // Assign clusters in round-robin fashion
+    for (size_t cluster_idx = 0; cluster_idx < map.clusters_size; cluster_idx++)
+    {
+        int worker = cluster_idx % WORKERS_SIZE;
+        int16_t cluster_x = (int16_t)(cluster_idx % map.clusters_w);
+        int16_t cluster_y = (int16_t)(cluster_idx / map.clusters_w);
+
+        int pos_idx = worker_clusters[worker].count * 2;
+        worker_clusters[worker].positions[pos_idx] = cluster_x;
+        worker_clusters[worker].positions[pos_idx + 1] = cluster_y;
+        worker_clusters[worker].count++;
+    }
+
+    // Send assignments to each worker
+    for (int worker = 0; worker < WORKERS_SIZE; worker++)
     {
         int num_clusters = clusters_per_worker[worker];
-
-        // Calculate payload size: 2 bytes for worker_id + 4 bytes for count + 4 bytes per cluster (2 bytes x, 2 bytes y)
         uint32_t payload_size = sizeof(uint16_t) + sizeof(uint32_t) + (num_clusters * sizeof(int16_t) * 2);
         void* payload = malloc(payload_size);
 
@@ -81,17 +102,7 @@ void send_cluster_assignments(const MapDimensions map, int* worker_fds, int work
         *count_ptr = num_clusters;
 
         int16_t* positions = (int16_t*)(payload + sizeof(uint16_t) + sizeof(uint32_t));
-
-        // Extract cluster positions from linear cluster index
-        for (int i = 0; i < num_clusters; i++)
-        {
-            size_t cluster_idx = cluster_offset + i;
-            int16_t cluster_x = (int16_t)(cluster_idx % map.clusters_w);
-            int16_t cluster_y = (int16_t)(cluster_idx / map.clusters_w);
-
-            positions[i * 2] = cluster_x;
-            positions[i * 2 + 1] = cluster_y;
-        }
+        memcpy(positions, worker_clusters[worker].positions, num_clusters * sizeof(int16_t) * 2);
 
         // Send the message to worker
         if (tcp_send_message(worker_fds[worker], MSG_CLUSTER_ASSIGNMENT, payload, payload_size) < 0)
@@ -100,19 +111,25 @@ void send_cluster_assignments(const MapDimensions map, int* worker_fds, int work
         }
         else
         {
-            printf("Sent cluster assignment to worker %d (worker_id=%u): %d clusters (indices %d-%d)\n", worker,
-                   (uint16_t)worker, num_clusters, cluster_offset, cluster_offset + num_clusters - 1);
+            printf("Sent cluster assignment to worker %d (worker_id=%u): %d clusters\n", worker, (uint16_t)worker,
+                   num_clusters);
             for (int i = 0; i < num_clusters && i < 5; i++)
             {
-                printf("  Cluster %d: pos (%d, %d)\n", cluster_offset + i, positions[i * 2], positions[i * 2 + 1]);
+                printf("  Cluster %d: pos (%d, %d)\n", i, positions[i * 2], positions[i * 2 + 1]);
             }
             if (num_clusters > 5)
                 printf("  ... and %d more clusters\n", num_clusters - 5);
         }
 
-        cluster_offset += num_clusters;
         free(payload);
     }
+
+    // Cleanup
+    for (int i = 0; i < WORKERS_SIZE; i++)
+    {
+        free(worker_clusters[i].positions);
+    }
+    free(worker_clusters);
 }
 
 /**
@@ -199,31 +216,18 @@ ClusterPathSegment* extract_clusters_from_path(const Vec2* path, size_t path_len
 
 /**
  * Determine which worker owns a given cluster based on cluster grid position
+ * Uses round-robin distribution where worker = cluster_idx % WORKERS_SIZE
  * @param cluster_pos The cluster grid position
  * @param map The map to calculate total clusters
- * @param clusters_per_worker Array of cluster counts per worker
- * @param workers_count Number of workers
- * @return The worker index that owns this cluster, or -1 if not found
+ * @return The worker index that owns this cluster
  */
-int get_worker_for_cluster(Vec2 cluster_pos, const MapDimensions map, int* clusters_per_worker, int workers_count)
+int get_worker_for_cluster(Vec2 cluster_pos, const MapDimensions map)
 {
-    const size_t cluster_w = (size_t)ceil(map.w / (float)CLUSTER_SIZE);
-
     // Convert cluster grid position to linear index
-    size_t cluster_idx = (size_t)cluster_pos.y * cluster_w + (size_t)cluster_pos.x;
+    size_t cluster_idx = (size_t)cluster_pos.y * map.clusters_w + (size_t)cluster_pos.x;
 
-    // Find which worker owns this cluster
-    size_t offset = 0;
-    for (int worker = 0; worker < workers_count; worker++)
-    {
-        if (cluster_idx < offset + clusters_per_worker[worker])
-        {
-            return worker;
-        }
-        offset += clusters_per_worker[worker];
-    }
-
-    return -1; // Cluster not assigned to any worker
+    // With round-robin, worker is simply cluster_idx % WORKERS_SIZE
+    return cluster_idx % WORKERS_SIZE;
 }
 
 /**
@@ -266,7 +270,7 @@ uint32_t send_cluster_pathfinding_packets(int* worker_fds, int workers_count, co
     uint32_t task_id = 1;
     for (size_t i = 0; i < arrlen(segments); i++)
     {
-        int worker = get_worker_for_cluster(segments[i].cluster_pos, map, clusters_per_worker, workers_count);
+        int worker = get_worker_for_cluster(segments[i].cluster_pos, map);
 
         if (worker < 0 || worker >= workers_count)
         {
@@ -350,7 +354,7 @@ int main(int argc, char const* argv[])
                                                .clusters_h = (size_t)ceil(map.h / (float)CLUSTER_SIZE),
                                                .clusters_size = (size_t)ceil(map.w / (float)CLUSTER_SIZE) *
                                                    (size_t)ceil(map.h / (float)CLUSTER_SIZE)};
-    int clusters_per_worker[WORKERS_SIZE] = {0};
+    int clusters_per_worker[WORKERS_SIZE];
 
     long max_memory = 0;
     max_memory = get_memory_usage(max_memory);
@@ -377,10 +381,10 @@ int main(int argc, char const* argv[])
             printf("All %d workers connected. Running divide_clusters...\n", WORKERS_SIZE);
 
             // Calculate cluster distribution
-            divide_clusters(dimensions, clusters_per_worker, WORKERS_SIZE);
+            divide_clusters(dimensions, clusters_per_worker);
 
             // Send cluster assignments to all workers
-            send_cluster_assignments(dimensions, worker_fds, WORKERS_SIZE, clusters_per_worker);
+            send_cluster_assignments(dimensions, worker_fds, clusters_per_worker);
             break;
         }
     }
