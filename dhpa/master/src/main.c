@@ -63,8 +63,8 @@ void send_cluster_assignments(const MapDimensions map, int* worker_fds, int work
     {
         int num_clusters = clusters_per_worker[worker];
 
-        // Calculate payload size: 4 bytes for count + 4 bytes per cluster (2 bytes x, 2 bytes y)
-        uint32_t payload_size = sizeof(uint32_t) + (num_clusters * sizeof(int16_t) * 2);
+        // Calculate payload size: 2 bytes for worker_id + 4 bytes for count + 4 bytes per cluster (2 bytes x, 2 bytes y)
+        uint32_t payload_size = sizeof(uint16_t) + sizeof(uint32_t) + (num_clusters * sizeof(int16_t) * 2);
         void* payload = malloc(payload_size);
 
         if (!payload)
@@ -73,11 +73,14 @@ void send_cluster_assignments(const MapDimensions map, int* worker_fds, int work
             continue;
         }
 
-        // Pack the data: first 4 bytes = cluster count, then cluster positions
-        uint32_t* count_ptr = (uint32_t*)payload;
+        // Pack the data: first 2 bytes = worker_id, next 4 bytes = cluster count, then cluster positions
+        uint16_t* worker_id_ptr = (uint16_t*)payload;
+        *worker_id_ptr = (uint16_t)worker;
+
+        uint32_t* count_ptr = (uint32_t*)(payload + sizeof(uint16_t));
         *count_ptr = num_clusters;
 
-        int16_t* positions = (int16_t*)(payload + sizeof(uint32_t));
+        int16_t* positions = (int16_t*)(payload + sizeof(uint16_t) + sizeof(uint32_t));
 
         // Extract cluster positions from linear cluster index
         for (int i = 0; i < num_clusters; i++)
@@ -97,8 +100,8 @@ void send_cluster_assignments(const MapDimensions map, int* worker_fds, int work
         }
         else
         {
-            printf("Sent cluster assignment to worker %d: %d clusters (indices %d-%d)\n", worker, num_clusters,
-                   cluster_offset, cluster_offset + num_clusters - 1);
+            printf("Sent cluster assignment to worker %d (worker_id=%u): %d clusters (indices %d-%d)\n", worker,
+                   (uint16_t)worker, num_clusters, cluster_offset, cluster_offset + num_clusters - 1);
             for (int i = 0; i < num_clusters && i < 5; i++)
             {
                 printf("  Cluster %d: pos (%d, %d)\n", cluster_offset + i, positions[i * 2], positions[i * 2 + 1]);
@@ -331,7 +334,7 @@ int main(int argc, char const* argv[])
 
     // Store worker connections
     int* worker_fds = NULL;
-    Map map = parse_map("data/sparse/scene_mp_2p_01");
+    Map map = parse_map("../data/sparse/scene_mp_2p_01");
 
     Graph* graph = NULL;
 
@@ -510,6 +513,14 @@ int main(int argc, char const* argv[])
         Vec2* result = NULL;
         max_memory = get_memory_usage(max_memory);
         WorkerResult workers[WORKERS_SIZE];
+        for (size_t i = 0; i < WORKERS_SIZE; i++)
+        {
+            workers[i] = (WorkerResult) {
+                .cpu_time = 0,
+                .max_memory_bytes = 0
+            };
+        }
+        
 
         // Sort responses by task_id if not already in order
         for (uint32_t task_id = 1; task_id <= packets_sent; task_id++)
@@ -519,7 +530,13 @@ int main(int argc, char const* argv[])
                 if (responses_map[i].task_id == task_id)
                 {
                     TaskResponse* resp = responses_map[i].response;
-    
+
+                    WorkerResult existing = workers[resp->worker_id];
+                    existing.cpu_time += resp->cpu_time;
+                    if (resp->max_memory_bytes > existing.max_memory_bytes) {
+                        existing.max_memory_bytes = resp->max_memory_bytes;
+                    }
+                    
                     if (resp->path_length > 0 && resp->path)
                     {
                         for (uint32_t j = 0; j < resp->path_length; j++)

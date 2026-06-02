@@ -36,6 +36,10 @@ long util_get_memory_usage(void)
 
 long get_memory_usage(long existing) {
     long current_memory = util_get_memory_usage();
+    // If unable to read current memory (returns -1), return existing max
+    if (current_memory < 0)
+        return existing;
+    // Return the maximum of current and existing
     if (current_memory > existing)
         return current_memory;
     return existing;

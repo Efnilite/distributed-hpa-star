@@ -117,23 +117,19 @@ void result_visualize(const Map* map, const Result* result)
     }
 
     fprintf(file, "CPU Time: %f secs\n", result->cpu_secs);
+
+    fprintf(file, "Workers: %d\n", WORKERS_SIZE);
+    for (size_t i = 0; i < WORKERS_SIZE; i++)
+    {
+        fprintf(file, "Worker %ld CPU Time: %f secs\n", i, result->workers[i]->cpu_time);   
+        fprintf(file, "Worker %ld Max Memory: %.2f MB\n", i, result->workers[i]->max_memory_bytes);   
+    }
+
     for (int y = 0; y < map->h; ++y)
     {
         fwrite(text + (size_t)y * map->w, 1, map->w, file);
         fputc('\n', file);
     }
-
-    fprintf(file, "Workers: %d\n", WORKERS_SIZE);
-    long max_worker_memory = 0;
-    for (size_t i = 0; i < WORKERS_SIZE; i++)
-    {
-        if (result->workers[i]->max_memory_bytes > max_worker_memory) {
-            max_worker_memory = result->workers[i]->max_memory_bytes;
-        }
-        fprintf(file, "Worker %ld CPU Time: %ld\n", i, result->workers[i]->cpu_time);   
-    }
-
-    fprintf(file, "Worker Max Memory: %.2f MB\n", max_worker_memory / (1024.0 * 1024.0));
 
     fflush(file);
     fclose(file);

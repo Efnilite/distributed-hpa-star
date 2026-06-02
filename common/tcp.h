@@ -43,6 +43,7 @@ typedef struct
     uint32_t path_length; // Number of waypoints in path
     Vec2* path; // Dynamically allocated path (pairs of x,y)
     int32_t status_code; // 0 = success, negative = error
+    uint16_t worker_id; // The worker
     long max_memory_bytes; // Max memory used
     clock_t cpu_time; // Cpu time
 } TaskResponse;
@@ -53,6 +54,7 @@ typedef struct
  */
 typedef struct
 {
+    uint16_t worker_id;
     uint32_t count; // Number of clusters assigned
     int16_t* positions; // Dynamically allocated array of (x,y) pairs (total 2*count elements)
 } ClusterAssignment;

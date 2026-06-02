@@ -89,6 +89,8 @@ void clusters_free(WorkerCluster* clusters, uint32_t count)
     free(clusters);
 }
 
+static uint16_t id = -1;
+
 int main(int argc, char const* argv[])
 {
     signal(SIGINT, signal_handler);
@@ -174,7 +176,8 @@ int main(int argc, char const* argv[])
                 }
             }
 
-            printf("Received cluster assignment: count=%u\n", ca->count);
+            id = ca->worker_id;
+            printf("Received cluster assignment: worker_id=%u, count=%u\n", ca->worker_id, ca->count);
 
             // Initialize clusters from the assignment
             cluster_count = ca->count;
@@ -284,6 +287,7 @@ int main(int argc, char const* argv[])
                                  .path_length = arrlen(result),
                                  .path = result,
                                  .status_code = 0,
+                                 .worker_id = id,
                                  .max_memory_bytes = max_memory,
                                  .cpu_time = (double)(clock() - time) / CLOCKS_PER_SEC};
 
@@ -296,7 +300,6 @@ int main(int argc, char const* argv[])
         {
             printf("Sent task response (id=%u, path_length=%u)\n", response.task_id, response.path_length);
         }
-        max_memory = get_memory_usage(max_memory);
 
         // Cleanup
         if (result)

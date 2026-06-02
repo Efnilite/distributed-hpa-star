@@ -456,8 +456,8 @@ int tcp_recv_cluster_assignment(int socket_fd, ClusterAssignment** out_ca)
         return -1;
     }
 
-    // Payload structure: uint32_t count + (count * 2 * int16_t positions)
-    if (header.payload_size < sizeof(uint32_t))
+    // Payload structure: uint16_t worker_id + uint32_t count + (count * 2 * int16_t positions)
+    if (header.payload_size < sizeof(uint16_t) + sizeof(uint32_t))
     {
         fprintf(stderr, "Invalid cluster assignment payload size: %u\n", header.payload_size);
         free(payload);
@@ -473,12 +473,16 @@ int tcp_recv_cluster_assignment(int socket_fd, ClusterAssignment** out_ca)
         return -1;
     }
 
+    // Extract worker_id
+    uint16_t* worker_id_ptr = (uint16_t*)payload;
+    ca->worker_id = *worker_id_ptr;
+
     // Extract cluster count
-    uint32_t* count_ptr = (uint32_t*)payload;
+    uint32_t* count_ptr = (uint32_t*)(payload + sizeof(uint16_t));
     ca->count = *count_ptr;
 
     // Verify payload size matches expected size
-    uint32_t expected_size = sizeof(uint32_t) + (ca->count * sizeof(int16_t) * 2);
+    uint32_t expected_size = sizeof(uint16_t) + sizeof(uint32_t) + (ca->count * sizeof(int16_t) * 2);
     if (header.payload_size != expected_size)
     {
         fprintf(stderr, "Invalid cluster assignment payload size: %u (expected %u for %u clusters)\n",
@@ -500,7 +504,7 @@ int tcp_recv_cluster_assignment(int socket_fd, ClusterAssignment** out_ca)
             free(payload);
             return -1;
         }
-        memcpy(ca->positions, (int16_t*)(payload + sizeof(uint32_t)), positions_size);
+        memcpy(ca->positions, (int16_t*)(payload + sizeof(uint16_t) + sizeof(uint32_t)), positions_size);
     }
     else
     {
@@ -520,7 +524,7 @@ int tcp_send_task_response(int socket_fd, const TaskResponse* response)
     // Send header with response metadata
     uint32_t path_bytes = response->path_length * sizeof(float) * 2;
     uint32_t response_header_size =
-        sizeof(uint32_t) * 2 + sizeof(int32_t) + sizeof(long) + sizeof(clock_t); // task_id, path_length, status_code, max memory, time
+        sizeof(uint32_t) * 2 + sizeof(int32_t) + sizeof(long) + sizeof(clock_t) + sizeof(uint16_t); // task_id, path_length, status_code, max memory, time, worker_id
     uint32_t total_payload = response_header_size + path_bytes;
 
     // Pack response data
@@ -538,6 +542,8 @@ int tcp_send_task_response(int socket_fd, const TaskResponse* response)
     ptr += sizeof(uint32_t);
     *(int32_t*)ptr = response->status_code;
     ptr += sizeof(int32_t);
+    *(uint16_t*)ptr = response->worker_id;
+    ptr += sizeof(uint16_t);
     *(long*)ptr = response->max_memory_bytes;
     ptr += sizeof(long);
     *(clock_t*)ptr = response->cpu_time;
@@ -590,6 +596,8 @@ int tcp_recv_task_response(int socket_fd, TaskResponse** out_response)
     ptr += sizeof(uint32_t);
     response->status_code = *(int32_t*)ptr;
     ptr += sizeof(int32_t);
+    response->worker_id = *(uint16_t*)ptr;
+    ptr += sizeof(uint16_t);
     response->max_memory_bytes = *(long*)ptr;
     ptr += sizeof(long);
     response->cpu_time = *(clock_t*)ptr;
