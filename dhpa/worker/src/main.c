@@ -5,7 +5,6 @@
 #include <time.h>
 #include <unistd.h>
 #include "../../../common/constants.h"
-#include "../../../common/map.h"
 #include "../../../common/parser.h"
 #include "../../../common/result.h"
 #include "../../../common/tcp.h"
@@ -34,10 +33,11 @@ void cluster_free(WorkerCluster* cluster)
 }
 
 /**
- * Create a WorkerCluster from the global map data
- * Extracts the obstacle bitset for the specified cluster
+ * Create a WorkerCluster from map file data
+ * Directly parses only the cluster-specific data from the map file
  */
-WorkerCluster* worker_cluster_create(const Map* map, int16_t cluster_x, int16_t cluster_y)
+WorkerCluster* worker_cluster_create(const char* map_file, uint16_t map_width, uint16_t map_height, int16_t cluster_x,
+                                     int16_t cluster_y)
 {
     WorkerCluster* cluster = (WorkerCluster*)malloc(sizeof(WorkerCluster));
     if (!cluster)
@@ -48,44 +48,12 @@ WorkerCluster* worker_cluster_create(const Map* map, int16_t cluster_x, int16_t 
 
     cluster->pos = (Vec2){cluster_x, cluster_y};
 
-    // Create a bitset for this cluster's obstacle map
-    size_t cluster_area = CLUSTER_SIZE * CLUSTER_SIZE;
-    cluster->coordinates = vbitset_create(cluster_area, 1); // 1 bit per cell (0=free, 1=wall)
+    cluster->coordinates = parse_map_for_cluster(map_file, map_width, map_height, cluster_x, cluster_y);
     if (!cluster->coordinates)
     {
-        fprintf(stderr, "Failed to create bitset for cluster (%d, %d)\n", cluster_x, cluster_y);
+        fprintf(stderr, "Failed to parse map data for cluster (%d, %d)\n", cluster_x, cluster_y);
         free(cluster);
         return NULL;
-    }
-
-    // Extract cluster-specific obstacle data from the global map
-    uint16_t cluster_start_x = cluster_x * CLUSTER_SIZE;
-    uint16_t cluster_start_y = cluster_y * CLUSTER_SIZE;
-
-    for (uint16_t local_y = 0; local_y < CLUSTER_SIZE; local_y++)
-    {
-        for (uint16_t local_x = 0; local_x < CLUSTER_SIZE; local_x++)
-        {
-            uint16_t global_x = cluster_start_x + local_x;
-            uint16_t global_y = cluster_start_y + local_y;
-
-            // Check if position is within map bounds
-            if (global_x < map->w && global_y < map->h)
-            {
-                // Copy wall data from global map to cluster bits
-                if (map_is_wall(map, global_x, global_y))
-                {
-                    size_t idx = xy_to_idx_cluster_a(local_x, local_y);
-                    vbitset_set(cluster->coordinates, idx, 1);
-                }
-            }
-            else
-            {
-                // Out of bounds cells are treated as walls
-                size_t idx = xy_to_idx_cluster_a(local_x, local_y);
-                vbitset_set(cluster->coordinates, idx, 1);
-            }
-        }
     }
 
     return cluster;
@@ -125,8 +93,14 @@ int main(int argc, char const* argv[])
 {
     signal(SIGINT, signal_handler);
 
-    Map map = parse_map("/app/data/sparse/scene_mp_2p_01");
-    printf("Loaded map: %u x %u\n", map.w, map.h);
+    const char* map_file = "../data/sparse/scene_mp_2p_01";
+    uint16_t map_width = 0, map_height = 0;
+    if (parse_map_dimensions(map_file, &map_width, &map_height) < 0)
+    {
+        fprintf(stderr, "Failed to parse map dimensions from %s\n", map_file);
+        return 1;
+    }
+    printf("Loaded map dimensions: %u x %u\n", map_width, map_height);
 
     WorkerCluster* clusters = NULL;
     uint32_t cluster_count = 0;
@@ -153,7 +127,7 @@ int main(int argc, char const* argv[])
     for (int attempt = 0; attempt < 30; attempt++)
     {
         client = tcp_client_create(master_host, master_port);
-        if (client)
+        if (client || !running)
         {
             break;
         }
@@ -168,7 +142,6 @@ int main(int argc, char const* argv[])
     if (!client)
     {
         fprintf(stderr, "Failed to connect to master at %s:%u after 30 attempts\n", master_host, master_port);
-        map_free(&map);
         return 1;
     }
 
@@ -218,7 +191,7 @@ int main(int argc, char const* argv[])
                 int16_t cluster_x = ca->positions[i * 2];
                 int16_t cluster_y = ca->positions[i * 2 + 1];
 
-                WorkerCluster* new_cluster = worker_cluster_create(&map, cluster_x, cluster_y);
+                WorkerCluster* new_cluster = worker_cluster_create(map_file, map_width, map_height, cluster_x, cluster_y);
                 if (!new_cluster)
                 {
                     fprintf(stderr, "Failed to create cluster (%d, %d)\n", cluster_x, cluster_y);
@@ -234,7 +207,6 @@ int main(int argc, char const* argv[])
             max_memory = get_memory_usage(max_memory);
             tcp_clusterassignment_free(&ca);
             clusters_initialized = 1;
-            map_free(&map);
         }
 
         // Wait for task from master
