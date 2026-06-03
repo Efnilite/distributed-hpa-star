@@ -9,7 +9,7 @@
 #include "../../../common/result.h"
 #include "../../../common/tcp.h"
 #include "../../../common/util.h"
-#include "worker_a.h"
+#include "../../common/cluster_a.h"
 
 #define STB_DS_IMPLEMENTATION
 // ReSharper disable once CppUnusedIncludeDirective
@@ -23,7 +23,7 @@ void signal_handler(int sig)
     printf("\nShutdown signal received\n");
 }
 
-void cluster_free(WorkerCluster* cluster)
+void cluster_free(PathfindingCluster* cluster)
 {
     if (cluster && cluster->coordinates)
     {
@@ -33,13 +33,13 @@ void cluster_free(WorkerCluster* cluster)
 }
 
 /**
- * Create a WorkerCluster from map file data
+ * Create a PathfindingCluster from map file data
  * Directly parses only the cluster-specific data from the map file
  */
-WorkerCluster* worker_cluster_create(const char* map_file, uint16_t map_width, uint16_t map_height, int16_t cluster_x,
+PathfindingCluster* worker_cluster_create(uint16_t map_width, uint16_t map_height, int16_t cluster_x,
                                      int16_t cluster_y)
 {
-    WorkerCluster* cluster = (WorkerCluster*)malloc(sizeof(WorkerCluster));
+    PathfindingCluster* cluster = (PathfindingCluster*)malloc(sizeof(PathfindingCluster));
     if (!cluster)
     {
         perror("malloc");
@@ -48,7 +48,7 @@ WorkerCluster* worker_cluster_create(const char* map_file, uint16_t map_width, u
 
     cluster->pos = (Vec2){cluster_x, cluster_y};
 
-    cluster->coordinates = parse_map_for_cluster(map_file, map_width, map_height, cluster_x, cluster_y);
+    cluster->coordinates = parse_map_for_cluster(MAP_FILE, map_width, map_height, cluster_x, cluster_y);
     if (!cluster->coordinates)
     {
         fprintf(stderr, "Failed to parse map data for cluster (%d, %d)\n", cluster_x, cluster_y);
@@ -62,7 +62,7 @@ WorkerCluster* worker_cluster_create(const char* map_file, uint16_t map_width, u
 /**
  * Find a cluster by position from the assigned cluster list
  */
-WorkerCluster* find_cluster_by_position(WorkerCluster* clusters, uint32_t cluster_count, int16_t cluster_x,
+PathfindingCluster* find_cluster_by_position(PathfindingCluster* clusters, uint32_t cluster_count, int16_t cluster_x,
                                         int16_t cluster_y)
 {
     for (uint32_t i = 0; i < cluster_count; i++)
@@ -78,7 +78,7 @@ WorkerCluster* find_cluster_by_position(WorkerCluster* clusters, uint32_t cluste
 /**
  * Free all clusters
  */
-void clusters_free(WorkerCluster* clusters, uint32_t count)
+void clusters_free(PathfindingCluster* clusters, uint32_t count)
 {
     if (!clusters)
         return;
@@ -95,16 +95,15 @@ int main(int argc, char const* argv[])
 {
     signal(SIGINT, signal_handler);
 
-    const char* map_file = "../data/sparse/scene_mp_2p_01";
     uint16_t map_width = 0, map_height = 0;
-    if (parse_map_dimensions(map_file, &map_width, &map_height) < 0)
+    if (parse_map_dimensions(MAP_FILE, &map_width, &map_height) < 0)
     {
-        fprintf(stderr, "Failed to parse map dimensions from %s\n", map_file);
+        fprintf(stderr, "Failed to parse map dimensions from %s\n", MAP_FILE);
         return 1;
     }
     printf("Loaded map dimensions: %u x %u\n", map_width, map_height);
 
-    WorkerCluster* clusters = NULL;
+    PathfindingCluster* clusters = NULL;
     uint32_t cluster_count = 0;
     int clusters_initialized = 0;
 
@@ -181,7 +180,7 @@ int main(int argc, char const* argv[])
 
             // Initialize clusters from the assignment
             cluster_count = ca->count;
-            clusters = (WorkerCluster*)malloc(cluster_count * sizeof(WorkerCluster));
+            clusters = (PathfindingCluster*)malloc(cluster_count * sizeof(PathfindingCluster));
             if (!clusters)
             {
                 fprintf(stderr, "Failed to allocate memory for clusters\n");
@@ -194,7 +193,7 @@ int main(int argc, char const* argv[])
                 int16_t cluster_x = ca->positions[i * 2];
                 int16_t cluster_y = ca->positions[i * 2 + 1];
 
-                WorkerCluster* new_cluster = worker_cluster_create(map_file, map_width, map_height, cluster_x, cluster_y);
+                PathfindingCluster* new_cluster = worker_cluster_create(map_width, map_height, cluster_x, cluster_y);
                 if (!new_cluster)
                 {
                     fprintf(stderr, "Failed to create cluster (%d, %d)\n", cluster_x, cluster_y);
@@ -244,7 +243,7 @@ int main(int argc, char const* argv[])
         Vec2 cluster_pos = global_vec_to_cluster_pos(start);
 
         // Find the correct cluster for this task
-        WorkerCluster* cluster =
+        PathfindingCluster* cluster =
             find_cluster_by_position(clusters, cluster_count, (int16_t)cluster_pos.x, (int16_t)cluster_pos.y);
         if (!cluster)
         {
@@ -263,7 +262,7 @@ int main(int argc, char const* argv[])
         }
         max_memory = get_memory_usage(max_memory);
 
-        Vec2* result = worker_a(cluster, start, goal);
+        Vec2* result = cluster_a(cluster, start, goal);
         if (result == NULL)
         {
             TaskResponse response = {.task_id = task->task_id, .path_length = 0, .path = NULL, .status_code = 1};

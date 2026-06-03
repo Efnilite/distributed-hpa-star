@@ -337,7 +337,7 @@ int main(int argc, char const* argv[])
 
     // Store worker connections
     int* worker_fds = NULL;
-    Map map = parse_map("../data/sparse/scene_mp_2p_01");
+    Map map = parse_map(MAP_FILE);
 
     Graph* graph = NULL;
 
@@ -345,15 +345,22 @@ int main(int argc, char const* argv[])
     Vec2 start = (Vec2){260, 180};
     Vec2 goal = (Vec2){1565, 1745};
 
-    preprocess(&map, &graph, start, goal);
+    uint16_t map_width = 0, map_height = 0;
+    if (parse_map_dimensions(MAP_FILE, &map_width, &map_height) < 0)
+    {
+        fprintf(stderr, "Failed to parse map dimensions from %s\n", MAP_FILE);
+        return 1;
+    }
 
-    MapDimensions dimensions = (MapDimensions){.w = map.w,
-                                               .h = map.h,
-                                               .clusters_w = (size_t)ceil(map.w / (float)CLUSTER_SIZE),
-                                               .clusters_h = (size_t)ceil(map.h / (float)CLUSTER_SIZE),
-                                               .clusters_size = (size_t)ceil(map.w / (float)CLUSTER_SIZE) *
-                                                   (size_t)ceil(map.h / (float)CLUSTER_SIZE)};
+    MapDimensions dimensions = (MapDimensions){.w = map_width,
+                                               .h = map_height,
+                                               .clusters_w = (size_t)ceil(map_width / (float)CLUSTER_SIZE),
+                                               .clusters_h = (size_t)ceil(map_height / (float)CLUSTER_SIZE),
+                                               .clusters_size = (size_t)ceil(map_width / (float)CLUSTER_SIZE) *
+                                                   (size_t)ceil(map_height / (float)CLUSTER_SIZE)};
     int clusters_per_worker[WORKERS_SIZE];
+
+    preprocess(&dimensions, &graph, start, goal);
 
     long max_memory = 0;
     max_memory = get_memory_usage(max_memory);

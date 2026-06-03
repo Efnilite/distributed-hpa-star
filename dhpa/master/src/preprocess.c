@@ -153,7 +153,7 @@ static void populate_edges(const Map* map, Cluster* clusters, Graph** graph)
     }
 }
 
-void preprocess(const Map* map, Graph** graph, const Vec2 start, const Vec2 goal)
+void preprocess(const MapDimensions* dimensions, Graph** graph, const Vec2 start, const Vec2 goal)
 {
     const clock_t begin = clock();
 
@@ -161,8 +161,8 @@ void preprocess(const Map* map, Graph** graph, const Vec2 start, const Vec2 goal
     // create graph
     *graph = graph_create();
 
-    const size_t cluster_w = (size_t)ceil(map->w / (float)CLUSTER_SIZE);
-    const size_t cluster_h = (size_t)ceil(map->h / (float)CLUSTER_SIZE);
+    const size_t cluster_w = (size_t)ceil(dimensions->w / (float)CLUSTER_SIZE);
+    const size_t cluster_h = (size_t)ceil(dimensions->h / (float)CLUSTER_SIZE);
     const size_t cluster_size = cluster_w * cluster_h;
 
     Cluster* clusters = malloc(sizeof(Cluster) * cluster_size);
@@ -189,7 +189,7 @@ void preprocess(const Map* map, Graph** graph, const Vec2 start, const Vec2 goal
         {
             for (size_t b_idx = a_idx + 1; b_idx < cluster->inter_edges_count; ++b_idx)
             {
-                Vec2* path = cluster_a(map, cluster, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx]);
+                Vec2* path = cluster_a(dimensions, cluster, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx]);
                 if (path == NULL)
                 {
                     continue;
@@ -213,7 +213,7 @@ void preprocess(const Map* map, Graph** graph, const Vec2 start, const Vec2 goal
     const Cluster* start_cluster = &clusters[VEC_TO_CLUSTER(start)];
     for (size_t i = 0; i < start_cluster->inter_edges_count; ++i)
     {
-        Vec2* path = cluster_a(map, start_cluster, start, start_cluster->inter_edges[i]);
+        Vec2* path = cluster_a(dimensions, start_cluster, start, start_cluster->inter_edges[i]);
         if (path == NULL)
         {
             continue;
@@ -226,7 +226,7 @@ void preprocess(const Map* map, Graph** graph, const Vec2 start, const Vec2 goal
     const Cluster* goal_cluster = &clusters[VEC_TO_CLUSTER(goal)];
     for (size_t i = 0; i < goal_cluster->inter_edges_count; ++i)
     {
-        Vec2* path = cluster_a(map, goal_cluster, goal, goal_cluster->inter_edges[i]);
+        Vec2* path = cluster_a(dimensions, goal_cluster, goal, goal_cluster->inter_edges[i]);
         if (path == NULL)
         {
             continue;

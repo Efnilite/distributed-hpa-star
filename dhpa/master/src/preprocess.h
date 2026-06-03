@@ -6,6 +6,6 @@
 #include "../../../common/graph.h"
 #include "../../common/hpa.h"
 
-void preprocess(const Map* map, Graph** graph, const Vec2 start, const Vec2 goal);
+void preprocess(const MapDimensions* dimensions, Graph** graph, const Vec2 start, const Vec2 goal);
 
 #endif 
