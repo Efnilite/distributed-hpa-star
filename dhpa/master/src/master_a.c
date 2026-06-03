@@ -9,9 +9,9 @@
 
 #include "../../../common/constants.h"
 #include "../../../common/mheap.h"
+#include "../../../common/parser.h"
 #include "../../../common/result.h"
 #include "../../../common/stb_ds.h"
-#include "../../../common/parser.h"
 
 // #define EUCLIDEAN
 // #define OCTILE
@@ -72,11 +72,10 @@ static void heap_free_elements(void* key, void* value) { free(key); }
 // A* implementation where all coordinates are near 0,0 to reduce memory usage by requiring minimal memory allocation
 Vec2* master_a(const MapDimensions* dimensions, const Vec2 cluster_pos, const Vec2 global_start, const Vec2 global_goal)
 {
-    MasterCluster cluster = (MasterCluster) {
+    MasterCluster cluster = (MasterCluster){
         .pos = cluster_pos,
-        .coordinates = parse_map_for_cluster(MAP_FILE, dimensions->w, dimensions->h, cluster_pos.x, cluster_pos.y)
-    };
-    
+        .coordinates = parse_map_for_cluster(MAP_FILE, dimensions->w, dimensions->h, cluster_pos.x, cluster_pos.y)};
+
     const Vec2 start = global_vec_to_local_vec(&cluster, global_start);
     const Vec2 goal = global_vec_to_local_vec(&cluster, global_goal);
 
@@ -138,6 +137,7 @@ Vec2* master_a(const MapDimensions* dimensions, const Vec2 cluster_pos, const Ve
             free(scores);
             vbitset_free(came_from);
             vbitset_free(closed);
+            vbitset_free(cluster.coordinates);
 
             return path;
         }
@@ -204,6 +204,8 @@ Vec2* master_a(const MapDimensions* dimensions, const Vec2 cluster_pos, const Ve
     vbitset_free(closed);
     vbitset_free(came_from);
     free(scores);
+
+    vbitset_free(cluster.coordinates);
 
     return NULL;
 }

@@ -14,11 +14,11 @@
 #define HPA
 
 #ifdef A
-#include "../a*/src/a.h"
+#include "../a/src/a.h"
 #define ALGORITHM a
 #endif
 #ifdef HPA
-#include "../hpa*/src/hpa.h"
+#include "../hpa/src/hpa.h"
 #define ALGORITHM hpa
 #endif
 

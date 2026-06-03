@@ -138,6 +138,9 @@ static void get_inter_edges_side(const MapDimensions* map, Cluster* cluster_a, C
             cluster_b->inter_edges[cluster_b->inter_edges_count++] = res_b[i];
         }
     }
+
+    vbitset_free(a);
+    vbitset_free(b);
 }
 
 static void populate_edges(const MapDimensions* map, Cluster* clusters, Graph** graph)
