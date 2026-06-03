@@ -45,7 +45,7 @@ typedef struct
     int32_t status_code; // 0 = success, negative = error
     uint16_t worker_id; // The worker
     long max_memory_bytes; // Max memory used
-    clock_t cpu_time; // Cpu time
+    double cpu_time; // Cpu time
 } TaskResponse;
 
 /**

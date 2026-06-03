@@ -25,7 +25,7 @@ typedef struct closed_node_t
  */
 typedef struct worker_result_t {
     long max_memory_bytes;
-    clock_t cpu_time;
+    double cpu_time;
 } WorkerResult;
 
 /**
@@ -47,7 +47,7 @@ typedef struct result_t
  * @param map The map.
  * @param result The struct containing result info.
  */
-void result_visualize(const Map* map, const Result* result);
+void result_visualize(Map* map, const Result* result);
 
 /**
  * Visualizes the result of the pathfinding attempt in a cluster to a result file.

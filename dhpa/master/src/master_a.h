@@ -7,6 +7,7 @@
 #include "../../../common/constants.h"
 #include "../../../common/vbitset.h"
 #include "../../../common/vec2.h"
+#include "../../../common/map.h"
 
 typedef struct worker_cluster_t
 {
@@ -40,6 +41,6 @@ static inline Vec2 global_vec_to_cluster_pos(Vec2 vec)
  * @param global_start The absolute starting location.
  * @param global_goal The absolute goal location.
  */
-Vec2* master_a(Vec2 cluster, Vec2 global_start, Vec2 global_goal);
+Vec2* master_a(const MapDimensions* dimensions, Vec2 cluster, Vec2 global_start, Vec2 global_goal);
 
 #endif

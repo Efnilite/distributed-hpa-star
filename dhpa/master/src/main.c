@@ -337,7 +337,6 @@ int main(int argc, char const* argv[])
 
     // Store worker connections
     int* worker_fds = NULL;
-    Map map = parse_map(MAP_FILE);
 
     Graph* graph = NULL;
 
@@ -359,8 +358,6 @@ int main(int argc, char const* argv[])
                                                .clusters_size = (size_t)ceil(map_width / (float)CLUSTER_SIZE) *
                                                    (size_t)ceil(map_height / (float)CLUSTER_SIZE)};
     int clusters_per_worker[WORKERS_SIZE];
-
-    preprocess(&dimensions, &graph, start, goal);
 
     long max_memory = 0;
     max_memory = get_memory_usage(max_memory);
@@ -394,6 +391,8 @@ int main(int argc, char const* argv[])
             break;
         }
     }
+
+    preprocess(&dimensions, &graph, start, goal);
 
     max_memory = get_memory_usage(max_memory);
 
@@ -522,7 +521,7 @@ int main(int argc, char const* argv[])
         // Compile final path by processing responses in task_id order
         Vec2* result = NULL;
         max_memory = get_memory_usage(max_memory);
-        WorkerResult workers[WORKERS_SIZE];
+        WorkerResult* workers = malloc(WORKERS_SIZE * sizeof(WorkerResult));
         for (size_t i = 0; i < WORKERS_SIZE; i++)
         {
             workers[i] = (WorkerResult) {
@@ -541,10 +540,10 @@ int main(int argc, char const* argv[])
                 {
                     TaskResponse* resp = responses_map[i].response;
 
-                    WorkerResult existing = workers[resp->worker_id];
-                    existing.cpu_time += resp->cpu_time;
-                    if (resp->max_memory_bytes > existing.max_memory_bytes) {
-                        existing.max_memory_bytes = resp->max_memory_bytes;
+                    WorkerResult* existing = workers + resp->worker_id;
+                    existing->cpu_time += resp->cpu_time;
+                    if (resp->max_memory_bytes > existing->max_memory_bytes) {
+                        existing->max_memory_bytes = resp->max_memory_bytes;
                     }
                     
                     if (resp->path_length > 0 && resp->path)
@@ -562,7 +561,7 @@ int main(int argc, char const* argv[])
 
         max_memory = get_memory_usage(max_memory);
 
-        result_visualize(&map,
+        result_visualize(NULL,
                          &(Result){.success = true,
                                    .graph = graph,
                                    .path = result,
@@ -570,6 +569,8 @@ int main(int argc, char const* argv[])
                                    .cpu_secs = (double)(clock() - time) / CLOCKS_PER_SEC,
                                    .visited = NULL,
                                    .workers = workers});
+
+        free(workers);
 
         // Cleanup responses
         for (size_t i = 0; i < arrlen(responses_map); i++)

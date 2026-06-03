@@ -5,20 +5,35 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "preprocess.h"
 #include "../../../common/parser.h"
 #include "../../../common/stb_ds.h"
-#include "master_a.h"
 #include "../../common/graph_a.h"
+#include "master_a.h"
+#include "preprocess.h"
 
 #define VEC_TO_CLUSTER(vec) (vec.y / CLUSTER_SIZE * cluster_w + vec.x / CLUSTER_SIZE)
 
+static inline Vec2 cglobal_vec_to_local_vec(const Cluster* cluster, Vec2 vec)
+{
+    return (Vec2){vec.x - cluster->pos.x * CLUSTER_SIZE, vec.y - cluster->pos.y * CLUSTER_SIZE};
+}
+
 // returns the inter edges from one side of a cluster
-static void get_inter_edges_side(const MapDimensions* map, Cluster* cluster_a, Cluster* cluster_b, const Vec2 local_start,
-                                 const Vec2 direction, const Vec2 to_other_cluster, Graph** graph)
+static void get_inter_edges_side(const MapDimensions* map, Cluster* cluster_a, Cluster* cluster_b,
+                                 const Vec2 local_start, const Vec2 direction, const Vec2 to_other_cluster,
+                                 Graph** graph)
 {
     assert(direction.x == 1 || direction.y == 1);
     assert(direction.x + direction.y == 1);
+
+    VBitSet* a = parse_map_for_cluster(MAP_FILE, map->w, map->h, cluster_a->pos.x, cluster_a->pos.y);
+    VBitSet* b = parse_map_for_cluster(MAP_FILE, map->w, map->h, cluster_b->pos.x, cluster_b->pos.y);
+
+    if (a == NULL || b == NULL)
+    {
+        fprintf(stderr, "Epic fail\n");
+        exit(EXIT_FAILURE);
+    }
 
     Vec2 current =
         (Vec2){local_start.x + cluster_a->pos.x * CLUSTER_SIZE, local_start.y + cluster_a->pos.y * CLUSTER_SIZE};
@@ -32,7 +47,8 @@ static void get_inter_edges_side(const MapDimensions* map, Cluster* cluster_a, C
     size_t options_size = 0;
     for (int step = 0; step < CLUSTER_SIZE; ++step)
     {
-        if (map_is_wall(map, current.x, current.y))
+        Vec2 local_a = cglobal_vec_to_local_vec(cluster_a, current);
+        if (vbitset_get(a, xy_to_idx_cluster_a(local_a.x, local_a.y)))
         {
             if (current_section_size > 0)
             {
@@ -59,7 +75,8 @@ static void get_inter_edges_side(const MapDimensions* map, Cluster* cluster_a, C
             current.y += direction.y;
             continue;
         }
-        if (map_is_wall(map, other.x, other.y))
+        Vec2 local_b = cglobal_vec_to_local_vec(cluster_b, other);
+        if (vbitset_get(b, xy_to_idx_cluster_a(local_b.x, local_b.y)))
         {
             if (current_section_size > 0)
             {
@@ -189,7 +206,8 @@ void preprocess(const MapDimensions* dimensions, Graph** graph, const Vec2 start
         {
             for (size_t b_idx = a_idx + 1; b_idx < cluster->inter_edges_count; ++b_idx)
             {
-                Vec2* path = master_a(cluster->pos, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx]);
+                Vec2* path =
+                    master_a(dimensions, cluster->pos, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx]);
                 if (path == NULL)
                 {
                     continue;
@@ -213,7 +231,7 @@ void preprocess(const MapDimensions* dimensions, Graph** graph, const Vec2 start
     const Cluster* start_cluster = &clusters[VEC_TO_CLUSTER(start)];
     for (size_t i = 0; i < start_cluster->inter_edges_count; ++i)
     {
-        Vec2* path = master_a(start_cluster->pos, start, start_cluster->inter_edges[i]);
+        Vec2* path = master_a(dimensions, start_cluster->pos, start, start_cluster->inter_edges[i]);
         if (path == NULL)
         {
             continue;
@@ -226,7 +244,7 @@ void preprocess(const MapDimensions* dimensions, Graph** graph, const Vec2 start
     const Cluster* goal_cluster = &clusters[VEC_TO_CLUSTER(goal)];
     for (size_t i = 0; i < goal_cluster->inter_edges_count; ++i)
     {
-        Vec2* path = master_a(goal_cluster->pos, goal, goal_cluster->inter_edges[i]);
+        Vec2* path = master_a(dimensions, goal_cluster->pos, goal, goal_cluster->inter_edges[i]);
         if (path == NULL)
         {
             continue;

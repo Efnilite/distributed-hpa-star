@@ -3,6 +3,7 @@
 #include "graph.h"
 #include "stb_ds.h"
 #include "util.h"
+#include "parser.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -10,9 +11,18 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-void result_visualize(const Map* map, const Result* result)
+#define XY_TO_IDX_RS(x, y) ((x) + (y) * map.w)
+
+void result_visualize(Map* map_ptr, const Result* result)
 {
-    const size_t size = (size_t)map->w * map->h;
+    Map map;
+    if (map_ptr == NULL) {
+        map = parse_map(MAP_FILE);
+    } else {
+        map = *map_ptr;
+    }
+
+    const size_t size = (size_t)map.w * map.h;
     char* text = malloc(size);
     if (text == NULL)
     {
@@ -20,11 +30,11 @@ void result_visualize(const Map* map, const Result* result)
         exit(EXIT_FAILURE);
     }
 
-    for (uint16_t y = 0; y < map->h; ++y)
+    for (uint16_t y = 0; y < map.h; ++y)
     {
-        for (uint16_t x = 0; x < map->w; ++x)
+        for (uint16_t x = 0; x < map.w; ++x)
         {
-            text[XY_TO_IDX(x, y)] = map_is_wall(map, x, y) ? '@' : ' ';
+            text[XY_TO_IDX_RS(x, y)] = map_is_wall(&map, x, y) ? '@' : ' ';
         }
     }
 
@@ -47,12 +57,12 @@ void result_visualize(const Map* map, const Result* result)
         const GraphNode* node = result->graph->nodes;
         while (node != NULL)
         {
-            if (text[XY_TO_IDX(node->pos.x, node->pos.y)] == '@')
+            if (text[XY_TO_IDX_RS(node->pos.x, node->pos.y)] == '@')
             {
                 fprintf(stderr, "Graph replaced wall at %d,%d", node->pos.x, node->pos.y);
             }
 
-            text[XY_TO_IDX(node->pos.x, node->pos.y)] = '~';
+            text[XY_TO_IDX_RS(node->pos.x, node->pos.y)] = '~';
 
             node = node->next;
         }
@@ -65,12 +75,12 @@ void result_visualize(const Map* map, const Result* result)
         for (int i = 0; i < arrlen(result->path); ++i)
         {
             const Vec2 pos = result->path[i];
-            if (text[XY_TO_IDX(pos.x, pos.y)] == '@')
+            if (text[XY_TO_IDX_RS(pos.x, pos.y)] == '@')
             {
                 fprintf(stderr, "Pathfinding replaced wall at %d,%d", pos.x, pos.y);
             }
 
-            text[XY_TO_IDX(pos.x, pos.y)] = '*';
+            text[XY_TO_IDX_RS(pos.x, pos.y)] = '*';
             if (previous.x != pos.x && previous.y != pos.y)
             {
                 cost += M_SQRT2;
@@ -105,7 +115,7 @@ void result_visualize(const Map* map, const Result* result)
     fprintf(file, "Path Cost: %f\n", cost);
     if (result->visited != NULL)
     {
-        fprintf(file, "Visited: %f%%\n", (double)visited / ((double)map->size * 1.0) * 100.0);
+        fprintf(file, "Visited: %f%%\n", (double)visited / ((double)map.size * 1.0) * 100.0);
         free(result->visited);
     }
 
@@ -122,12 +132,12 @@ void result_visualize(const Map* map, const Result* result)
     for (size_t i = 0; i < WORKERS_SIZE; i++)
     {
         fprintf(file, "Worker %ld CPU Time: %f secs\n", i, result->workers[i]->cpu_time);   
-        fprintf(file, "Worker %ld Max Memory: %.2f MB\n", i, result->workers[i]->max_memory_bytes);   
+        fprintf(file, "Worker %ld Max Memory: %.2f MB\n", i, result->workers[i]->max_memory_bytes / (1024.0 * 1024.0));   
     }
 
-    for (int y = 0; y < map->h; ++y)
+    for (int y = 0; y < map.h; ++y)
     {
-        fwrite(text + (size_t)y * map->w, 1, map->w, file);
+        fwrite(text + (size_t)y * map.w, 1, map.w, file);
         fputc('\n', file);
     }
 
