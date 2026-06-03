@@ -5,7 +5,7 @@ set(CMAKE_C_STANDARD 17)
 
 add_executable(worker
         src/main.c
-        ../common/cluster_a.c
+        src/worker_a.c
         ../../common/parser.c
         ../../common/map.c
         ../../common/vec2.c

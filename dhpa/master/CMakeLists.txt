@@ -7,7 +7,7 @@ add_executable(master
         src/main.c
         src/preprocess.c
         ../common/graph_a.c
-        ../common/cluster_a.c
+        src/master_a.c
         ../../common/parser.c
         ../../common/map.c
         ../../common/vec2.c

@@ -8,13 +8,13 @@
 #include "preprocess.h"
 #include "../../../common/parser.h"
 #include "../../../common/stb_ds.h"
-#include "../../common/cluster_a.h"
+#include "master_a.h"
 #include "../../common/graph_a.h"
 
 #define VEC_TO_CLUSTER(vec) (vec.y / CLUSTER_SIZE * cluster_w + vec.x / CLUSTER_SIZE)
 
 // returns the inter edges from one side of a cluster
-static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cluster_b, const Vec2 local_start,
+static void get_inter_edges_side(const MapDimensions* map, Cluster* cluster_a, Cluster* cluster_b, const Vec2 local_start,
                                  const Vec2 direction, const Vec2 to_other_cluster, Graph** graph)
 {
     assert(direction.x == 1 || direction.y == 1);
@@ -123,7 +123,7 @@ static void get_inter_edges_side(const Map* map, Cluster* cluster_a, Cluster* cl
     }
 }
 
-static void populate_edges(const Map* map, Cluster* clusters, Graph** graph)
+static void populate_edges(const MapDimensions* map, Cluster* clusters, Graph** graph)
 {
     const size_t cluster_w = (size_t)ceil(map->w / (float)CLUSTER_SIZE);
     const size_t cluster_h = (size_t)ceil(map->h / (float)CLUSTER_SIZE);
@@ -176,7 +176,7 @@ void preprocess(const MapDimensions* dimensions, Graph** graph, const Vec2 start
         }
     }
 
-    populate_edges(map, clusters, graph);
+    populate_edges(dimensions, clusters, graph);
     printf("Populated edges - %fs\n", (double)(clock() - begin) / CLOCKS_PER_SEC);
     printf("Graph nodes after populate_edges: %zu\n", (*graph)->node_count);
 
@@ -189,7 +189,7 @@ void preprocess(const MapDimensions* dimensions, Graph** graph, const Vec2 start
         {
             for (size_t b_idx = a_idx + 1; b_idx < cluster->inter_edges_count; ++b_idx)
             {
-                Vec2* path = cluster_a(dimensions, cluster, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx]);
+                Vec2* path = master_a(cluster->pos, cluster->inter_edges[a_idx], cluster->inter_edges[b_idx]);
                 if (path == NULL)
                 {
                     continue;
@@ -213,7 +213,7 @@ void preprocess(const MapDimensions* dimensions, Graph** graph, const Vec2 start
     const Cluster* start_cluster = &clusters[VEC_TO_CLUSTER(start)];
     for (size_t i = 0; i < start_cluster->inter_edges_count; ++i)
     {
-        Vec2* path = cluster_a(dimensions, start_cluster, start, start_cluster->inter_edges[i]);
+        Vec2* path = master_a(start_cluster->pos, start, start_cluster->inter_edges[i]);
         if (path == NULL)
         {
             continue;
@@ -226,7 +226,7 @@ void preprocess(const MapDimensions* dimensions, Graph** graph, const Vec2 start
     const Cluster* goal_cluster = &clusters[VEC_TO_CLUSTER(goal)];
     for (size_t i = 0; i < goal_cluster->inter_edges_count; ++i)
     {
-        Vec2* path = cluster_a(dimensions, goal_cluster, goal, goal_cluster->inter_edges[i]);
+        Vec2* path = master_a(goal_cluster->pos, goal, goal_cluster->inter_edges[i]);
         if (path == NULL)
         {
             continue;
