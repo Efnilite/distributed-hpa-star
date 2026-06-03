@@ -35,7 +35,9 @@ static int frontier_compare(void* a, void* b)
 
 static void heap_free_elements(void* key, void* value) { free(key); }
 
-Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 goal)
+#define XY_TO_IDX_G(x, y) ((x) + (y) * dimensions->w)
+
+Vec2* graph_a(const MapDimensions* dimensions, const Graph* graph, const Vec2 start, const Vec2 goal)
 {
     heap frontier;
     heap_create(&frontier, graph->node_count / 2, frontier_compare);
@@ -76,7 +78,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
         uint16_t value;
     }* scores = NULL;
     hmdefault(scores, UINT16_MAX);
-    hmput(scores, XY_TO_IDX(start.x, start.y), 0);
+    hmput(scores, XY_TO_IDX_G(start.x, start.y), 0);
 
     while (heap_size(&frontier) > 0)
     {
@@ -98,7 +100,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
             while (current.x != start.x || current.y != start.y)
             {
                 arrput(path, current);
-                current = hmget(came_from, XY_TO_IDX(current.x, current.y));
+                current = hmget(came_from, XY_TO_IDX_G(current.x, current.y));
             }
             arrput(path, current);
 
@@ -112,7 +114,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
             return path;
         }
 
-        const size_t pos_idx = XY_TO_IDX(pos.x, pos.y);
+        const size_t pos_idx = XY_TO_IDX_G(pos.x, pos.y);
         hmput(closed, pos_idx, true);
 
         const uint16_t score = hmget(scores, pos_idx);
@@ -120,7 +122,7 @@ Vec2* graph_a(const Map* map, const Graph* graph, const Vec2 start, const Vec2 g
         while (to_successor != NULL)
         {
             const GraphNode* successor = to_successor->to;
-            const size_t successor_idx = XY_TO_IDX(successor->pos.x, successor->pos.y);
+            const size_t successor_idx = XY_TO_IDX_G(successor->pos.x, successor->pos.y);
 
             const uint16_t gn = score + to_successor->weight;
             const uint16_t hn = (uint16_t)vec2_distance_manhattan(successor->pos, goal);

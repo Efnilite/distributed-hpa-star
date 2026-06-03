@@ -9,7 +9,6 @@
 #include "../../../common/constants.h"
 #include "../../../common/map.h"
 #include "../../../common/parser.h"
-void divide_clusters(const MapDimensions map, int**
 #include "../../../common/result.h"
 #include "../../../common/tcp.h"
 #include "../../../common/util.h"
@@ -404,7 +403,7 @@ int main(int argc, char const* argv[])
     printf("Computing graph-level path from (%d, %d) to (%d, %d)\n", start.x, start.y, goal.x, goal.y);
 
     // Call graph_a to find graph path
-    Vec2* graph_path = graph_a(&map, graph, start, goal);
+    Vec2* graph_path = graph_a(&dimensions, graph, start, goal);
 
     if (graph_path != NULL)
     {
