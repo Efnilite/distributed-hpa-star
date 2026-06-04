@@ -289,8 +289,6 @@ int main(int argc, char const* argv[])
                                  .worker_id = id,
                                  .max_memory_bytes = max_memory,
                                  .cpu_time = (double)(clock() - time) / (double)CLOCKS_PER_SEC};
-        printf("cpu time %f\n", (double)(clock() - time) / (double)CLOCKS_PER_SEC);
-        printf("max memory %ld\n", max_memory);
 
         // Send response back to master
         if (tcp_send_task_response(socket_fd, &response) < 0)

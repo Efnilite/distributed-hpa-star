@@ -341,8 +341,8 @@ int main(int argc, char const* argv[])
     Graph* graph = NULL;
 
     // start/end goal
-    Vec2 start = (Vec2){260, 180};
-    Vec2 goal = (Vec2){1565, 1745};
+    Vec2 start = (Vec2){170, 170};
+    Vec2 goal = (Vec2){2000, 2600};
 
     uint16_t map_width = 0, map_height = 0;
     if (parse_map_dimensions(MAP_FILE, &map_width, &map_height) < 0)
