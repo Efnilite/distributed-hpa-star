@@ -250,11 +250,11 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
     current_memory = util_get_memory_usage();
     if (current_memory > max_memory)
         max_memory = current_memory;
-    printf("Finish abstract graph for search - %fs\n", (double)(clock() - calc_begin) / CLOCKS_PER_SEC);
-    printf("Graph nodes after connecting start/goal: %zu\n", graph->node_count);
-    printf("Start: (%d, %d) in cluster (%d, %d)\n", start.x, start.y, start_cluster->pos.x, start_cluster->pos.y);
-    printf("Goal: (%d, %d) in cluster (%d, %d)\n", goal.x, goal.y, goal_cluster->pos.x, goal_cluster->pos.y);
-    calc_begin = clock();
+    // printf("Finish abstract graph for search - %fs\n", (double)(clock() - calc_begin) / CLOCKS_PER_SEC);
+    // printf("Graph nodes after connecting start/goal: %zu\n", graph->node_count);
+    // printf("Start: (%d, %d) in cluster (%d, %d)\n", start.x, start.y, start_cluster->pos.x, start_cluster->pos.y);
+    // printf("Goal: (%d, %d) in cluster (%d, %d)\n", goal.x, goal.y, goal_cluster->pos.x, goal_cluster->pos.y);
+    // calc_begin = clock();
 
     // if start and goal cluster are the same, just run A*
     if (start_cluster == goal_cluster)
@@ -285,8 +285,8 @@ Result hpa(const Map* map, const Vec2 start, const Vec2 goal)
         return (Result){NULL, NULL, false, (double)(clock() - calc_begin) / CLOCKS_PER_SEC, max_memory, graph};
     }
 
-    printf("Found graph path - %fs\n", (double)(clock() - calc_begin) / CLOCKS_PER_SEC);
-    calc_begin = clock();
+    // printf("Found graph path - %fs\n", (double)(clock() - calc_begin) / CLOCKS_PER_SEC);
+    // calc_begin = clock();
 
     // 3. build final path
     Vec2* final_path = NULL;

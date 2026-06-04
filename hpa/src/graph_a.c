@@ -11,6 +11,23 @@
 #include "../../common/util.h"
 #include "hpa.h"
 
+#define EUCLIDEAN
+// #define OCTILE
+// #define MANHATTAN
+
+#ifdef EUCLIDEAN
+#define DISTANCE_FUNCTION vec2_distance_euclidean
+#define NEIGHBOUR_COST 1
+#endif
+#ifdef OCTILE
+#define DISTANCE_FUNCTION vec2_distance_chebyshev
+#define NEIGHBOUR_COST 1
+#endif
+#ifdef MANHATTAN
+#define DISTANCE_FUNCTION vec2_distance_manhattan
+#define NEIGHBOUR_COST 1
+#endif
+
 typedef struct frontier_node_t
 {
     Vec2 pos;
@@ -53,7 +70,7 @@ Vec2* graph_a(const Map* map, Graph* graph, const Vec2 start, const Vec2 goal)
     *startn = (FrontierNode){
         .pos = start,
         .node = start_node,
-        .estimated_score = (uint16_t)vec2_distance_chebyshev(start, goal),
+        .estimated_score = (uint16_t)DISTANCE_FUNCTION(start, goal),
     };
     heap_insert(&frontier, startn, &startn->estimated_score);
 
@@ -123,7 +140,7 @@ Vec2* graph_a(const Map* map, Graph* graph, const Vec2 start, const Vec2 goal)
             const size_t successor_idx = XY_TO_IDX(successor->pos.x, successor->pos.y);
 
             const uint16_t gn = score + to_successor->weight;
-            const uint16_t hn = (uint16_t)vec2_distance_chebyshev(successor->pos, goal);
+            const uint16_t hn = (uint16_t)DISTANCE_FUNCTION(successor->pos, goal);
             const uint16_t fn = gn + hn;
 
             if (hmget(closed, successor_idx))

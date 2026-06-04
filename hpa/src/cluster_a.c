@@ -14,9 +14,9 @@
 #include "../../common/vbitset.h"
 #include "../../common/vec2.h"
 
-// #define EUCLIDEAN
+#define EUCLIDEAN
 // #define OCTILE
-#define MANHATTAN
+// #define MANHATTAN
 
 #ifdef EUCLIDEAN
 #define DISTANCE_FUNCTION vec2_distance_euclidean

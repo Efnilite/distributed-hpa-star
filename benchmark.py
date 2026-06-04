@@ -105,10 +105,10 @@ def run_algorithm(algo: str) -> dict:
     if algo == "a":
         algo_dir = BASE_DIR / "a*"
     elif algo == "hpa":
-        algo_dir = BASE_DIR / "hpa*"
+        algo_dir = BASE_DIR / "hpa"
     elif algo == "phpa":
-        algo_dir = BASE_DIR / "phpa*"
-        exe_name = "phpa"  # Adjust if needed
+        algo_dir = BASE_DIR / "dhpa"
+        exe_name = "dhpa"  # Adjust if needed
     
     exe_path = algo_dir / exe_name
     
