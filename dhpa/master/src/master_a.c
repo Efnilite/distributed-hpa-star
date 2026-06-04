@@ -19,18 +19,15 @@
 
 #ifdef EUCLIDEAN
 #define DISTANCE_FUNCTION vec2_distance_euclidean
-#define NEIGHBOUR_COST ((i < 4) ? 5 : 7)
-#define SUCCESSORS_LENGTH 8
+#define NEIGHBOUR_COST 1
 #endif
 #ifdef OCTILE
 #define DISTANCE_FUNCTION vec2_distance_chebyshev
-#define NEIGHBOUR_COST ((i < 4) ? 5 : 7)
-#define SUCCESSORS_LENGTH 8
+#define NEIGHBOUR_COST 1
 #endif
 #ifdef MANHATTAN
 #define DISTANCE_FUNCTION vec2_distance_manhattan
 #define NEIGHBOUR_COST 1
-#define SUCCESSORS_LENGTH 4
 #endif
 
 #define SUCCESSORS(x, y)                                                                                               \
@@ -39,11 +36,6 @@
         {x, (int16_t)(y - 1)},                                                                                         \
         {(int16_t)(x + 1), y},                                                                                         \
         {x, (int16_t)(y + 1)},                                                                                         \
-                                                                                                                       \
-        {(int16_t)(x + 1), (int16_t)(y + 1)},                                                                          \
-        {(int16_t)(x + 1), (int16_t)(y - 1)},                                                                          \
-        {(int16_t)(x - 1), (int16_t)(y + 1)},                                                                          \
-        {(int16_t)(x - 1), (int16_t)(y - 1)},                                                                          \
     }
 
 typedef struct frontier_node_t
@@ -146,7 +138,7 @@ Vec2* master_a(const MapDimensions* dimensions, const Vec2 cluster_pos, const Ve
 
         const Vec2 successors[] = SUCCESSORS(pos.x, pos.y);
         const uint16_t score = scores[pos_idx];
-        for (uint8_t i = 0; i < SUCCESSORS_LENGTH; ++i)
+        for (uint8_t i = 0; i < 4; ++i)
         {
             const Vec2 successor = successors[i];
 
