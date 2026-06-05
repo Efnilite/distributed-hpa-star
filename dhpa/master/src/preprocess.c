@@ -175,7 +175,7 @@ static void populate_edges(const MapDimensions* map, Cluster* clusters, Graph** 
 
 void preprocess(const MapDimensions* dimensions, Graph** graph, const Vec2 start, const Vec2 goal)
 {
-    const clock_t begin = clock();
+    clock_t begin = clock();
 
     // 1. preprocess
     // create graph
@@ -197,7 +197,8 @@ void preprocess(const MapDimensions* dimensions, Graph** graph, const Vec2 start
     }
 
     populate_edges(dimensions, clusters, graph);
-    printf("Populated edges - %fs\n", (double)(clock() - begin) / CLOCKS_PER_SEC);
+    printf("Find inter edges - %fs\n", (double)(clock() - begin) / CLOCKS_PER_SEC);
+    begin = clock();
     printf("Graph nodes after populate_edges: %zu\n", (*graph)->node_count);
 
     // find paths in cluster
@@ -223,7 +224,7 @@ void preprocess(const MapDimensions* dimensions, Graph** graph, const Vec2 start
         }
     }
 
-    printf("Preprocessed - %fs\n", (double)(clock() - begin) / CLOCKS_PER_SEC);
+    printf("Find intra cluster paths - %fs\n", (double)(clock() - begin) / CLOCKS_PER_SEC);
 
     const clock_t calc_begin = clock();
     // 2. calculate
@@ -257,7 +258,7 @@ void preprocess(const MapDimensions* dimensions, Graph** graph, const Vec2 start
         arrfree(path);
     }
 
-    printf("Finalized extremity cluster finding - %fs\n", (double)(clock() - calc_begin) / CLOCKS_PER_SEC);
+    printf("Finish abstract graph for search - %fs\n", (double)(clock() - calc_begin) / CLOCKS_PER_SEC);
     printf("Graph nodes after connecting start/goal: %zu\n", (*graph)->node_count);
     printf("Start: (%d, %d) in cluster (%d, %d)\n", start.x, start.y, start_cluster->pos.x, start_cluster->pos.y);
     printf("Goal: (%d, %d) in cluster (%d, %d)\n", goal.x, goal.y, goal_cluster->pos.x, goal_cluster->pos.y);

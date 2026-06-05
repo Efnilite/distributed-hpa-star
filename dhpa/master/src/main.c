@@ -341,8 +341,8 @@ int main(int argc, char const* argv[])
     Graph* graph = NULL;
 
     // start/end goal
-    Vec2 start = (Vec2){170, 170};
-    Vec2 goal = (Vec2){2000, 2600};
+    Vec2 start = (Vec2){260, 180};
+    Vec2 goal = (Vec2){1565, 1745};
 
     uint16_t map_width = 0, map_height = 0;
     if (parse_map_dimensions(MAP_FILE, &map_width, &map_height) < 0)
@@ -413,7 +413,10 @@ int main(int argc, char const* argv[])
 
     if (graph_path != NULL)
     {
-        printf("Graph_a found path with %ld waypoints\n", arrlen(graph_path));
+
+        printf("Found graph path - %fs\n", (double)(clock() - time) / CLOCKS_PER_SEC);
+        time = clock();
+
         for (size_t i = 0; i < arrlen(graph_path) && i < 5; i++)
         {
             printf("  Waypoint %ld: (%d, %d)\n", i, graph_path[i].x, graph_path[i].y);
@@ -558,8 +561,10 @@ int main(int argc, char const* argv[])
                 }
             }
         }
+        printf("Found overall path - %fs\n", (double)(clock() - time) / CLOCKS_PER_SEC);
 
         max_memory = get_memory_usage(max_memory);
+        printf("Max memory: %f MB\n", max_memory / (1024.0 * 1024.0));
 
         result_visualize(NULL,
                          &(Result){.success = true,
