@@ -568,7 +568,7 @@ int main(int argc, char const* argv[])
 
         for (size_t i = 0; i < WORKERS_SIZE; i++)
         {
-            printf("Worker %d CPU time: %fs\n", i + 1, (double)(clock() - workers[i].cpu_time) / CLOCKS_PER_SEC);
+            printf("Worker %d CPU time: %fs\n", i + 1, workers[i].cpu_time);
             printf("Worker %d Max memory: %f MB\n", i + 1, workers[i].max_memory_bytes / (1024.0 * 1024.0));
         }
 
