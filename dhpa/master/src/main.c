@@ -341,8 +341,8 @@ int main(int argc, char const* argv[])
     Graph* graph = NULL;
 
     // start/end goal
-    Vec2 start = (Vec2){260, 180};
-    Vec2 goal = (Vec2){1565, 1745};
+    Vec2 start = START;
+    Vec2 goal = GOAL;
 
     uint16_t map_width = 0, map_height = 0;
     if (parse_map_dimensions(MAP_FILE, &map_width, &map_height) < 0)
@@ -566,14 +566,20 @@ int main(int argc, char const* argv[])
         max_memory = get_memory_usage(max_memory);
         printf("Max memory: %f MB\n", max_memory / (1024.0 * 1024.0));
 
-        result_visualize(NULL,
-                         &(Result){.success = true,
-                                   .graph = graph,
-                                   .path = result,
-                                   .max_memory_bytes = max_memory,
-                                   .cpu_secs = (double)(clock() - time) / CLOCKS_PER_SEC,
-                                   .visited = NULL,
-                                   .workers = workers});
+        for (size_t i = 0; i < WORKERS_SIZE; i++)
+        {
+            printf("Worker %d CPU time: %fs\n", i + 1, (double)(clock() - workers[i].cpu_time) / CLOCKS_PER_SEC);
+            printf("Worker %d Max memory: %f MB\n", i + 1, workers[i].max_memory_bytes / (1024.0 * 1024.0));
+        }
+
+        // result_visualize(NULL,
+        //                  &(Result){.success = true,
+        //                            .graph = graph,
+        //                            .path = result,
+        //                            .max_memory_bytes = max_memory,
+        //                            .cpu_secs = (double)(clock() - time) / CLOCKS_PER_SEC,
+        //                            .visited = NULL,
+        //                            .workers = workers});
 
         free(workers);
 

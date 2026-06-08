@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Benchmarking script for pathfinding algorithms (A*, HPA*, PHPA*) with varying CLUSTER_SIZE and WORKERS_SIZE.
-Runs each algorithm 10 times for each CLUSTER_SIZE value and collects timing data.
-Modded to run PHPA/DHPA as a dual-process (Master/Worker) environment.
+Runs each algorithm multiple times for each CLUSTER_SIZE and WORKERS_SIZE configuration.
+Modded to run PHPA/DHPA as a dual-process (Master/Worker) environment and extract worker performance metrics.
 """
 
 import os
@@ -15,17 +15,16 @@ from datetime import datetime
 import time
 
 # Configuration
-CLUSTER_SIZES = [15, 20, 25, 35, 40, 45, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200]
-# CLUSTER_SIZES = [10]
-NUM_WORKERS = 1
+CLUSTER_SIZES = [50, 100, 150, 200]
+WORKERS_SIZES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 RUNS_PER_SIZE = 10
-ALGORITHMS = ["dhpa"]  
+ALGORITHMS = ["dhpa"]
 BASE_DIR = Path(__file__).parent.resolve()
 CONSTANTS_FILE = BASE_DIR / "common" / "constants.h"
 OUTPUT_FILE = BASE_DIR / "benchmark_results.json"
 MASTER_TIMEOUT_SECONDS = 150
 
-# Timing pattern to extract from algorithm output (Usually read from Master)
+# Core static timing patterns (Mostly read from Master)
 TIMING_PATTERNS = {
     "inter_edges": r"Find inter edges - ([\d.]+)s",
     "preprocessed": r"Find intra cluster paths - ([\d.]+)s",
@@ -57,7 +56,6 @@ def modify_workers_count(count: int) -> None:
     with open(CONSTANTS_FILE, "r") as f:
         content = f.read()
     
-    # Replace the WORKERS_SIZE definition
     new_content = re.sub(
         r"#define WORKERS_SIZE \d+",
         f"#define WORKERS_SIZE {count}",
@@ -100,15 +98,14 @@ def build_algorithm(algo: str) -> bool:
         worker_success = build_dir_cmake_make(BASE_DIR / "dhpa" / "worker" / "build")
         return master_success and worker_success
     
-    # Legacy handler for mono-process algorithms
     algo_dir = BASE_DIR / algo
     if not algo_dir.exists():
         print(f"  ✗ {algo} directory not found")
         return False
     return build_dir_cmake_make(algo_dir)
 
-def run_algorithm(algo: str) -> dict:
-    """Run an algorithm and extract timing data. Handles dual processes for dhpa."""
+def run_algorithm(algo: str, current_workers: int) -> dict:
+    """Run an algorithm and extract timing data. Handles dual processes and captures worker data."""
     if algo == "dhpa":
         master_exe = BASE_DIR / "dhpa" / "master" / "build" / "master"
         worker_exe = BASE_DIR / "dhpa" / "worker" / "build" / "worker"
@@ -117,29 +114,30 @@ def run_algorithm(algo: str) -> dict:
             print(f"  ✗ Executables missing. Master: {master_exe.exists()}, Worker: {worker_exe.exists()}")
             return {}
 
-        worker_proc = None
+        worker_processes = []
         try:
-            # 1. START WORKER FIRST
-            worker_proc = subprocess.Popen(
-                [str(worker_exe)],
-                cwd=worker_exe.parent,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
+            for i in range(current_workers):
+                # 1. START WORKERS
+                proc = subprocess.Popen(
+                    [str(worker_exe)],
+                    cwd=worker_exe.parent,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+                worker_processes.append(proc)
             
-            # 2. GIVE WORKER A MOMENT TO INITIALIZE & BIND PORTS
-            time.sleep(1.5)
-            
-            # Check if the worker crashed immediately on startup
-            if worker_proc.poll() is not None:
-                worker_stdout, worker_stderr = worker_proc.communicate()
-                print(f"\n[WORKER CRASHED ON STARTUP]")
-                print(f"--- Worker Stdout ---\n{worker_stdout}")
-                print(f"--- Worker Stderr ---\n{worker_stderr}\n---------------------")
-                return {}
+                # 2. GIVE WORKERS A MOMENT TO INITIALIZE
+                time.sleep(1.5)
+                
+                if proc.poll() is not None:
+                    worker_stdout, worker_stderr = proc.communicate()
+                    print(f"\n[WORKER {i} CRASHED ON STARTUP]")
+                    print(f"--- Worker Stdout ---\n{worker_stdout}")
+                    print(f"--- Worker Stderr ---\n{worker_stderr}\n---------------------")
+                    return {}
 
-            # 3. RUN MASTER (Blocking process that collects data)
+            # 3. RUN MASTER 
             result = subprocess.run(
                 [str(master_exe)],
                 cwd=master_exe.parent,
@@ -150,7 +148,6 @@ def run_algorithm(algo: str) -> dict:
             
             output = result.stdout + result.stderr
 
-            # DEBUG: Print Master output if timing data is completely missing
             if "Found overall path" not in output:
                 print(f"\n[DEBUG] Master Output:\n{output}")
 
@@ -161,14 +158,33 @@ def run_algorithm(algo: str) -> dict:
                 if match:
                     timings[key] = float(match.group(1))
             
+            # Dynamic extraction for worker logs included in stdout/stderr output
+            worker_metrics = {}
+            
+            # Find CPU times: "Worker X CPU time: Ys"
+            cpu_matches = re.findall(r"Worker\s+(\d+)\s+CPU\s+time:\s+([\d.]+)s", output)
+            for w_id, cpu_time in cpu_matches:
+                w_key = f"worker_{w_id}_cpu_time"
+                worker_metrics[w_key] = float(cpu_time)
+                
+            # Find Max Memory: "Worker X Max memory: Y MB"
+            mem_matches = re.findall(r"Worker\s+(\d+)\s+Max\s+memory:\s+([\d.]+) \s*MB", output)
+            for w_id, max_mem in mem_matches:
+                w_key = f"worker_{w_id}_max_memory_mb"
+                worker_metrics[w_key] = float(max_mem)
+                
+            # Merge worker analyses into main timings dict
+            if worker_metrics:
+                timings["worker_analysis"] = worker_metrics
+            
             return timings
 
         except subprocess.TimeoutExpired:
             print(f"  ✗ Timeout running master process")
-            if worker_proc:
+            if worker_processes:
                 try:
-                    w_out, w_err = worker_proc.communicate(timeout=0.5)
-                    print(f"\n[TIMEOUT DEBUG] Worker Stdout:\n{w_out}\nWorker Stderr:\n{w_err}")
+                    w_out, w_err = worker_processes[0].communicate(timeout=0.5)
+                    print(f"\n[TIMEOUT DEBUG] Worker 0 Stdout:\n{w_out}\nWorker 0 Stderr:\n{w_err}")
                 except Exception:
                     pass
             return {}
@@ -176,19 +192,22 @@ def run_algorithm(algo: str) -> dict:
             print(f"  ✗ Error running DHPA processes: {e}")
             return {}
         finally:
-            # 5. TEARDOWN WORKER Cleanly
-            if worker_proc and worker_proc.poll() is None:
-                worker_proc.terminate()
-                try:
-                    worker_proc.wait(timeout=3)
-                except subprocess.TimeoutExpired:
-                    worker_proc.kill()
+            # Cleanly teardown ALL active worker processes
+            for proc in worker_processes:
+                if proc.poll() is None:
+                    proc.terminate()
             
-            # Small cooldown so the OS can cleanly free up local network ports/sockets
+            for proc in worker_processes:
+                if proc.poll() is None:
+                    try:
+                        proc.wait(timeout=2.0)
+                    except subprocess.TimeoutExpired:
+                        proc.kill()
+            
             time.sleep(1.0)
                     
     else:
-        # Legacy fallback logic for single executable scripts (e.g., A* or HPA*)
+        # Legacy fallback logic for single executable scripts
         exe_path = BASE_DIR / algo / algo
         if not exe_path.exists():
             return {}
@@ -206,63 +225,74 @@ def run_algorithm(algo: str) -> dict:
 def run_benchmark():
     """Run the complete benchmark."""
     print("=" * 70)
-    print("Pathfinding Algorithm Benchmark (Multi-Process DHPA Enabled)")
+    print("Pathfinding Algorithm Benchmark (Multi-Process / Multi-Worker DHPA)")
     print("=" * 70)
-    print(f"Cluster sizes: {CLUSTER_SIZES[0]} to {CLUSTER_SIZES[-1]} (step 10)")
-    print(f"Workers size : {NUM_WORKERS}")
-    print(f"Runs per size: {RUNS_PER_SIZE}")
-    print(f"Algorithms: {', '.join(ALGORITHMS)}")
-    print(f"Results will be saved to: {OUTPUT_FILE}")
+    print(f"Cluster sizes : {CLUSTER_SIZES}")
+    print(f"Workers sizes : {WORKERS_SIZES}")
+    print(f"Runs per size : {RUNS_PER_SIZE}")
+    print(f"Algorithms    : {', '.join(ALGORITHMS)}")
+    print(f"Results File  : {OUTPUT_FILE}")
     print("=" * 70)
     
     results = {
         "metadata": {
             "timestamp": datetime.now().isoformat(),
             "cluster_sizes": CLUSTER_SIZES,
-            "workers_size": NUM_WORKERS,
+            "workers_sizes": WORKERS_SIZES,
             "runs_per_size": RUNS_PER_SIZE,
             "algorithms": ALGORITHMS,
         },
         "data": []
     }
     
-    # Modify workers size once globally before looping over cluster sizes
-    modify_workers_count(NUM_WORKERS)
-    
-    for cluster_size in CLUSTER_SIZES:
-        print(f"\n--- CLUSTER_SIZE = {cluster_size} ---")
+    for workers_count in WORKERS_SIZES:
+        print(f"\n=========================================")
+        print(f"=== TESTING WITH WORKERS_SIZE = {workers_count} ===")
+        print(f"=========================================")
         
-        # Modify constants.h
-        modify_cluster_size(cluster_size)
+        # Modify workers count configuration
+        modify_workers_count(workers_count)
         
-        # Build all algorithms
-        print("  Building algorithms...")
-        for algo in ALGORITHMS:
-            if not build_algorithm(algo):
-                print(f"  Warning: Could not build {algo}, skipping runs")
-                continue
-        
-        # Run each algorithm multiple times
-        for algo in ALGORITHMS:
-            print(f"  Running {algo} ({RUNS_PER_SIZE}x)...")
+        for cluster_size in CLUSTER_SIZES:
+            print(f"\n--- CLUSTER_SIZE = {cluster_size} | WORKERS = {workers_count} ---")
             
-            for run in range(RUNS_PER_SIZE):
-                timings = run_algorithm(algo)
+            # Modify constants.h for cluster size
+            modify_cluster_size(cluster_size)
+            
+            # Recompile algorithms with the updated constants
+            print("  Building algorithms...")
+            build_failed = False
+            for algo in ALGORITHMS:
+                if not build_algorithm(algo):
+                    print(f"  Warning: Could not build {algo}, skipping configuration loop")
+                    build_failed = True
+                    break
+            
+            if build_failed:
+                continue
+            
+            # Execute runs
+            for algo in ALGORITHMS:
+                print(f"  Running {algo} ({RUNS_PER_SIZE}x)...")
                 
-                if timings:
-                    data_point = {
-                        "cluster_size": cluster_size,
-                        "algorithm": algo,
-                        "run": run + 1,
-                        "timings": timings,
-                    }
-                    results["data"].append(data_point)
+                for run in range(RUNS_PER_SIZE):
+                    timings = run_algorithm(algo, current_workers=workers_count)
                     
-                    overall_path = timings.get("found_overall_path", 0)
-                    print(f"    Run {run + 1}/{RUNS_PER_SIZE}: {overall_path:.6f}s overall", end="\r")
-                else:
-                    print(f"    Run {run + 1}/{RUNS_PER_SIZE}: FAILED", end="\r")
-            print() 
+                    if timings:
+                        data_point = {
+                            "cluster_size": cluster_size,
+                            "workers_size": workers_count,
+                            "algorithm": algo,
+                            "run": run + 1,
+                            "timings": timings,
+                        }
+                        results["data"].append(data_point)
+                        
+                        overall_path = timings.get("found_overall_path", 0)
+                        print(f"    Run {run + 1}/{RUNS_PER_SIZE}: {overall_path:.6f}s overall", end="\r")
+                    else:
+                        print(f"    Run {run + 1}/{RUNS_PER_SIZE}: FAILED", end="\r")
+                print() 
     
     # Save results to JSON
     print("\n" + "=" * 70)

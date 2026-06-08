@@ -8,4 +8,4 @@ Makefile
 CMakeCache.txt
 CMakeFiles
 bin/
-results/
+benchmarking/
