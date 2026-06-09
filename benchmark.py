@@ -15,8 +15,31 @@ from datetime import datetime
 import time
 
 # Configuration
-CLUSTER_SIZES = [50, 100, 150, 200]
-WORKERS_SIZES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+CLUSTER_SIZES = [
+      15,
+      20,
+      25,
+      35,
+      40,
+      45,
+      50,
+      60,
+      70,
+      80,
+      90,
+      100,
+      110,
+      120,
+      130,
+      140,
+      150,
+      160,
+      170,
+      180,
+      190,
+      200
+    ]
+WORKERS_SIZES = [1, 2, 4, 6, 8]
 RUNS_PER_SIZE = 10
 ALGORITHMS = ["dhpa"]
 BASE_DIR = Path(__file__).parent.resolve()
