@@ -15,6 +15,9 @@ services:
       - SERVICE_NAME=master
       - MASTER_HOST=0.0.0.0
       - MASTER_PORT=9090
+      - WORKER_COUNT=${WORKER_COUNT:-1}  # Uses shell variable, defaults to 1
+    cap_add:
+      - NET_ADMIN
     ports:
       - "9090:9090"
     stdin_open: true
@@ -34,6 +37,9 @@ services:
       - SERVICE_NAME=worker
       - MASTER_HOST=master
       - MASTER_PORT=9090
+      - WORKER_COUNT=${WORKER_COUNT:-1}  # Matches the cluster size
+    cap_add:
+      - NET_ADMIN
     depends_on:
       - master
     stdin_open: true
