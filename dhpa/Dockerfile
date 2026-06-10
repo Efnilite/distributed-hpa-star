@@ -24,9 +24,11 @@ RUN cd dhpa && bash build.sh
 # Runtime stage
 FROM ubuntu:22.04
 
-# Install runtime dependencies (just the C runtime libraries)
+# Install runtime dependencies + networking utilities & math engine
 RUN apt-get update && apt-get install -y \
     libc6 \
+    iproute2 \
+    bc \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -38,6 +40,12 @@ COPY --from=builder /app/data /app/data
 
 # Make executables runnable
 RUN chmod +x /app/master /app/worker
+
+# Copy and set up the wireless network emulation script
+COPY dhpa/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Default command (can be overridden)
 CMD ["/app/master"]
