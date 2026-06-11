@@ -565,6 +565,7 @@ int main(int argc, char const* argv[])
 
         max_memory = get_memory_usage(max_memory);
         printf("Max memory: %f MB\n", max_memory / (1024.0 * 1024.0));
+        printf("Path length: %d\n", arrlen(result));
 
         for (size_t i = 0; i < WORKERS_SIZE; i++)
         {

@@ -147,6 +147,7 @@ Result a(const Map* map, const Vec2 start, const Vec2 goal)
 
             printf("Found overall path - %fs\n", (double)(clock() - begin) / CLOCKS_PER_SEC);
             printf("Max memory: %f MB\n", max_memory / (1024.0 * 1024.0));
+            printf("Path length: %d\n", arrlen(path));
 
             return (Result){NULL, path, true, (double)(clock() - begin) / CLOCKS_PER_SEC, max_memory};
         }

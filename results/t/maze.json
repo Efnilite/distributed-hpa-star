@@ -1,0 +1,458 @@
+{
+  "metadata": {
+    "timestamp": "2026-06-10T23:03:58.782171",
+    "cluster_sizes": [
+      50
+    ],
+    "workers_sizes": [
+      8
+    ],
+    "runs_per_size": 10,
+    "algorithms": [
+      "a",
+      "dhpa"
+    ]
+  },
+  "data": [
+    {
+      "cluster_size": 50,
+      "workers_size": 8,
+      "algorithm": "a",
+      "run": 1,
+      "timings": {
+        "found_overall_path": 0.001415,
+        "max_memory": 4.523438,
+        "path_length": 1997.0
+      }
+    },
+    {
+      "cluster_size": 50,
+      "workers_size": 8,
+      "algorithm": "a",
+      "run": 2,
+      "timings": {
+        "found_overall_path": 0.001606,
+        "max_memory": 4.503906,
+        "path_length": 1997.0
+      }
+    },
+    {
+      "cluster_size": 50,
+      "workers_size": 8,
+      "algorithm": "a",
+      "run": 3,
+      "timings": {
+        "found_overall_path": 0.001291,
+        "max_memory": 4.511719,
+        "path_length": 1997.0
+      }
+    },
+    {
+      "cluster_size": 50,
+      "workers_size": 8,
+      "algorithm": "a",
+      "run": 4,
+      "timings": {
+        "found_overall_path": 0.001395,
+        "max_memory": 4.523438,
+        "path_length": 1997.0
+      }
+    },
+    {
+      "cluster_size": 50,
+      "workers_size": 8,
+      "algorithm": "a",
+      "run": 5,
+      "timings": {
+        "found_overall_path": 0.001297,
+        "max_memory": 4.523438,
+        "path_length": 1997.0
+      }
+    },
+    {
+      "cluster_size": 50,
+      "workers_size": 8,
+      "algorithm": "a",
+      "run": 6,
+      "timings": {
+        "found_overall_path": 0.001336,
+        "max_memory": 4.535156,
+        "path_length": 1997.0
+      }
+    },
+    {
+      "cluster_size": 50,
+      "workers_size": 8,
+      "algorithm": "a",
+      "run": 7,
+      "timings": {
+        "found_overall_path": 0.001349,
+        "max_memory": 4.53125,
+        "path_length": 1997.0
+      }
+    },
+    {
+      "cluster_size": 50,
+      "workers_size": 8,
+      "algorithm": "a",
+      "run": 8,
+      "timings": {
+        "found_overall_path": 0.001268,
+        "max_memory": 4.511719,
+        "path_length": 1997.0
+      }
+    },
+    {
+      "cluster_size": 50,
+      "workers_size": 8,
+      "algorithm": "a",
+      "run": 9,
+      "timings": {
+        "found_overall_path": 0.001444,
+        "max_memory": 4.523438,
+        "path_length": 1997.0
+      }
+    },
+    {
+      "cluster_size": 50,
+      "workers_size": 8,
+      "algorithm": "a",
+      "run": 10,
+      "timings": {
+        "found_overall_path": 0.001771,
+        "max_memory": 4.535156,
+        "path_length": 1997.0
+      }
+    },
+    {
+      "cluster_size": 50,
+      "workers_size": 8,
+      "algorithm": "dhpa",
+      "run": 1,
+      "timings": {
+        "inter_edges": 0.503006,
+        "preprocessed": 74.348023,
+        "finish_abstract_graph": 0.010435,
+        "found_graph_path": 0.000507,
+        "found_overall_path": 0.000898,
+        "max_memory": 4.523438,
+        "path_length": 2037.0,
+        "worker_analysis": {
+          "worker_1_cpu_time": 0.00058,
+          "worker_2_cpu_time": 0.00033,
+          "worker_3_cpu_time": 0.000336,
+          "worker_4_cpu_time": 0.000406,
+          "worker_5_cpu_time": 0.000325,
+          "worker_6_cpu_time": 0.0006,
+          "worker_7_cpu_time": 0.000393,
+          "worker_8_cpu_time": 0.000311,
+          "worker_1_max_memory_mb": 2.351562,
+          "worker_2_max_memory_mb": 2.40625,
+          "worker_3_max_memory_mb": 2.351562,
+          "worker_4_max_memory_mb": 2.328125,
+          "worker_5_max_memory_mb": 2.417969,
+          "worker_6_max_memory_mb": 2.386719,
+          "worker_7_max_memory_mb": 2.359375,
+          "worker_8_max_memory_mb": 2.316406
+        }
+      }
+    },
+    {
+      "cluster_size": 50,
+      "workers_size": 8,
+      "algorithm": "dhpa",
+      "run": 2,
+      "timings": {
+        "inter_edges": 0.497879,
+        "preprocessed": 73.693209,
+        "finish_abstract_graph": 0.010404,
+        "found_graph_path": 0.000495,
+        "found_overall_path": 0.000948,
+        "max_memory": 4.535156,
+        "path_length": 2037.0,
+        "worker_analysis": {
+          "worker_1_cpu_time": 0.000471,
+          "worker_2_cpu_time": 0.000389,
+          "worker_3_cpu_time": 0.000579,
+          "worker_4_cpu_time": 0.000585,
+          "worker_5_cpu_time": 0.000553,
+          "worker_6_cpu_time": 0.000611,
+          "worker_7_cpu_time": 0.000407,
+          "worker_8_cpu_time": 0.00036,
+          "worker_1_max_memory_mb": 2.371094,
+          "worker_2_max_memory_mb": 2.386719,
+          "worker_3_max_memory_mb": 2.328125,
+          "worker_4_max_memory_mb": 2.371094,
+          "worker_5_max_memory_mb": 2.363281,
+          "worker_6_max_memory_mb": 2.402344,
+          "worker_7_max_memory_mb": 2.332031,
+          "worker_8_max_memory_mb": 2.378906
+        }
+      }
+    },
+    {
+      "cluster_size": 50,
+      "workers_size": 8,
+      "algorithm": "dhpa",
+      "run": 3,
+      "timings": {
+        "inter_edges": 0.501911,
+        "preprocessed": 73.534527,
+        "finish_abstract_graph": 0.010278,
+        "found_graph_path": 0.000495,
+        "found_overall_path": 0.000929,
+        "max_memory": 4.519531,
+        "path_length": 2037.0,
+        "worker_analysis": {
+          "worker_1_cpu_time": 0.000457,
+          "worker_2_cpu_time": 0.000391,
+          "worker_3_cpu_time": 0.000398,
+          "worker_4_cpu_time": 0.000371,
+          "worker_5_cpu_time": 0.000384,
+          "worker_6_cpu_time": 0.000436,
+          "worker_7_cpu_time": 0.000382,
+          "worker_8_cpu_time": 0.000278,
+          "worker_1_max_memory_mb": 2.324219,
+          "worker_2_max_memory_mb": 2.371094,
+          "worker_3_max_memory_mb": 2.390625,
+          "worker_4_max_memory_mb": 2.375,
+          "worker_5_max_memory_mb": 2.414062,
+          "worker_6_max_memory_mb": 2.371094,
+          "worker_7_max_memory_mb": 2.394531,
+          "worker_8_max_memory_mb": 2.351562
+        }
+      }
+    },
+    {
+      "cluster_size": 50,
+      "workers_size": 8,
+      "algorithm": "dhpa",
+      "run": 4,
+      "timings": {
+        "inter_edges": 0.499756,
+        "preprocessed": 73.649737,
+        "finish_abstract_graph": 0.010384,
+        "found_graph_path": 0.000543,
+        "found_overall_path": 0.000877,
+        "max_memory": 4.523438,
+        "path_length": 2037.0,
+        "worker_analysis": {
+          "worker_1_cpu_time": 0.000402,
+          "worker_2_cpu_time": 0.000271,
+          "worker_3_cpu_time": 0.000392,
+          "worker_4_cpu_time": 0.000393,
+          "worker_5_cpu_time": 0.00038,
+          "worker_6_cpu_time": 0.000425,
+          "worker_7_cpu_time": 0.000332,
+          "worker_8_cpu_time": 0.000318,
+          "worker_1_max_memory_mb": 2.386719,
+          "worker_2_max_memory_mb": 2.390625,
+          "worker_3_max_memory_mb": 2.386719,
+          "worker_4_max_memory_mb": 2.378906,
+          "worker_5_max_memory_mb": 2.390625,
+          "worker_6_max_memory_mb": 2.34375,
+          "worker_7_max_memory_mb": 2.34375,
+          "worker_8_max_memory_mb": 2.402344
+        }
+      }
+    },
+    {
+      "cluster_size": 50,
+      "workers_size": 8,
+      "algorithm": "dhpa",
+      "run": 5,
+      "timings": {
+        "inter_edges": 0.503077,
+        "preprocessed": 73.768212,
+        "finish_abstract_graph": 0.010329,
+        "found_graph_path": 0.0005,
+        "found_overall_path": 0.00088,
+        "max_memory": 4.53125,
+        "path_length": 2037.0,
+        "worker_analysis": {
+          "worker_1_cpu_time": 0.000408,
+          "worker_2_cpu_time": 0.000341,
+          "worker_3_cpu_time": 0.000337,
+          "worker_4_cpu_time": 0.000468,
+          "worker_5_cpu_time": 0.000327,
+          "worker_6_cpu_time": 0.000471,
+          "worker_7_cpu_time": 0.000377,
+          "worker_8_cpu_time": 0.000331,
+          "worker_1_max_memory_mb": 2.394531,
+          "worker_2_max_memory_mb": 2.324219,
+          "worker_3_max_memory_mb": 2.363281,
+          "worker_4_max_memory_mb": 2.367188,
+          "worker_5_max_memory_mb": 2.386719,
+          "worker_6_max_memory_mb": 2.410156,
+          "worker_7_max_memory_mb": 2.34375,
+          "worker_8_max_memory_mb": 2.410156
+        }
+      }
+    },
+    {
+      "cluster_size": 50,
+      "workers_size": 8,
+      "algorithm": "dhpa",
+      "run": 6,
+      "timings": {
+        "inter_edges": 0.501561,
+        "preprocessed": 73.952891,
+        "finish_abstract_graph": 0.010469,
+        "found_graph_path": 0.000502,
+        "found_overall_path": 0.000854,
+        "max_memory": 4.457031,
+        "path_length": 2037.0,
+        "worker_analysis": {
+          "worker_1_cpu_time": 0.000366,
+          "worker_2_cpu_time": 0.000413,
+          "worker_3_cpu_time": 0.000398,
+          "worker_4_cpu_time": 0.000566,
+          "worker_5_cpu_time": 0.000552,
+          "worker_6_cpu_time": 0.000581,
+          "worker_7_cpu_time": 0.000575,
+          "worker_8_cpu_time": 0.000314,
+          "worker_1_max_memory_mb": 2.382812,
+          "worker_2_max_memory_mb": 2.394531,
+          "worker_3_max_memory_mb": 2.320312,
+          "worker_4_max_memory_mb": 2.324219,
+          "worker_5_max_memory_mb": 2.335938,
+          "worker_6_max_memory_mb": 2.335938,
+          "worker_7_max_memory_mb": 2.359375,
+          "worker_8_max_memory_mb": 2.40625
+        }
+      }
+    },
+    {
+      "cluster_size": 50,
+      "workers_size": 8,
+      "algorithm": "dhpa",
+      "run": 7,
+      "timings": {
+        "inter_edges": 0.50159,
+        "preprocessed": 73.628154,
+        "finish_abstract_graph": 0.010313,
+        "found_graph_path": 0.000505,
+        "found_overall_path": 0.000837,
+        "max_memory": 4.527344,
+        "path_length": 2037.0,
+        "worker_analysis": {
+          "worker_1_cpu_time": 0.000568,
+          "worker_2_cpu_time": 0.000336,
+          "worker_3_cpu_time": 0.00047,
+          "worker_4_cpu_time": 0.000323,
+          "worker_5_cpu_time": 0.000571,
+          "worker_6_cpu_time": 0.000607,
+          "worker_7_cpu_time": 0.000573,
+          "worker_8_cpu_time": 0.000311,
+          "worker_1_max_memory_mb": 2.378906,
+          "worker_2_max_memory_mb": 2.335938,
+          "worker_3_max_memory_mb": 2.351562,
+          "worker_4_max_memory_mb": 2.347656,
+          "worker_5_max_memory_mb": 2.332031,
+          "worker_6_max_memory_mb": 2.386719,
+          "worker_7_max_memory_mb": 2.375,
+          "worker_8_max_memory_mb": 2.324219
+        }
+      }
+    },
+    {
+      "cluster_size": 50,
+      "workers_size": 8,
+      "algorithm": "dhpa",
+      "run": 8,
+      "timings": {
+        "inter_edges": 0.500166,
+        "preprocessed": 74.000523,
+        "finish_abstract_graph": 0.010472,
+        "found_graph_path": 0.000507,
+        "found_overall_path": 0.000846,
+        "max_memory": 4.527344,
+        "path_length": 2037.0,
+        "worker_analysis": {
+          "worker_1_cpu_time": 0.000589,
+          "worker_2_cpu_time": 0.000264,
+          "worker_3_cpu_time": 0.000553,
+          "worker_4_cpu_time": 0.000419,
+          "worker_5_cpu_time": 0.000468,
+          "worker_6_cpu_time": 0.000421,
+          "worker_7_cpu_time": 0.000582,
+          "worker_8_cpu_time": 0.00043,
+          "worker_1_max_memory_mb": 2.332031,
+          "worker_2_max_memory_mb": 2.371094,
+          "worker_3_max_memory_mb": 2.410156,
+          "worker_4_max_memory_mb": 2.367188,
+          "worker_5_max_memory_mb": 2.324219,
+          "worker_6_max_memory_mb": 2.316406,
+          "worker_7_max_memory_mb": 2.3125,
+          "worker_8_max_memory_mb": 2.414062
+        }
+      }
+    },
+    {
+      "cluster_size": 50,
+      "workers_size": 8,
+      "algorithm": "dhpa",
+      "run": 9,
+      "timings": {
+        "inter_edges": 0.49776,
+        "preprocessed": 73.875221,
+        "finish_abstract_graph": 0.010391,
+        "found_graph_path": 0.000505,
+        "found_overall_path": 0.000883,
+        "max_memory": 4.480469,
+        "path_length": 2037.0,
+        "worker_analysis": {
+          "worker_1_cpu_time": 0.000398,
+          "worker_2_cpu_time": 0.000355,
+          "worker_3_cpu_time": 0.000446,
+          "worker_4_cpu_time": 0.000451,
+          "worker_5_cpu_time": 0.000535,
+          "worker_6_cpu_time": 0.000343,
+          "worker_7_cpu_time": 0.000522,
+          "worker_8_cpu_time": 0.000264,
+          "worker_1_max_memory_mb": 2.316406,
+          "worker_2_max_memory_mb": 2.363281,
+          "worker_3_max_memory_mb": 2.386719,
+          "worker_4_max_memory_mb": 2.316406,
+          "worker_5_max_memory_mb": 2.34375,
+          "worker_6_max_memory_mb": 2.324219,
+          "worker_7_max_memory_mb": 2.355469,
+          "worker_8_max_memory_mb": 2.398438
+        }
+      }
+    },
+    {
+      "cluster_size": 50,
+      "workers_size": 8,
+      "algorithm": "dhpa",
+      "run": 10,
+      "timings": {
+        "inter_edges": 0.498646,
+        "preprocessed": 73.528421,
+        "finish_abstract_graph": 0.010349,
+        "found_graph_path": 0.000535,
+        "found_overall_path": 0.000939,
+        "max_memory": 4.476562,
+        "path_length": 2037.0,
+        "worker_analysis": {
+          "worker_1_cpu_time": 0.000481,
+          "worker_2_cpu_time": 0.000415,
+          "worker_3_cpu_time": 0.000413,
+          "worker_4_cpu_time": 0.000493,
+          "worker_5_cpu_time": 0.000442,
+          "worker_6_cpu_time": 0.00053,
+          "worker_7_cpu_time": 0.000435,
+          "worker_8_cpu_time": 0.000279,
+          "worker_1_max_memory_mb": 2.347656,
+          "worker_2_max_memory_mb": 2.347656,
+          "worker_3_max_memory_mb": 2.402344,
+          "worker_4_max_memory_mb": 2.347656,
+          "worker_5_max_memory_mb": 2.351562,
+          "worker_6_max_memory_mb": 2.390625,
+          "worker_7_max_memory_mb": 2.414062,
+          "worker_8_max_memory_mb": 2.375
+        }
+      }
+    }
+  ]
+}

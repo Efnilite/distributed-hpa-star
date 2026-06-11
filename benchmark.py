@@ -15,33 +15,10 @@ from datetime import datetime
 import time
 
 # Configuration
-CLUSTER_SIZES = [
-      15,
-      20,
-      25,
-      35,
-      40,
-      45,
-      50,
-      60,
-      70,
-      80,
-      90,
-      100,
-      110,
-      120,
-      130,
-      140,
-      150,
-      160,
-      170,
-      180,
-      190,
-      200
-    ]
-WORKERS_SIZES = [1, 2, 4, 6, 8]
+CLUSTER_SIZES = [50]
+WORKERS_SIZES = [8]
 RUNS_PER_SIZE = 10
-ALGORITHMS = ["dhpa"]
+ALGORITHMS = ["a", "dhpa"]
 BASE_DIR = Path(__file__).parent.resolve()
 CONSTANTS_FILE = BASE_DIR / "common" / "constants.h"
 OUTPUT_FILE = BASE_DIR / "benchmark_results.json"
