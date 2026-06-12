@@ -5,7 +5,7 @@
 N=${WORKER_COUNT:-1}
 
 # k factor: how much channel noise/traffic each worker contributes
-K=0.05
+K=0.2
 
 # Calculate loss percentage: (1 - e^(-K * N)) * 100
 # 'e()' is the built-in exponential function in 'bc -l'

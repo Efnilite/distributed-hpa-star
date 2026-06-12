@@ -16,9 +16,9 @@ import time
 
 # Configuration
 CLUSTER_SIZES = [50]
-WORKERS_SIZES = [8]
-RUNS_PER_SIZE = 10
-ALGORITHMS = ["a", "dhpa"]
+WORKERS_SIZES = [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+RUNS_PER_SIZE = 5
+ALGORITHMS = ["dhpa"]
 BASE_DIR = Path(__file__).parent.resolve()
 CONSTANTS_FILE = BASE_DIR / "common" / "constants.h"
 OUTPUT_FILE = BASE_DIR / "benchmark_results.json"
