@@ -151,14 +151,12 @@ int main(int argc, char const* argv[])
 
     printf("Worker process connected to master at %s:%u\n", master_host, master_port);
 
-    // Worker main loop - receive tasks and send responses
     while (running && tcp_client_is_connected(client))
     {
         ClusterAssignment* ca = NULL;
         TaskRequest* task = NULL;
         int socket_fd = tcp_client_get_socket_fd(client);
 
-        // Wait for cluster assignment from master (only once)
         if (!clusters_initialized)
         {
             if (tcp_recv_cluster_assignment(socket_fd, &ca) < 0)
@@ -178,7 +176,6 @@ int main(int argc, char const* argv[])
             id = ca->worker_id;
             printf("Received cluster assignment: worker_id=%u, count=%u\n", ca->worker_id, ca->count);
 
-            // Initialize clusters from the assignment
             cluster_count = ca->count;
             clusters = (WorkerCluster*)malloc(cluster_count * sizeof(WorkerCluster));
             if (!clusters)
@@ -211,7 +208,6 @@ int main(int argc, char const* argv[])
             clusters_initialized = 1;
         }
 
-        // Wait for task from master
         int recv = tcp_recv_task_request(socket_fd, &task);
         if (recv < 0)
         {
@@ -242,7 +238,6 @@ int main(int argc, char const* argv[])
         Vec2 goal = (Vec2){task->goal_x, task->goal_y};
         Vec2 cluster_pos = global_vec_to_cluster_pos(start);
 
-        // Find the correct cluster for this task
         WorkerCluster* cluster =
             find_cluster_by_position(clusters, cluster_count, (int16_t)cluster_pos.x, (int16_t)cluster_pos.y);
         if (!cluster)
@@ -252,7 +247,7 @@ int main(int argc, char const* argv[])
             TaskResponse response = {.task_id = task->task_id,
                                      .path_length = 0,
                                      .path = NULL,
-                                     .status_code = 2}; // status_code=2 for cluster not found
+                                     .status_code = 2}; //cluster not found
             if (tcp_send_task_response(socket_fd, &response) < 0)
             {
                 fprintf(stderr, "Failed to send error response\n");
@@ -290,7 +285,6 @@ int main(int argc, char const* argv[])
                                  .max_memory_bytes = max_memory,
                                  .cpu_time = (double)(clock() - time) / (double)CLOCKS_PER_SEC};
 
-        // Send response back to master
         if (tcp_send_task_response(socket_fd, &response) < 0)
         {
             fprintf(stderr, "Failed to send task response\n");
@@ -300,7 +294,6 @@ int main(int argc, char const* argv[])
             printf("Sent task response (id=%u, path_length=%u)\n", response.task_id, response.path_length);
         }
 
-        // Cleanup
         if (result)
         {
             arrfree(result);
@@ -308,7 +301,6 @@ int main(int argc, char const* argv[])
         tcp_taskrequest_free(&task);
     }
 
-    // Cleanup
     if (clusters)
     {
         clusters_free(clusters, cluster_count);

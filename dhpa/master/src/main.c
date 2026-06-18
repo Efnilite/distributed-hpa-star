@@ -31,29 +31,26 @@ void signal_handler(int sig)
 
 void divide_clusters(const MapDimensions map, int* clusters_per_worker)
 {
-    // Initialize all workers to 0 clusters
     for (size_t worker = 0; worker < WORKERS_SIZE; worker++)
     {
         clusters_per_worker[worker] = 0;
     }
 
-    // Assign clusters in round-robin fashion
+    // alternatingly assign clusters
     for (size_t cluster_idx = 0; cluster_idx < map.clusters_size; cluster_idx++)
     {
         size_t worker = cluster_idx % WORKERS_SIZE;
         clusters_per_worker[worker]++;
     }
 
-    // Print assignment summary
     for (size_t worker = 0; worker < WORKERS_SIZE; worker++)
     {
-        printf("Worker %ld is getting %d clusters (round-robin distribution)\n", worker, clusters_per_worker[worker]);
+        printf("Worker %ld is getting %d clusters\n", worker, clusters_per_worker[worker]);
     }
 }
 
 void send_cluster_assignments(const MapDimensions map, int* worker_fds, int* clusters_per_worker)
 {
-    // For round-robin distribution, collect clusters for each worker
     typedef struct
     {
         int16_t* positions;
@@ -67,7 +64,7 @@ void send_cluster_assignments(const MapDimensions map, int* worker_fds, int* clu
         worker_clusters[i].count = 0;
     }
 
-    // Assign clusters in round-robin fashion
+    // assign clusters in alternating manner
     for (size_t cluster_idx = 0; cluster_idx < map.clusters_size; cluster_idx++)
     {
         int worker = cluster_idx % WORKERS_SIZE;
@@ -80,7 +77,6 @@ void send_cluster_assignments(const MapDimensions map, int* worker_fds, int* clu
         worker_clusters[worker].count++;
     }
 
-    // Send assignments to each worker
     for (int worker = 0; worker < WORKERS_SIZE; worker++)
     {
         int num_clusters = clusters_per_worker[worker];
@@ -93,7 +89,7 @@ void send_cluster_assignments(const MapDimensions map, int* worker_fds, int* clu
             continue;
         }
 
-        // Pack the data: first 2 bytes = worker_id, next 4 bytes = cluster count, then cluster positions
+        // first 2 bytes = worker_id, next 4 bytes = cluster count, then cluster positions
         uint16_t* worker_id_ptr = (uint16_t*)payload;
         *worker_id_ptr = (uint16_t)worker;
 
@@ -103,27 +99,18 @@ void send_cluster_assignments(const MapDimensions map, int* worker_fds, int* clu
         int16_t* positions = (int16_t*)(payload + sizeof(uint16_t) + sizeof(uint32_t));
         memcpy(positions, worker_clusters[worker].positions, num_clusters * sizeof(int16_t) * 2);
 
-        // Send the message to worker
         if (tcp_send_message(worker_fds[worker], MSG_CLUSTER_ASSIGNMENT, payload, payload_size) < 0)
         {
             fprintf(stderr, "Failed to send cluster assignment to worker %d\n", worker);
         }
         else
         {
-            printf("Sent cluster assignment to worker %d (worker_id=%u): %d clusters\n", worker, (uint16_t)worker,
-                   num_clusters);
-            for (int i = 0; i < num_clusters && i < 5; i++)
-            {
-                printf("  Cluster %d: pos (%d, %d)\n", i, positions[i * 2], positions[i * 2 + 1]);
-            }
-            if (num_clusters > 5)
-                printf("  ... and %d more clusters\n", num_clusters - 5);
+            printf("Sent cluster assignment to worker %d: %d clusters\n", worker, num_clusters);
         }
 
         free(payload);
     }
 
-    // Cleanup
     for (int i = 0; i < WORKERS_SIZE; i++)
     {
         free(worker_clusters[i].positions);
@@ -136,18 +123,18 @@ void send_cluster_assignments(const MapDimensions map, int* worker_fds, int* clu
  */
 typedef struct
 {
-    Vec2 cluster_pos; // cluster grid position
-    Vec2 start_in_cluster; // start coordinates within this cluster
-    Vec2 goal_in_cluster; // goal coordinates within this cluster
+    Vec2 cluster_pos;
+    Vec2 start_in_cluster;
+    Vec2 goal_in_cluster;
 } ClusterPathSegment;
 
 /**
- * Extract clusters from a graph_a path with per-cluster start/goal coordinates
- * @param path The Vec2* path returned by graph_a
+ * Extract clusters from a graph path with per-cluster start/goal coordinates
+ * @param path The path
  * @param path_length The number of waypoints in the path
  * @param global_start The global start position
  * @param global_goal The global goal position
- * @return ClusterPathSegment* array with cluster info and per-cluster start/goal, caller must free with arrfree
+ * @return ClusterPathSegment*
  */
 ClusterPathSegment* extract_clusters_from_path(const Vec2* path, size_t path_length, Vec2 global_start,
                                                Vec2 global_goal)
@@ -159,14 +146,12 @@ ClusterPathSegment* extract_clusters_from_path(const Vec2* path, size_t path_len
         return NULL;
     }
 
-    // Group waypoints by cluster
     for (size_t i = 0; i < path_length; i++)
     {
         int16_t cluster_x = (int16_t)(path[i].x / CLUSTER_SIZE);
         int16_t cluster_y = (int16_t)(path[i].y / CLUSTER_SIZE);
         Vec2 cluster_pos = (Vec2){cluster_x, cluster_y};
 
-        // Check if this cluster is already in our list
         int found = -1;
         for (size_t j = 0; j < arrlen(segments); j++)
         {
@@ -179,29 +164,24 @@ ClusterPathSegment* extract_clusters_from_path(const Vec2* path, size_t path_len
 
         if (found == -1)
         {
-            // New cluster - initialize segment
             ClusterPathSegment seg = {
                 .cluster_pos = cluster_pos, .start_in_cluster = path[i], .goal_in_cluster = path[i]};
             arrput(segments, seg);
         }
         else
         {
-            // Update goal for existing cluster
             segments[found].goal_in_cluster = path[i];
         }
     }
 
-    // Adjust start/goal to use global start/goal where appropriate
     if (arrlen(segments) > 0)
     {
-        // First cluster uses global start if it's in that cluster
         if ((int16_t)(global_start.x / CLUSTER_SIZE) == segments[0].cluster_pos.x &&
             (int16_t)(global_start.y / CLUSTER_SIZE) == segments[0].cluster_pos.y)
         {
             segments[0].start_in_cluster = global_start;
         }
 
-        // Last cluster uses global goal if it's in that cluster
         size_t last = arrlen(segments) - 1;
         if ((int16_t)(global_goal.x / CLUSTER_SIZE) == segments[last].cluster_pos.x &&
             (int16_t)(global_goal.y / CLUSTER_SIZE) == segments[last].cluster_pos.y)
@@ -214,28 +194,24 @@ ClusterPathSegment* extract_clusters_from_path(const Vec2* path, size_t path_len
 }
 
 /**
- * Determine which worker owns a given cluster based on cluster grid position
- * Uses round-robin distribution where worker = cluster_idx % WORKERS_SIZE
+ * Gets the worker that owns a given cluster based on cluster grid position
  * @param cluster_pos The cluster grid position
  * @param map The map to calculate total clusters
  * @return The worker index that owns this cluster
  */
 int get_worker_for_cluster(Vec2 cluster_pos, const MapDimensions map)
 {
-    // Convert cluster grid position to linear index
     size_t cluster_idx = (size_t)cluster_pos.y * map.clusters_w + (size_t)cluster_pos.x;
-
-    // With round-robin, worker is simply cluster_idx % WORKERS_SIZE
     return cluster_idx % WORKERS_SIZE;
 }
 
 /**
- * Send pathfinding packets for clusters found in a graph_a path to the correct workers
+ * Send pathfinding packets for clusters found in a graph path to the correct workers
  * @param worker_fds Array of worker file descriptors
  * @param workers_count Number of workers
  * @param map The map for cluster calculations
  * @param clusters_per_worker Array of cluster counts per worker
- * @param graph_path The path returned by graph_a
+ * @param graph_path The path
  * @param path_length Number of waypoints in the path
  * @param global_start The global start position
  * @param global_goal The global goal position
@@ -251,7 +227,6 @@ uint32_t send_cluster_pathfinding_packets(int* worker_fds, int workers_count, co
         return 0;
     }
 
-    // Extract unique clusters from the path with per-cluster start/goal
     ClusterPathSegment* segments = extract_clusters_from_path(graph_path, path_length, global_start, global_goal);
 
     if (!segments || arrlen(segments) == 0)
@@ -263,9 +238,8 @@ uint32_t send_cluster_pathfinding_packets(int* worker_fds, int workers_count, co
     }
 
     printf("Extracted %ld clusters from graph_a path\n", arrlen(segments));
-    printf("Sending cluster pathfinding packets to correct workers...\n");
+    printf("Sending cluster pathfinding packets to correct workers\n");
 
-    // Send a task request to the correct worker for each cluster
     uint32_t task_id = 1;
     for (size_t i = 0; i < arrlen(segments); i++)
     {
@@ -273,7 +247,7 @@ uint32_t send_cluster_pathfinding_packets(int* worker_fds, int workers_count, co
 
         if (worker < 0 || worker >= workers_count)
         {
-            fprintf(stderr, "ERROR: No worker assigned to cluster (%d, %d)\n", segments[i].cluster_pos.x,
+            fprintf(stderr, "No worker assigned to cluster (%d, %d)\n", segments[i].cluster_pos.x,
                     segments[i].cluster_pos.y);
             continue;
         }
@@ -293,7 +267,7 @@ uint32_t send_cluster_pathfinding_packets(int* worker_fds, int workers_count, co
             continue;
         }
 
-        printf("  Sent task %u to worker %d for cluster (%d, %d) start=(%d, %d) goal=(%d, %d)\n", task.task_id, worker,
+        printf("Sent task %u to worker %d for cluster (%d, %d) start=(%d, %d) goal=(%d, %d)\n", task.task_id, worker,
                segments[i].cluster_pos.x, segments[i].cluster_pos.y, task.start_x, task.start_y, task.goal_x,
                task.goal_y);
     }
@@ -327,7 +301,6 @@ int main(int argc, char const* argv[])
         port = (uint16_t)atoi(port_str);
     }
 
-    // Create TCP server
     tcp_server* server = tcp_server_create(host, port, 10);
     if (!server)
     {
@@ -335,7 +308,7 @@ int main(int argc, char const* argv[])
         return 1;
     }
 
-    // Store worker connections
+    // store worker connections
     int* worker_fds = NULL;
 
     Graph* graph = NULL;
@@ -362,10 +335,8 @@ int main(int argc, char const* argv[])
     long max_memory = 0;
     max_memory = get_memory_usage(max_memory);
 
-    // Accept worker connections until we reach WORKERS_SIZE
     while (running && arrlen(worker_fds) < WORKERS_SIZE)
     {
-        // Accept worker connection
         int client_fd = tcp_server_accept(server);
         if (client_fd < 0)
         {
@@ -381,12 +352,8 @@ int main(int argc, char const* argv[])
 
         if (arrlen(worker_fds) == WORKERS_SIZE)
         {
-            printf("All %d workers connected. Running divide_clusters...\n", WORKERS_SIZE);
-
-            // Calculate cluster distribution
+            printf("All %d workers connected\n", WORKERS_SIZE);
             divide_clusters(dimensions, clusters_per_worker);
-
-            // Send cluster assignments to all workers
             send_cluster_assignments(dimensions, worker_fds, clusters_per_worker);
             break;
         }
@@ -396,19 +363,12 @@ int main(int argc, char const* argv[])
 
     max_memory = get_memory_usage(max_memory);
 
-    // Close server from accepting more connections
     tcp_server_destroy(&server);
     max_memory = get_memory_usage(max_memory);
     clock_t time = clock();
 
-    // Main worker communication loop
-    printf("Master entering main communication loop with %d workers\n", (int)arrlen(worker_fds));
-
-    printf("\nStarting pathfinding with graph_a...\n");
-
     printf("Computing graph-level path from (%d, %d) to (%d, %d)\n", start.x, start.y, goal.x, goal.y);
 
-    // Call graph_a to find graph path
     Vec2* graph_path = graph_a(&dimensions, graph, start, goal);
 
     if (graph_path != NULL)
@@ -417,37 +377,25 @@ int main(int argc, char const* argv[])
         printf("Found graph path - %fs\n", (double)(clock() - time) / CLOCKS_PER_SEC);
         time = clock();
 
-        for (size_t i = 0; i < arrlen(graph_path) && i < 5; i++)
-        {
-            printf("  Waypoint %ld: (%d, %d)\n", i, graph_path[i].x, graph_path[i].y);
-        }
-        if (arrlen(graph_path) > 5)
-            printf("  ... and %ld more waypoints\n", arrlen(graph_path) - 5);
-
-        // Send pathfinding packets for all clusters found by graph_a to the correct workers
         uint32_t packets_sent = send_cluster_pathfinding_packets(
             worker_fds, WORKERS_SIZE, dimensions, clusters_per_worker, graph_path, arrlen(graph_path), start, goal);
         max_memory = get_memory_usage(max_memory);
 
         arrfree(graph_path);
 
-        // Receive responses from all workers using select()
-        printf("\nWaiting for responses from all workers...\n");
+        printf("Waiting for responses from all workers\n");
         printf("Expecting %u responses\n", packets_sent);
 
         uint32_t responses_received = 0;
         fd_set read_fds;
         int max_fd = -1;
 
-        // Find max fd for select
         for (int i = 0; i < arrlen(worker_fds); i++)
         {
             if (worker_fds[i] > max_fd)
                 max_fd = worker_fds[i];
         }
 
-        // Use a map to store responses by task_id to handle out-of-order packets
-        // Key: task_id, Value: TaskResponse*
         typedef struct
         {
             uint32_t task_id;
@@ -456,7 +404,6 @@ int main(int argc, char const* argv[])
 
         TaskResponseEntry* responses_map = NULL;
 
-        // Keep receiving until we get all responses
         while (responses_received < packets_sent)
         {
             FD_ZERO(&read_fds);
@@ -476,11 +423,10 @@ int main(int argc, char const* argv[])
             }
             else if (select_result == 0)
             {
-                printf("Timeout waiting for responses. Received %u/%u responses.\n", responses_received, packets_sent);
+                printf("Timeout waiting for responses: received %u/%u.\n", responses_received, packets_sent);
                 break;
             }
 
-            // Check which sockets have data ready
             for (int i = 0; i < arrlen(worker_fds); i++)
             {
                 if (worker_fds[i] >= 0 && FD_ISSET(worker_fds[i], &read_fds))
@@ -499,19 +445,6 @@ int main(int argc, char const* argv[])
                            responses_received, packets_sent, i, response->task_id, response->path_length,
                            response->status_code);
 
-                    if (response->path_length > 0 && response->path)
-                    {
-                        printf("  Path waypoints: ");
-                        for (uint32_t j = 0; j < response->path_length && j < 5; j++)
-                        {
-                            printf("(%d, %d) ", response->path[j].x, response->path[j].y);
-                        }
-                        if (response->path_length > 5)
-                            printf("... and %u more", response->path_length - 5);
-                        printf("\n");
-                    }
-
-                    // Store response by task_id for later ordering
                     TaskResponseEntry entry = {.task_id = response->task_id, .response = response};
                     arrput(responses_map, entry);
                     max_memory = get_memory_usage(max_memory);
@@ -521,7 +454,6 @@ int main(int argc, char const* argv[])
 
         printf("Finished receiving responses. Total: %u/%u\n", responses_received, packets_sent);
 
-        // Compile final path by processing responses in task_id order
         Vec2* result = NULL;
         max_memory = get_memory_usage(max_memory);
         WorkerResult* workers = malloc(WORKERS_SIZE * sizeof(WorkerResult));
@@ -532,9 +464,7 @@ int main(int argc, char const* argv[])
                 .max_memory_bytes = 0
             };
         }
-        
 
-        // Sort responses by task_id if not already in order
         for (uint32_t task_id = 1; task_id <= packets_sent; task_id++)
         {
             for (size_t i = 0; i < arrlen(responses_map); i++)
@@ -584,7 +514,6 @@ int main(int argc, char const* argv[])
 
         free(workers);
 
-        // Cleanup responses
         for (size_t i = 0; i < arrlen(responses_map); i++)
         {
             tcp_taskresponse_free(&responses_map[i].response);
@@ -597,8 +526,6 @@ int main(int argc, char const* argv[])
         printf("graph_a returned no path\n");
     }
 
-
-    // Cleanup: close all worker connections
     for (int i = 0; i < arrlen(worker_fds); i++)
     {
         tcp_send_shutdown(worker_fds[i]);
